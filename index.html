@@ -275,7 +275,8 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs, getDoc, setDoc, query, orderBy, limit, onSnapshot, where } 
         from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } 
+        // 💡 CAMBIO APLICADO: Importamos setPersistence y browserSessionPersistence
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserSessionPersistence } 
         from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -291,6 +292,12 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+
+        // 🔒 CAMBIO APLICADO: Forzar cierre de sesión al cerrar la pestaña
+        setPersistence(auth, browserSessionPersistence)
+            .catch((error) => {
+                console.error("Error al configurar persistencia:", error);
+            });
 
         // Variables Globales
         let currentUser = null;
