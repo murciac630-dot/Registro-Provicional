@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS Web - Sistema de Ventas</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body { background-color: #f8fafc; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="text-slate-800 antialiased p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- COLUMNA IZQUIERDA: FORMULARIO DE REGISTRO -->
+        <div class="lg:col-span-2 space-y-6">
+            
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i data-lucide="shopping-cart" class="w-6 h-6 text-blue-600"></i>
+                    Nueva Venta
+                </h2>
+
+                <!-- 1. Datos Generales -->
+                <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-600 mb-1">Cliente</label>
+                        <input type="text" id="cliente" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Nombre del cliente">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-600 mb-1">Fecha</label>
+                        <input type="date" id="fecha" class="w-full p-2 border border-slate-300 rounded-lg outline-none bg-slate-50 cursor-not-allowed" readonly>
+                    </div>
+                </div>
+
+                <!-- 2. Productos -->
+                <div class="mb-6">
+                    <h3 class="text-md font-semibold text-slate-700 mb-2 border-b pb-2">1. Productos / Conceptos</h3>
+                    <div id="productos-container" class="space-y-3">
+                        <!-- Las filas de productos se inyectan aquí con JS -->
+                    </div>
+                    <button onclick="agregarFilaProducto()" class="mt-3 text-sm text-blue-600 font-semibold hover:text-blue-800 flex items-center gap-1 transition-colors">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i> Agregar otro producto
+                    </button>
+                </div>
+
+                <!-- 3. Logística y Entrega -->
+                <div class="mb-6 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                    <h3 class="text-md font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                        <i data-lucide="truck" class="w-5 h-5 text-indigo-500"></i> Logística de Entrega
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm text-slate-600 mb-1">Medio de Entrega</label>
+                            <select id="medio-entrega" onchange="manejarCambioEntrega()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <option value="">Seleccionar...</option>
+                                <option value="Recoge">Recoge en Punto</option>
+                                <option value="Domi">Domicilio (Domi)</option>
+                            </select>
+                        </div>
+                        <!-- Campos Ocultos por defecto -->
+                        <div id="div-encargado" class="hidden">
+                            <label class="block text-sm text-slate-600 mb-1">Encargado</label>
+                            <select id="encargado-domi" class="w-full p-2 border border-slate-300 rounded-lg outline-none">
+                                <option value="">Seleccionar...</option>
+                                <option value="JF">JF</option>
+                                <option value="Cris">Cris</option>
+                                <option value="Valentino Rossi">Valentino Rossi</option>
+                                <option value="Mono">Mono</option>
+                                <option value="David">David</option>
+                                <option value="Delivery App">Delivery App</option>
+                            </select>
+                        </div>
+                        <div id="div-costo-envio" class="hidden">
+                            <label class="block text-sm text-slate-600 mb-1">Costo Envío ($)</label>
+                            <input type="number" id="costo-envio" oninput="calcularTotales()" value="0" class="w-full p-2 border border-slate-300 rounded-lg outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Medios de Pago -->
+                <div class="mb-6">
+                    <h3 class="text-md font-semibold text-slate-700 mb-2 border-b pb-2 flex items-center gap-2">
+                        <i data-lucide="wallet" class="w-5 h-5 text-emerald-500"></i> 2. Pagos
+                    </h3>
+                    <div id="pagos-container" class="space-y-3">
+                        <!-- Las filas de pagos se inyectan aquí -->
+                    </div>
+                    <button onclick="agregarFilaPago()" class="mt-3 text-sm text-emerald-600 font-semibold hover:text-emerald-800 flex items-center gap-1 transition-colors">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i> Agregar otro método de pago
+                    </button>
+                </div>
+
+                <!-- 5. Totales y Validación -->
+                <div class="bg-slate-800 text-white p-5 rounded-lg flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="flex gap-6">
+                        <div>
+                            <span class="block text-slate-400 text-xs uppercase tracking-wider">Total a Cobrar</span>
+                            <span id="txt-total-cobrar" class="text-xl font-bold text-yellow-400">$ 0</span>
+                        </div>
+                        <div>
+                            <span class="block text-slate-400 text-xs uppercase tracking-wider">Total Pagado</span>
+                            <span id="txt-total-pagado" class="text-xl font-bold text-emerald-400">$ 0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-4 w-full md:w-auto">
+                        <div id="alerta-descuadre" class="text-red-400 text-sm font-semibold hidden animate-pulse">
+                            ¡Descuadre: <span id="txt-descuadre">$0</span>!
+                        </div>
+                        <button id="btn-guardar" onclick="guardarVenta()" disabled class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg font-bold transition-all shadow-md flex items-center justify-center gap-2">
+                            <i data-lucide="save" class="w-5 h-5"></i> Guardar Venta
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMNA DERECHA: AUDITORÍA Y REGISTROS -->
+        <div class="space-y-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="history" class="w-5 h-5 text-slate-500"></i> Últimas 5 Ventas
+                    </h2>
+                    <span id="status-db" class="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full font-semibold">Local (Prueba)</span>
+                </div>
+                
+                <div id="lista-ventas" class="space-y-3 mb-6">
+                    <!-- Registros recientes -->
+                    <p class="text-sm text-slate-500 text-center py-4">No hay ventas registradas aún.</p>
+                </div>
+
+                <hr class="my-4 border-slate-200">
+
+                <h3 class="text-md font-semibold text-slate-700 mb-2">Auditoría y Reportes</h3>
+                <p class="text-xs text-slate-500 mb-4">Descarga la base de datos en formato aplanado para analizar en Excel o Google Sheets.</p>
+                
+                <button onclick="exportarCSV()" class="w-full bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg font-semibold transition-all shadow-md flex items-center justify-center gap-2">
+                    <i data-lucide="download-cloud" class="w-5 h-5"></i> Descargar CSV
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Módulo Lógico -->
+    <script type="module">
+        // ==========================================
+        // 1. CONFIGURACIÓN DE FIREBASE (¡TU TAREA!)
+        // ==========================================
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, onSnapshot } 
+        from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ⚠️ PEGA AQUÍ TUS CREDENCIALES DE FIREBASE CUANDO ESTÉS LISTO
+        const firebaseConfig = {
+            apiKey: "",
+            authDomain: "",
+            projectId: "",
+            storageBucket: "",
+            messagingSenderId: "",
+            appId: ""
+        };
+
+        // Lógica de Conexión Segura (Detecta si pusiste datos o es modo prueba)
+        let db = null;
+        let isFirebaseActive = false;
+
+        if (firebaseConfig.projectId !== "") {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                isFirebaseActive = true;
+                document.getElementById('status-db').textContent = "Firebase Activo";
+                document.getElementById('status-db').className = "text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full font-semibold";
+                cargarVentasFirebase();
+            } catch (e) {
+                console.error("Error al conectar Firebase:", e);
+            }
+        } else {
+            cargarVentasLocales(); // Modo fallback para que pruebes el UI ahora
+        }
+
+
+        // ==========================================
+        // 2. ESTADO DE LA APLICACIÓN (UI)
+        // ==========================================
+        let contadorProductos = 0;
+        let contadorPagos = 0;
+
+        // Inicialización de la interfaz
+        window.onload = () => {
+            lucide.createIcons();
+            // Fecha actual por defecto
+            document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+            agregarFilaProducto();
+            agregarFilaPago();
+        };
+
+        // Formato de Moneda COP
+        const formatoMoneda = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
+
+
+        // ==========================================
+        // 3. LÓGICA DE INTERFAZ (DOM DINÁMICO)
+        // ==========================================
+        
+        window.agregarFilaProducto = () => {
+            contadorProductos++;
+            const id = contadorProductos;
+            const html = `
+                <div id="prod-${id}" class="flex gap-2 items-center fade-in bg-slate-50 p-2 rounded border border-slate-100">
+                    <input type="text" class="input-prod w-1/2 p-2 border border-slate-300 rounded outline-none text-sm" placeholder="Concepto (Ej: MP)">
+                    <input type="number" class="input-cant w-1/4 p-2 border border-slate-300 rounded outline-none text-sm" placeholder="Cant." value="1" oninput="calcularTotales()">
+                    <input type="number" class="input-val w-1/4 p-2 border border-slate-300 rounded outline-none text-sm" placeholder="Valor Unit." oninput="calcularTotales()">
+                    ${id > 1 ? `<button onclick="eliminarFila('prod-${id}')" class="text-red-500 hover:text-red-700 p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : '<div class="w-8"></div>'}
+                </div>
+            `;
+            document.getElementById('productos-container').insertAdjacentHTML('beforeend', html);
+            lucide.createIcons();
+        };
+
+        window.agregarFilaPago = () => {
+            contadorPagos++;
+            const id = contadorPagos;
+            const html = `
+                <div id="pago-${id}" class="flex gap-2 items-center fade-in bg-slate-50 p-2 rounded border border-slate-100">
+                    <select class="input-metodo w-1/3 p-2 border border-slate-300 rounded outline-none text-sm">
+                        <option value="">Medio...</option>
+                        <option value="Transferencia">Transferencia</option>
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Credito">Crédito</option>
+                        <option value="Cruce">Cruce</option>
+                        <option value="Bold">Bold</option>
+                    </select>
+                    <select class="input-cuenta w-1/3 p-2 border border-slate-300 rounded outline-none text-sm">
+                        <option value="">Cuenta/Caja...</option>
+                        <option value="Cris">Cris</option>
+                        <option value="Jhon">Jhon</option>
+                        <option value="Bodega">Bodega</option>
+                        <option value="Hades">Hades</option>
+                    </select>
+                    <input type="number" class="input-monto w-1/3 p-2 border border-slate-300 rounded outline-none text-sm" placeholder="Monto $" oninput="calcularTotales()">
+                    ${id > 1 ? `<button onclick="eliminarFila('pago-${id}')" class="text-red-500 hover:text-red-700 p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : '<div class="w-8"></div>'}
+                </div>
+            `;
+            document.getElementById('pagos-container').insertAdjacentHTML('beforeend', html);
+            lucide.createIcons();
+        };
+
+        window.eliminarFila = (id) => {
+            document.getElementById(id).remove();
+            calcularTotales();
+        };
+
+        window.manejarCambioEntrega = () => {
+            const medio = document.getElementById('medio-entrega').value;
+            const divEncargado = document.getElementById('div-encargado');
+            const divCosto = document.getElementById('div-costo-envio');
+            const inputCosto = document.getElementById('costo-envio');
+
+            if (medio === 'Domi') {
+                divEncargado.classList.remove('hidden');
+                divCosto.classList.remove('hidden');
+            } else {
+                divEncargado.classList.add('hidden');
+                divCosto.classList.add('hidden');
+                document.getElementById('encargado-domi').value = "";
+                inputCosto.value = "0";
+            }
+            calcularTotales();
+        };
+
+        // ==========================================
+        // 4. MOTOR MATEMÁTICO Y SEGURIDAD DE CAJA
+        // ==========================================
+        window.calcularTotales = () => {
+            let totalProductos = 0;
+            let totalPagado = 0;
+
+            // Sumar Productos
+            const filasProd = document.querySelectorAll('#productos-container > div');
+            filasProd.forEach(fila => {
+                const cant = parseFloat(fila.querySelector('.input-cant').value) || 0;
+                const val = parseFloat(fila.querySelector('.input-val').value) || 0;
+                totalProductos += (cant * val);
+            });
+
+            // Sumar Envío
+            const costoEnvio = parseFloat(document.getElementById('costo-envio').value) || 0;
+            const totalCobrar = totalProductos + costoEnvio;
+
+            // Sumar Pagos
+            const filasPago = document.querySelectorAll('#pagos-container > div');
+            filasPago.forEach(fila => {
+                const monto = parseFloat(fila.querySelector('.input-monto').value) || 0;
+                totalPagado += monto;
+            });
+
+            // Actualizar UI
+            document.getElementById('txt-total-cobrar').textContent = formatoMoneda.format(totalCobrar);
+            document.getElementById('txt-total-pagado').textContent = formatoMoneda.format(totalPagado);
+
+            // Validar Cuadre (Lógica de Negocio)
+            const btnGuardar = document.getElementById('btn-guardar');
+            const alerta = document.getElementById('alerta-descuadre');
+            const txtDescuadre = document.getElementById('txt-descuadre');
+
+            if (totalCobrar > 0 && totalCobrar === totalPagado) {
+                btnGuardar.disabled = false;
+                alerta.classList.add('hidden');
+            } else {
+                btnGuardar.disabled = true;
+                if (totalCobrar > 0) {
+                    alerta.classList.remove('hidden');
+                    const diferencia = totalCobrar - totalPagado;
+                    txtDescuadre.textContent = formatoMoneda.format(diferencia);
+                }
+            }
+        };
+
+
+        // ==========================================
+        // 5. GUARDAR Y LEER DATOS (FIREBASE / LOCAL)
+        // ==========================================
+        window.guardarVenta = async () => {
+            const cliente = document.getElementById('cliente').value.trim();
+            if (!cliente) return alert("Por favor ingresa el nombre del cliente.");
+
+            // Recolectar Datos de Productos
+            const productos = [];
+            document.querySelectorAll('#productos-container > div').forEach(fila => {
+                const concepto = fila.querySelector('.input-prod').value.trim();
+                const cantidad = parseFloat(fila.querySelector('.input-cant').value) || 0;
+                const valor = parseFloat(fila.querySelector('.input-val').value) || 0;
+                if (concepto && cantidad > 0 && valor > 0) {
+                    productos.push({ concepto, cantidad, valorUnitario: valor, total: cantidad * valor });
+                }
+            });
+
+            // Recolectar Logística
+            const medioEntrega = document.getElementById('medio-entrega').value;
+            const entrega = {
+                medio: medioEntrega || "No especificado",
+                encargado: medioEntrega === 'Domi' ? document.getElementById('encargado-domi').value : "N/A",
+                costo: medioEntrega === 'Domi' ? parseFloat(document.getElementById('costo-envio').value) || 0 : 0
+            };
+
+            // Recolectar Pagos
+            const pagos = [];
+            let totalVenta = 0;
+            document.querySelectorAll('#pagos-container > div').forEach(fila => {
+                const metodo = fila.querySelector('.input-metodo').value;
+                const cuenta = fila.querySelector('.input-cuenta').value;
+                const monto = parseFloat(fila.querySelector('.input-monto').value) || 0;
+                if (metodo && cuenta && monto > 0) {
+                    pagos.push({ metodo, cuenta, monto });
+                    totalVenta += monto;
+                }
+            });
+
+            if (pagos.length === 0 || productos.length === 0) return alert("Debes completar los campos correctamente.");
+
+            const registroDocumento = {
+                fecha: new Date().toISOString(),
+                cliente,
+                productos,
+                entrega,
+                pagos,
+                totalVenta,
+                timestamp: Date.now() // Útil para ordenar
+            };
+
+            try {
+                document.getElementById('btn-guardar').innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Guardando...';
+                
+                if (isFirebaseActive) {
+                    // Guardar en Firestore
+                    await addDoc(collection(db, "ventas"), registroDocumento);
+                } else {
+                    // Fallback: Guardar en LocalStorage
+                    const ventasLocales = JSON.parse(localStorage.getItem('ventasPOS')) || [];
+                    ventasLocales.push(registroDocumento);
+                    localStorage.setItem('ventasPOS', JSON.stringify(ventasLocales));
+                    cargarVentasLocales(); // Actualizar UI
+                }
+
+                // Resetear Formulario
+                alert("✅ Venta registrada correctamente");
+                window.location.reload(); 
+            } catch (error) {
+                console.error("Error al guardar:", error);
+                alert("Error al guardar la venta.");
+                document.getElementById('btn-guardar').innerHTML = '<i data-lucide="save" class="w-5 h-5"></i> Guardar Venta';
+                lucide.createIcons();
+            }
+        };
+
+        // Renderizar Ventas en Pantalla
+        function renderizarListaVentas(ventas) {
+            const contenedor = document.getElementById('lista-ventas');
+            if (ventas.length === 0) {
+                contenedor.innerHTML = '<p class="text-sm text-slate-500 dark:text-slate-400 text-center py-4">No hay ventas registradas.</p>';
+                return;
+            }
+
+            contenedor.innerHTML = '';
+            ventas.forEach(v => {
+                const date = new Date(v.fecha).toLocaleDateString('es-CO');
+                const html = `
+                    <div class="bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg border border-slate-200 dark:border-slate-600 flex justify-between items-center transition-colors">
+                        <div>
+                            <p class="font-bold text-slate-800 dark:text-slate-100 text-sm">${v.cliente}</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">${date} • ${v.productos.length} ítems</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold text-emerald-600 dark:text-emerald-400 text-sm">${formatoMoneda.format(v.totalVenta)}</p>
+                            <p class="text-[10px] text-slate-400 dark:text-slate-500 uppercase">${v.entrega.medio}</p>
+                        </div>
+                    </div>
+                `;
+                contenedor.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        // Listener de Firebase
+        function cargarVentasFirebase() {
+            const q = query(collection(db, "ventas"), orderBy("timestamp", "desc"), limit(5));
+            onSnapshot(q, (snapshot) => {
+                const ventas = [];
+                snapshot.forEach((doc) => ventas.push(doc.data()));
+                renderizarListaVentas(ventas);
+            });
+        }
+
+        // Cargar desde Local (Fallback)
+        function cargarVentasLocales() {
+            const ventas = JSON.parse(localStorage.getItem('ventasPOS')) || [];
+            // Ordenar por fecha descendente y tomar las últimas 5
+            ventas.sort((a, b) => b.timestamp - a.timestamp);
+            renderizarListaVentas(ventas.slice(0, 5));
+        }
+
+
+        // ==========================================
+        // 6. MOTOR DE AUDITORÍA (EXPORTACIÓN A CSV)
+        // ==========================================
+        window.exportarCSV = async () => {
+            let ventas = [];
+            
+            if (isFirebaseActive) {
+                const querySnapshot = await getDocs(collection(db, "ventas"));
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    data.idVenta = doc.id; // Asignar el ID de Firestore
+                    ventas.push(data);
+                });
+            } else {
+                ventas = JSON.parse(localStorage.getItem('ventasPOS')) || [];
+                ventas.forEach((v, i) => v.idVenta = `LOCAL-${i+1}`);
+            }
+
+            if (ventas.length === 0) return alert("No hay datos para exportar.");
+
+            // Lógica de "Aplanamiento" (Flattening) para Excel
+            // Transformamos 1 documento JSON en múltiples filas (Asiento Contable)
+            let csvContent = "ID_Venta,Fecha,Cliente,Tipo_Registro,Concepto/Cuenta,Cantidad,Valor_Unitario,Total_Movimiento\n";
+
+            ventas.forEach(v => {
+                const fecha = new Date(v.fecha).toLocaleDateString('es-CO');
+                const cliente = v.cliente.replace(/,/g, ''); // Limpiar comas para CSV
+
+                // 1. Filas de Productos (Suman al valor)
+                v.productos.forEach(p => {
+                    const concepto = p.concepto.replace(/,/g, '');
+                    csvContent += `${v.idVenta},${fecha},${cliente},Producto,${concepto},${p.cantidad},${p.valorUnitario},${p.total}\n`;
+                });
+
+                // 2. Fila de Domicilio (Si aplica)
+                if (v.entrega.costo > 0) {
+                    csvContent += `${v.idVenta},${fecha},${cliente},Envio,${v.entrega.medio} (${v.entrega.encargado}),1,${v.entrega.costo},${v.entrega.costo}\n`;
+                }
+
+                // 3. Filas de Pagos (Registrados para auditoría cruzada)
+                v.pagos.forEach(p => {
+                    csvContent += `${v.idVenta},${fecha},${cliente},Pago,${p.metodo} - ${p.cuenta},1,${p.monto},${p.monto}\n`;
+                });
+            });
+
+            // Forzar descarga del archivo
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Auditoria_Ventas_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+    </script>
+</body>
+</html>
