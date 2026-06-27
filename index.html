@@ -1,258 +1,557 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POS Web - Sistema de Ventas</title>
+    <title>POS Web - Ferco Farma</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: {} }
+        }
+    </script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
-        body { background-color: #f8fafc; }
+        body { transition: background-color 0.3s, color 0.3s; }
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Glassmorphism para modales */
+        .glass-modal { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .dark .glass-modal { background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(10px); }
     </style>
 </head>
-<body class="text-slate-800 antialiased p-4 md:p-8">
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 antialiased min-h-screen">
 
-    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <!-- COLUMNA IZQUIERDA: FORMULARIO DE REGISTRO -->
-        <div class="lg:col-span-2 space-y-6">
+    <!-- ==================== PANTALLA DE LOGIN ==================== -->
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-100 dark:bg-slate-900 transition-colors">
+        <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-200 dark:border-slate-700">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <i data-lucide="shield-check" class="w-8 h-8 text-white"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Ferco Farma</h1>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">Sistema de Gestión Segura</p>
+            </div>
             
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <i data-lucide="shopping-cart" class="w-6 h-6 text-blue-600"></i>
-                    Nueva Venta
-                </h2>
-
-                <!-- 1. Datos Generales -->
-                <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-600 mb-1">Cliente</label>
-                        <input type="text" id="cliente" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Nombre del cliente">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-600 mb-1">Fecha</label>
-                        <input type="date" id="fecha" class="w-full p-2 border border-slate-300 rounded-lg outline-none bg-slate-50 cursor-not-allowed" readonly>
-                    </div>
+            <form id="login-form" onsubmit="iniciarSesion(event)" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Correo Electrónico</label>
+                    <input type="email" id="login-email" required class="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white">
                 </div>
-
-                <!-- 2. Productos -->
-                <div class="mb-6">
-                    <h3 class="text-md font-semibold text-slate-700 mb-2 border-b pb-2">1. Productos / Conceptos</h3>
-                    <div id="productos-container" class="space-y-3">
-                        <!-- Las filas de productos se inyectan aquí con JS -->
-                    </div>
-                    <button onclick="agregarFilaProducto()" class="mt-3 text-sm text-blue-600 font-semibold hover:text-blue-800 flex items-center gap-1 transition-colors">
-                        <i data-lucide="plus-circle" class="w-4 h-4"></i> Agregar otro producto
-                    </button>
+                <div>
+                    <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Contraseña</label>
+                    <input type="password" id="login-pass" required class="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white">
                 </div>
+                <div id="login-error" class="text-red-500 text-sm hidden text-center font-semibold animate-pulse">Credenciales incorrectas.</div>
+                <button type="submit" id="btn-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-all shadow-md flex justify-center items-center gap-2">
+                    Ingresar al Sistema <i data-lucide="log-in" class="w-5 h-5"></i>
+                </button>
+            </form>
+        </div>
+    </div>
 
-                <!-- 3. Logística y Entrega -->
-                <div class="mb-6 bg-slate-50 p-4 rounded-lg border border-slate-200">
-                    <h3 class="text-md font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                        <i data-lucide="truck" class="w-5 h-5 text-indigo-500"></i> Logística de Entrega
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <!-- ==================== APLICACIÓN PRINCIPAL ==================== -->
+    <div id="app-screen" class="hidden p-4 md:p-8">
+        
+        <!-- HEADER -->
+        <header class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+            <div class="flex items-center gap-3">
+                <i data-lucide="activity" class="w-8 h-8 text-blue-600 dark:text-blue-400"></i>
+                <div>
+                    <h1 class="text-xl font-bold dark:text-white">POS Web</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Usuario: <span id="current-user-email" class="font-semibold text-blue-600 dark:text-blue-400"></span></p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+                <button onclick="abrirDiccionario()" class="flex-shrink-0 flex items-center gap-2 px-3 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors text-sm font-semibold">
+                    <i data-lucide="book-open" class="w-4 h-4"></i> Siglas
+                </button>
+                <button onclick="toggleTheme()" class="flex-shrink-0 p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors text-slate-600 dark:text-slate-300">
+                    <i data-lucide="moon" id="theme-icon" class="w-5 h-5"></i>
+                </button>
+                <button onclick="cerrarSesion()" class="flex-shrink-0 flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors text-sm font-bold">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> Salir
+                </button>
+            </div>
+        </header>
+
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- COLUMNA IZQUIERDA: FORMULARIO -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+                    <div class="flex justify-between items-center mb-6 border-b dark:border-slate-700 pb-4">
+                        <h2 id="form-title" class="text-xl font-bold flex items-center gap-2">
+                            <i data-lucide="shopping-cart" class="w-6 h-6 text-blue-600 dark:text-blue-400"></i>
+                            Nueva Venta
+                        </h2>
+                        <button id="btn-cancelar-edicion" onclick="cancelarEdicion()" class="hidden text-sm text-red-500 hover:text-red-700 font-semibold flex items-center gap-1">
+                            <i data-lucide="x-circle" class="w-4 h-4"></i> Cancelar Edición
+                        </button>
+                    </div>
+
+                    <!-- 1. Datos Generales -->
+                    <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm text-slate-600 mb-1">Medio de Entrega</label>
-                            <select id="medio-entrega" onchange="manejarCambioEntrega()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                                <option value="">Seleccionar...</option>
-                                <option value="Recoge">Recoge en Punto</option>
-                                <option value="Domi">Domicilio (Domi)</option>
-                            </select>
-                        </div>
-                        <!-- Campos Ocultos por defecto -->
-                        <div id="div-encargado" class="hidden">
-                            <label class="block text-sm text-slate-600 mb-1">Encargado</label>
-                            <select id="encargado-domi" class="w-full p-2 border border-slate-300 rounded-lg outline-none">
-                                <option value="">Seleccionar...</option>
-                                <option value="JF">JF</option>
-                                <option value="Cris">Cris</option>
-                                <option value="Valentino Rossi">Valentino Rossi</option>
-                                <option value="Mono">Mono</option>
-                                <option value="David">David</option>
-                                <option value="Delivery App">Delivery App</option>
-                            </select>
-                        </div>
-                        <div id="div-costo-envio" class="hidden">
-                            <label class="block text-sm text-slate-600 mb-1">Costo Envío ($)</label>
-                            <input type="number" id="costo-envio" oninput="calcularTotales()" value="0" class="w-full p-2 border border-slate-300 rounded-lg outline-none">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 4. Medios de Pago -->
-                <div class="mb-6">
-                    <h3 class="text-md font-semibold text-slate-700 mb-2 border-b pb-2 flex items-center gap-2">
-                        <i data-lucide="wallet" class="w-5 h-5 text-emerald-500"></i> 2. Pagos
-                    </h3>
-                    <div id="pagos-container" class="space-y-3">
-                        <!-- Las filas de pagos se inyectan aquí -->
-                    </div>
-                    <button onclick="agregarFilaPago()" class="mt-3 text-sm text-emerald-600 font-semibold hover:text-emerald-800 flex items-center gap-1 transition-colors">
-                        <i data-lucide="plus-circle" class="w-4 h-4"></i> Agregar otro método de pago
-                    </button>
-                </div>
-
-                <!-- 5. Totales y Validación -->
-                <div class="bg-slate-800 text-white p-5 rounded-lg flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div class="flex gap-6">
-                        <div>
-                            <span class="block text-slate-400 text-xs uppercase tracking-wider">Total a Cobrar</span>
-                            <span id="txt-total-cobrar" class="text-xl font-bold text-yellow-400">$ 0</span>
+                            <label class="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Cliente</label>
+                            <input type="text" id="cliente" class="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-transparent focus:ring-2 focus:ring-blue-500 outline-none dark:text-white" placeholder="Nombre del cliente">
                         </div>
                         <div>
-                            <span class="block text-slate-400 text-xs uppercase tracking-wider">Total Pagado</span>
-                            <span id="txt-total-pagado" class="text-xl font-bold text-emerald-400">$ 0</span>
+                            <label class="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Fecha de Registro</label>
+                            <input type="date" id="fecha" class="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-transparent focus:ring-2 focus:ring-blue-500 outline-none dark:text-white cursor-pointer" title="Puedes modificar la fecha si es un registro pasado">
                         </div>
+                    </div>
+
+                    <!-- 2. Productos -->
+                    <div class="mb-6">
+                        <h3 class="text-md font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                            <i data-lucide="package" class="w-5 h-5 text-orange-500"></i> 1. Productos
+                        </h3>
+                        <div id="productos-container" class="space-y-3">
+                            <!-- Inyectado por JS -->
+                        </div>
+                        <button onclick="agregarFilaProducto()" class="mt-4 w-full md:w-auto bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-colors">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Añadir Fila de Producto
+                        </button>
+                    </div>
+
+                    <!-- 3. Logística -->
+                    <div class="mb-6 bg-slate-50 dark:bg-slate-750 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <h3 class="text-md font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                            <i data-lucide="truck" class="w-5 h-5 text-indigo-500"></i> Logística de Entrega
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm text-slate-600 dark:text-slate-400 mb-1">Medio</label>
+                                <select id="medio-entrega" onchange="manejarCambioEntrega()" class="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Recoge">Recoge en Punto</option>
+                                    <option value="Domi">Domicilio (Domi)</option>
+                                </select>
+                            </div>
+                            <div id="div-encargado" class="hidden">
+                                <label class="block text-sm text-slate-600 dark:text-slate-400 mb-1">Encargado</label>
+                                <select id="encargado-domi" class="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="JF">JF</option>
+                                    <option value="Cris">Cris</option>
+                                    <option value="Valentino Rossi">Valentino Rossi</option>
+                                    <option value="Mono">Mono</option>
+                                    <option value="David">David</option>
+                                    <option value="Delivery App">Delivery App</option>
+                                </select>
+                            </div>
+                            <div id="div-costo-envio" class="hidden">
+                                <label class="block text-sm text-slate-600 dark:text-slate-400 mb-1">Costo Envío ($)</label>
+                                <input type="number" id="costo-envio" oninput="calcularTotales()" value="0" class="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Pagos -->
+                    <div class="mb-6">
+                        <h3 class="text-md font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                            <i data-lucide="wallet" class="w-5 h-5 text-emerald-500"></i> 2. Medios de Pago
+                        </h3>
+                        <div id="pagos-container" class="space-y-3">
+                            <!-- Inyectado por JS -->
+                        </div>
+                        <button onclick="agregarFilaPago()" class="mt-4 w-full md:w-auto bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-colors">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Añadir Método de Pago
+                        </button>
+                    </div>
+
+                    <!-- 5. Totales -->
+                    <div class="bg-slate-800 dark:bg-slate-950 text-white p-5 rounded-xl flex flex-col md:flex-row justify-between items-center gap-6 shadow-inner border border-slate-700">
+                        <div class="flex gap-8 w-full md:w-auto justify-between md:justify-start">
+                            <div>
+                                <span class="block text-slate-400 text-xs uppercase tracking-wider mb-1">Total a Cobrar</span>
+                                <span id="txt-total-cobrar" class="text-2xl font-bold text-yellow-400">$ 0</span>
+                            </div>
+                            <div>
+                                <span class="block text-slate-400 text-xs uppercase tracking-wider mb-1">Total Pagado</span>
+                                <span id="txt-total-pagado" class="text-2xl font-bold text-emerald-400">$ 0</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col items-end w-full md:w-auto gap-2">
+                            <div id="alerta-descuadre" class="text-red-400 text-sm font-semibold hidden animate-pulse bg-red-900/30 px-3 py-1 rounded-full">
+                                Descuadre detectado: <span id="txt-descuadre">$0</span>
+                            </div>
+                            <button id="btn-guardar" onclick="guardarVenta()" disabled class="w-full md:w-auto bg-blue-600 hover:bg-blue-500 disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed text-white px-8 py-3 rounded-lg font-bold transition-all shadow-lg flex items-center justify-center gap-2 text-lg">
+                                <i data-lucide="save" class="w-5 h-5"></i> <span id="txt-btn-guardar">Registrar Venta</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMNA DERECHA: AUDITORÍA -->
+            <div class="space-y-6">
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                    
+                    <!-- Botón Exportar con Filtro -->
+                    <div class="mb-6 border-b dark:border-slate-700 pb-6">
+                        <h3 class="text-md font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-2">
+                            <i data-lucide="file-spreadsheet" class="w-5 h-5 text-green-600"></i> Exportar Auditoría
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Descarga registros aplanados para Excel.</p>
+                        
+                        <div class="grid grid-cols-2 gap-2 mb-3">
+                            <div>
+                                <label class="text-[10px] uppercase font-bold text-slate-500">Desde</label>
+                                <input type="date" id="filtro-inicio" class="w-full p-2 border border-slate-300 dark:border-slate-600 rounded bg-transparent text-sm outline-none dark:text-white">
+                            </div>
+                            <div>
+                                <label class="text-[10px] uppercase font-bold text-slate-500">Hasta</label>
+                                <input type="date" id="filtro-fin" class="w-full p-2 border border-slate-300 dark:border-slate-600 rounded bg-transparent text-sm outline-none dark:text-white">
+                            </div>
+                        </div>
+                        <button onclick="exportarCSV()" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-lg font-bold transition-all shadow-md flex items-center justify-center gap-2">
+                            <i data-lucide="download" class="w-4 h-4"></i> Descargar CSV
+                        </button>
+                    </div>
+
+                    <!-- Lista de Ventas -->
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-md font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                            <i data-lucide="history" class="w-5 h-5 text-slate-500"></i> Historial Reciente
+                        </h2>
                     </div>
                     
-                    <div class="flex items-center gap-4 w-full md:w-auto">
-                        <div id="alerta-descuadre" class="text-red-400 text-sm font-semibold hidden animate-pulse">
-                            ¡Descuadre: <span id="txt-descuadre">$0</span>!
+                    <div id="lista-ventas" class="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+                        <div class="flex justify-center items-center py-8">
+                            <i data-lucide="loader-2" class="w-6 h-6 animate-spin text-blue-500"></i>
                         </div>
-                        <button id="btn-guardar" onclick="guardarVenta()" disabled class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg font-bold transition-all shadow-md flex items-center justify-center gap-2">
-                            <i data-lucide="save" class="w-5 h-5"></i> Guardar Venta
-                        </button>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- COLUMNA DERECHA: AUDITORÍA Y REGISTROS -->
-        <div class="space-y-6">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                        <i data-lucide="history" class="w-5 h-5 text-slate-500"></i> Últimas 5 Ventas
-                    </h2>
-                    <span id="status-db" class="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full font-semibold">Local (Prueba)</span>
-                </div>
+    <!-- MODAL: DICCIONARIO DE SIGLAS -->
+    <div id="modal-diccionario" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm transition-opacity">
+        <div class="glass-modal w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 m-4">
+            <div class="p-6 border-b dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 rounded-t-2xl">
+                <h2 class="text-xl font-bold flex items-center gap-2 dark:text-white">
+                    <i data-lucide="book-open" class="text-indigo-500"></i> Diccionario de Productos
+                </h2>
+                <button onclick="cerrarDiccionario()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">
+                    <i data-lucide="x" class="w-5 h-5 dark:text-white"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-1 bg-slate-50 dark:bg-slate-900">
+                <p class="text-sm text-slate-600 dark:text-slate-400 mb-6">Asigna el nombre completo a cada sigla para que aparezca en tus reportes y en el selector del formulario.</p>
                 
-                <div id="lista-ventas" class="space-y-3 mb-6">
-                    <!-- Registros recientes -->
-                    <p class="text-sm text-slate-500 text-center py-4">No hay ventas registradas aún.</p>
+                <div id="grid-diccionario" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- JS Inyecta las siglas aquí -->
                 </div>
+            </div>
 
-                <hr class="my-4 border-slate-200">
-
-                <h3 class="text-md font-semibold text-slate-700 mb-2">Auditoría y Reportes</h3>
-                <p class="text-xs text-slate-500 mb-4">Descarga la base de datos en formato aplanado para analizar en Excel o Google Sheets.</p>
-                
-                <button onclick="exportarCSV()" class="w-full bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-lg font-semibold transition-all shadow-md flex items-center justify-center gap-2">
-                    <i data-lucide="download-cloud" class="w-5 h-5"></i> Descargar CSV
+            <div class="p-6 border-t dark:border-slate-700 bg-white dark:bg-slate-800 rounded-b-2xl flex justify-end">
+                <button onclick="guardarDiccionario()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-bold shadow-md flex items-center gap-2">
+                    <i data-lucide="save" class="w-4 h-4"></i> Guardar Cambios
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Módulo Lógico -->
-    <script type="module">
-        // ==========================================
-        // 1. CONFIGURACIÓN DE FIREBASE (¡TU TAREA!)
-        // ==========================================
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, onSnapshot } 
-        from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // ⚠️ PEGA AQUÍ TUS CREDENCIALES DE FIREBASE CUANDO ESTÉS LISTO
+    <!-- ==================== SCRIPTS LÓGICOS ==================== -->
+    <script type="module">
+        // 1. CONFIGURACIÓN FIREBASE (Ferco Farma)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs, getDoc, setDoc, query, orderBy, limit, onSnapshot, where } 
+        from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } 
+        from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
         const firebaseConfig = {
-            apiKey: "",
-            authDomain: "",
-            projectId: "",
-            storageBucket: "",
-            messagingSenderId: "",
-            appId: ""
+            apiKey: "AIzaSyB8Ei-GTiqedjsFy09XVujGb94mzkBmVOU",
+            authDomain: "ferco-farma.firebaseapp.com",
+            projectId: "ferco-farma",
+            storageBucket: "ferco-farma.firebasestorage.app",
+            messagingSenderId: "974529589553",
+            appId: "1:974529589553:web:e8cf49594134e54b514010",
+            measurementId: "G-KDFQN6DXC1"
         };
 
-        // Lógica de Conexión Segura (Detecta si pusiste datos o es modo prueba)
-        let db = null;
-        let isFirebaseActive = false;
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
 
-        if (firebaseConfig.projectId !== "") {
-            try {
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                isFirebaseActive = true;
-                document.getElementById('status-db').textContent = "Firebase Activo";
-                document.getElementById('status-db').className = "text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full font-semibold";
-                cargarVentasFirebase();
-            } catch (e) {
-                console.error("Error al conectar Firebase:", e);
-            }
-        } else {
-            cargarVentasLocales(); // Modo fallback para que pruebes el UI ahora
-        }
-
-
-        // ==========================================
-        // 2. ESTADO DE LA APLICACIÓN (UI)
-        // ==========================================
+        // Variables Globales
+        let currentUser = null;
+        let ventaEditandoId = null;
         let contadorProductos = 0;
         let contadorPagos = 0;
-
-        // Inicialización de la interfaz
-        window.onload = () => {
-            lucide.createIcons();
-            // Fecha actual por defecto
-            document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
-            agregarFilaProducto();
-            agregarFilaPago();
-        };
-
-        // Formato de Moneda COP
         const formatoMoneda = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
+        // LISTA DE PRODUCTOS OFICIAL
+        const productosOficiales = ['MP', 'BT', 'GDT', 'MGDT', 'BP', 'BC', 'FN', 'FP', 'FG', 'Skull', 'K', 'G30', 'G20', 'G10', 'MD', 'MGM', 'PMT', 'PM', 'PGT', 'PG', 'PPT', 'PP', 'SPLTE.G', 'SPLTE.P'];
+        let diccionarioProductos = {}; // Se llenará desde Firebase
 
         // ==========================================
-        // 3. LÓGICA DE INTERFAZ (DOM DINÁMICO)
+        // SISTEMA DE AUTENTICACIÓN
         // ==========================================
-        
-        window.agregarFilaProducto = () => {
+        onAuthStateChanged(auth, async (user) => {
+            const loginScreen = document.getElementById('login-screen');
+            const appScreen = document.getElementById('app-screen');
+            
+            if (user) {
+                currentUser = user;
+                document.getElementById('current-user-email').textContent = user.email;
+                loginScreen.classList.add('hidden');
+                appScreen.classList.remove('hidden');
+                
+                await cargarDiccionario(); // Cargar config antes de pintar UI
+                inicializarApp();
+            } else {
+                currentUser = null;
+                loginScreen.classList.remove('hidden');
+                appScreen.classList.add('hidden');
+            }
+        });
+
+        window.iniciarSesion = (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
+            const btn = document.getElementById('btn-login');
+            const errorTxt = document.getElementById('login-error');
+            
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Conectando...';
+            errorTxt.classList.add('hidden');
+
+            signInWithEmailAndPassword(auth, email, pass)
+                .catch((error) => {
+                    console.error("Error Auth:", error);
+                    errorTxt.classList.remove('hidden');
+                    btn.innerHTML = 'Ingresar al Sistema <i data-lucide="log-in" class="w-5 h-5"></i>';
+                    lucide.createIcons();
+                });
+        };
+
+        window.cerrarSesion = () => {
+            if(confirm("¿Seguro que deseas salir del sistema?")) {
+                signOut(auth);
+            }
+        };
+
+
+        // ==========================================
+        // DICCIONARIO DE PRODUCTOS
+        // ==========================================
+        async function cargarDiccionario() {
+            try {
+                const docRef = doc(db, "configuracion", "diccionario_productos");
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    diccionarioProductos = docSnap.data();
+                }
+            } catch (e) { console.warn("Diccionario no inicializado aún"); }
+        }
+
+        window.abrirDiccionario = () => {
+            const container = document.getElementById('grid-diccionario');
+            container.innerHTML = '';
+            
+            productosOficiales.forEach(sigla => {
+                const valorActual = diccionarioProductos[sigla] || '';
+                const html = `
+                    <div class="flex items-center gap-3 bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <span class="font-bold text-indigo-600 dark:text-indigo-400 w-1/4 text-center text-lg">${sigla}</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4 text-slate-400"></i>
+                        <input type="text" id="dict-${sigla}" value="${valorActual}" placeholder="Nombre completo" class="w-full p-2 border border-slate-300 dark:border-slate-600 rounded bg-slate-50 dark:bg-slate-700 outline-none focus:border-indigo-500 dark:text-white text-sm">
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+            lucide.createIcons();
+            document.getElementById('modal-diccionario').style.display = 'flex';
+        };
+
+        window.cerrarDiccionario = () => { document.getElementById('modal-diccionario').style.display = 'none'; };
+
+        window.guardarDiccionario = async () => {
+            const nuevosValores = {};
+            productosOficiales.forEach(sigla => {
+                const input = document.getElementById(`dict-${sigla}`);
+                if (input && input.value.trim() !== '') {
+                    nuevosValores[sigla] = input.value.trim();
+                }
+            });
+
+            try {
+                await setDoc(doc(db, "configuracion", "diccionario_productos"), nuevosValores);
+                diccionarioProductos = nuevosValores;
+                alert("Diccionario actualizado correctamente. Los selectores se actualizarán en la próxima venta.");
+                cerrarDiccionario();
+            } catch (error) {
+                console.error("Error guardando diccionario:", error);
+                alert("Hubo un error de permisos. Asegúrate de tener las reglas de Firebase configuradas.");
+            }
+        };
+
+
+        // ==========================================
+        // INICIALIZACIÓN Y UI
+        // ==========================================
+        function inicializarApp() {
+            lucide.createIcons();
+            
+            // Set fechas por defecto
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('fecha').value = hoy;
+            
+            // Set fechas filtro (mes actual)
+            const primerDiaMes = new Date(); primerDiaMes.setDate(1);
+            document.getElementById('filtro-inicio').value = primerDiaMes.toISOString().split('T')[0];
+            document.getElementById('filtro-fin').value = hoy;
+
+            // Limpiar y crear filas iniciales
+            document.getElementById('productos-container').innerHTML = '';
+            document.getElementById('pagos-container').innerHTML = '';
+            contadorProductos = 0; contadorPagos = 0;
+            
+            agregarFilaProducto();
+            agregarFilaPago();
+            cargarVentasFirebase();
+            verificarTemaInicial();
+        }
+
+        // ==========================================
+        // LÓGICA DE FORMULARIO DINÁMICO (MOBILE-FIRST)
+        // ==========================================
+        window.agregarFilaProducto = (data = null) => {
             contadorProductos++;
             const id = contadorProductos;
+            
+            // Generar Opciones del Select con el Diccionario
+            let opcionesHTML = `<option value="">Seleccionar Producto...</option>`;
+            productosOficiales.forEach(p => {
+                const nombreCompleto = diccionarioProductos[p] ? ` - ${diccionarioProductos[p]}` : '';
+                opcionesHTML += `<option value="${p}">${p}${nombreCompleto}</option>`;
+            });
+            opcionesHTML += `<option value="OTRO" class="font-bold text-blue-600">➕ OTRO (Escribir Manualmente)</option>`;
+
+            const esOtro = data && !productosOficiales.includes(data.concepto);
+
             const html = `
-                <div id="prod-${id}" class="flex gap-2 items-center fade-in bg-slate-50 p-2 rounded border border-slate-100">
-                    <input type="text" class="input-prod w-1/2 p-2 border border-slate-300 rounded outline-none text-sm" placeholder="Concepto (Ej: MP)">
-                    <input type="number" class="input-cant w-1/4 p-2 border border-slate-300 rounded outline-none text-sm" placeholder="Cant." value="1" oninput="calcularTotales()">
-                    <input type="number" class="input-val w-1/4 p-2 border border-slate-300 rounded outline-none text-sm" placeholder="Valor Unit." oninput="calcularTotales()">
-                    ${id > 1 ? `<button onclick="eliminarFila('prod-${id}')" class="text-red-500 hover:text-red-700 p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : '<div class="w-8"></div>'}
+                <div id="prod-${id}" class="flex flex-col md:flex-row gap-3 items-start md:items-center fade-in bg-white dark:bg-slate-800 p-4 md:p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm relative">
+                    
+                    <!-- Botón Eliminar Móvil (esquina) -->
+                    ${id > 1 ? `<button onclick="eliminarFila('prod-${id}')" class="md:hidden absolute top-2 right-2 text-red-500 bg-red-50 dark:bg-red-900/30 p-2 rounded-full"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+
+                    <div class="w-full md:w-5/12">
+                        <label class="md:hidden text-xs font-bold text-slate-500 mb-1 block">Concepto</label>
+                        <select class="input-prod-select w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded bg-slate-50 dark:bg-slate-700 outline-none text-sm dark:text-white" onchange="verificarOtroProducto(this, ${id})">
+                            ${opcionesHTML}
+                        </select>
+                        <input type="text" id="prod-manual-${id}" class="input-prod-manual ${esOtro ? '' : 'hidden'} w-full mt-2 p-2.5 border border-indigo-300 dark:border-indigo-600 rounded bg-indigo-50 dark:bg-indigo-900/30 outline-none text-sm dark:text-white" placeholder="Escribe el nombre del producto..." value="${esOtro ? data.concepto : ''}" oninput="calcularTotales()">
+                    </div>
+                    
+                    <div class="w-full md:w-3/12 flex gap-3 md:block">
+                        <div class="w-1/2 md:w-full">
+                            <label class="md:hidden text-xs font-bold text-slate-500 mb-1 block">Cant.</label>
+                            <input type="number" class="input-cant w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded bg-transparent outline-none text-sm text-center dark:text-white" value="${data ? data.cantidad : '1'}" min="1" oninput="calcularTotales()">
+                        </div>
+                    </div>
+
+                    <div class="w-full md:w-3/12">
+                        <label class="md:hidden text-xs font-bold text-slate-500 mb-1 block">Valor Unit.</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2.5 text-slate-400">$</span>
+                            <input type="number" class="input-val w-full p-2.5 pl-8 border border-slate-300 dark:border-slate-600 rounded bg-transparent outline-none text-sm dark:text-white" placeholder="0" value="${data ? data.valorUnitario : ''}" oninput="calcularTotales()">
+                        </div>
+                    </div>
+                    
+                    <!-- Botón Eliminar Desktop -->
+                    <div class="hidden md:block w-1/12 text-center">
+                        ${id > 1 ? `<button onclick="eliminarFila('prod-${id}')" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>` : '<div class="w-9 h-9"></div>'}
+                    </div>
                 </div>
             `;
             document.getElementById('productos-container').insertAdjacentHTML('beforeend', html);
+            
+            // Setear valor del select si se está editando
+            if (data) {
+                const selectEl = document.querySelector(`#prod-${id} .input-prod-select`);
+                if (productosOficiales.includes(data.concepto)) {
+                    selectEl.value = data.concepto;
+                } else {
+                    selectEl.value = 'OTRO';
+                }
+            }
             lucide.createIcons();
         };
 
-        window.agregarFilaPago = () => {
+        window.verificarOtroProducto = (selectElement, idRow) => {
+            const manualInput = document.getElementById(`prod-manual-${idRow}`);
+            if (selectElement.value === 'OTRO') {
+                manualInput.classList.remove('hidden');
+                manualInput.focus();
+            } else {
+                manualInput.classList.add('hidden');
+                manualInput.value = '';
+            }
+            calcularTotales();
+        };
+
+        window.agregarFilaPago = (data = null) => {
             contadorPagos++;
             const id = contadorPagos;
             const html = `
-                <div id="pago-${id}" class="flex gap-2 items-center fade-in bg-slate-50 p-2 rounded border border-slate-100">
-                    <select class="input-metodo w-1/3 p-2 border border-slate-300 rounded outline-none text-sm">
-                        <option value="">Medio...</option>
-                        <option value="Transferencia">Transferencia</option>
-                        <option value="Efectivo">Efectivo</option>
-                        <option value="Credito">Crédito</option>
-                        <option value="Cruce">Cruce</option>
-                        <option value="Bold">Bold</option>
-                    </select>
-                    <select class="input-cuenta w-1/3 p-2 border border-slate-300 rounded outline-none text-sm">
-                        <option value="">Cuenta/Caja...</option>
-                        <option value="Cris">Cris</option>
-                        <option value="Jhon">Jhon</option>
-                        <option value="Bodega">Bodega</option>
-                        <option value="Hades">Hades</option>
-                    </select>
-                    <input type="number" class="input-monto w-1/3 p-2 border border-slate-300 rounded outline-none text-sm" placeholder="Monto $" oninput="calcularTotales()">
-                    ${id > 1 ? `<button onclick="eliminarFila('pago-${id}')" class="text-red-500 hover:text-red-700 p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : '<div class="w-8"></div>'}
+                <div id="pago-${id}" class="flex flex-col md:flex-row gap-3 items-start md:items-center fade-in bg-white dark:bg-slate-800 p-4 md:p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm relative">
+                    
+                    ${id > 1 ? `<button onclick="eliminarFila('pago-${id}')" class="md:hidden absolute top-2 right-2 text-red-500 bg-red-50 dark:bg-red-900/30 p-2 rounded-full"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+
+                    <div class="w-full md:w-4/12">
+                        <label class="md:hidden text-xs font-bold text-slate-500 mb-1 block">Medio</label>
+                        <select class="input-metodo w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded bg-slate-50 dark:bg-slate-700 outline-none text-sm dark:text-white">
+                            <option value="">Medio...</option>
+                            <option value="Transferencia" ${data?.metodo === 'Transferencia' ? 'selected' : ''}>Transferencia</option>
+                            <option value="Efectivo" ${data?.metodo === 'Efectivo' ? 'selected' : ''}>Efectivo</option>
+                            <option value="Credito" ${data?.metodo === 'Credito' ? 'selected' : ''}>Crédito</option>
+                            <option value="Cruce" ${data?.metodo === 'Cruce' ? 'selected' : ''}>Cruce</option>
+                            <option value="Bold" ${data?.metodo === 'Bold' ? 'selected' : ''}>Bold</option>
+                        </select>
+                    </div>
+                    
+                    <div class="w-full md:w-4/12">
+                        <label class="md:hidden text-xs font-bold text-slate-500 mb-1 block">Cuenta/Caja</label>
+                        <select class="input-cuenta w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded bg-slate-50 dark:bg-slate-700 outline-none text-sm dark:text-white">
+                            <option value="">Cuenta/Caja...</option>
+                            <option value="Cris" ${data?.cuenta === 'Cris' ? 'selected' : ''}>Cris</option>
+                            <option value="Jhon" ${data?.cuenta === 'Jhon' ? 'selected' : ''}>Jhon</option>
+                            <option value="Bodega" ${data?.cuenta === 'Bodega' ? 'selected' : ''}>Bodega</option>
+                            <option value="Hades" ${data?.cuenta === 'Hades' ? 'selected' : ''}>Hades</option>
+                        </select>
+                    </div>
+                    
+                    <div class="w-full md:w-3/12">
+                        <label class="md:hidden text-xs font-bold text-slate-500 mb-1 block">Monto</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2.5 text-slate-400">$</span>
+                            <input type="number" class="input-monto w-full p-2.5 pl-8 border border-slate-300 dark:border-slate-600 rounded bg-transparent outline-none text-sm dark:text-white" placeholder="0" value="${data ? data.monto : ''}" oninput="calcularTotales()">
+                        </div>
+                    </div>
+
+                    <div class="hidden md:block w-1/12 text-center">
+                        ${id > 1 ? `<button onclick="eliminarFila('pago-${id}')" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>` : '<div class="w-9 h-9"></div>'}
+                    </div>
                 </div>
             `;
             document.getElementById('pagos-container').insertAdjacentHTML('beforeend', html);
@@ -283,36 +582,38 @@
         };
 
         // ==========================================
-        // 4. MOTOR MATEMÁTICO Y SEGURIDAD DE CAJA
+        // MATEMÁTICAS ESTRICTAS
         // ==========================================
         window.calcularTotales = () => {
             let totalProductos = 0;
             let totalPagado = 0;
 
-            // Sumar Productos
-            const filasProd = document.querySelectorAll('#productos-container > div');
-            filasProd.forEach(fila => {
+            // Leer Productos
+            document.querySelectorAll('#productos-container > div').forEach(fila => {
+                const selectConcepto = fila.querySelector('.input-prod-select').value;
+                const manualConcepto = fila.querySelector('.input-prod-manual').value;
                 const cant = parseFloat(fila.querySelector('.input-cant').value) || 0;
                 const val = parseFloat(fila.querySelector('.input-val').value) || 0;
-                totalProductos += (cant * val);
+                
+                const conceptoReal = selectConcepto === 'OTRO' ? manualConcepto : selectConcepto;
+                if(conceptoReal) totalProductos += (cant * val);
             });
 
-            // Sumar Envío
+            // Leer Envío
             const costoEnvio = parseFloat(document.getElementById('costo-envio').value) || 0;
             const totalCobrar = totalProductos + costoEnvio;
 
-            // Sumar Pagos
-            const filasPago = document.querySelectorAll('#pagos-container > div');
-            filasPago.forEach(fila => {
+            // Leer Pagos
+            document.querySelectorAll('#pagos-container > div').forEach(fila => {
                 const monto = parseFloat(fila.querySelector('.input-monto').value) || 0;
                 totalPagado += monto;
             });
 
-            // Actualizar UI
+            // UI
             document.getElementById('txt-total-cobrar').textContent = formatoMoneda.format(totalCobrar);
             document.getElementById('txt-total-pagado').textContent = formatoMoneda.format(totalPagado);
 
-            // Validar Cuadre (Lógica de Negocio)
+            // Validación Cuadre
             const btnGuardar = document.getElementById('btn-guardar');
             const alerta = document.getElementById('alerta-descuadre');
             const txtDescuadre = document.getElementById('txt-descuadre');
@@ -324,40 +625,50 @@
                 btnGuardar.disabled = true;
                 if (totalCobrar > 0) {
                     alerta.classList.remove('hidden');
-                    const diferencia = totalCobrar - totalPagado;
-                    txtDescuadre.textContent = formatoMoneda.format(diferencia);
+                    txtDescuadre.textContent = formatoMoneda.format(Math.abs(totalCobrar - totalPagado));
+                } else {
+                    alerta.classList.add('hidden');
                 }
             }
         };
 
-
         // ==========================================
-        // 5. GUARDAR Y LEER DATOS (FIREBASE / LOCAL)
+        // CRUD: GUARDAR Y EDITAR
         // ==========================================
         window.guardarVenta = async () => {
             const cliente = document.getElementById('cliente').value.trim();
+            const fechaInput = document.getElementById('fecha').value;
+            
             if (!cliente) return alert("Por favor ingresa el nombre del cliente.");
+            if (!fechaInput) return alert("Por favor selecciona una fecha válida.");
 
-            // Recolectar Datos de Productos
             const productos = [];
             document.querySelectorAll('#productos-container > div').forEach(fila => {
-                const concepto = fila.querySelector('.input-prod').value.trim();
+                const selectConcepto = fila.querySelector('.input-prod-select').value;
+                const manualConcepto = fila.querySelector('.input-prod-manual').value.trim();
+                const conceptoReal = selectConcepto === 'OTRO' ? manualConcepto : selectConcepto;
+                
                 const cantidad = parseFloat(fila.querySelector('.input-cant').value) || 0;
                 const valor = parseFloat(fila.querySelector('.input-val').value) || 0;
-                if (concepto && cantidad > 0 && valor > 0) {
-                    productos.push({ concepto, cantidad, valorUnitario: valor, total: cantidad * valor });
+                
+                if (conceptoReal && cantidad > 0 && valor > 0) {
+                    productos.push({ 
+                        concepto: conceptoReal, 
+                        esDiccionario: productosOficiales.includes(conceptoReal),
+                        cantidad, 
+                        valorUnitario: valor, 
+                        total: cantidad * valor 
+                    });
                 }
             });
 
-            // Recolectar Logística
             const medioEntrega = document.getElementById('medio-entrega').value;
             const entrega = {
-                medio: medioEntrega || "No especificado",
+                medio: medioEntrega || "Recoge",
                 encargado: medioEntrega === 'Domi' ? document.getElementById('encargado-domi').value : "N/A",
                 costo: medioEntrega === 'Domi' ? parseFloat(document.getElementById('costo-envio').value) || 0 : 0
             };
 
-            // Recolectar Pagos
             const pagos = [];
             let totalVenta = 0;
             document.querySelectorAll('#pagos-container > div').forEach(fila => {
@@ -370,144 +681,278 @@
                 }
             });
 
-            if (pagos.length === 0 || productos.length === 0) return alert("Debes completar los campos correctamente.");
+            if (pagos.length === 0 || productos.length === 0) return alert("Completa los datos de productos y pagos.");
 
+            // Documento Seguro con Trazabilidad
             const registroDocumento = {
-                fecha: new Date().toISOString(),
+                fecha: fechaInput,
                 cliente,
                 productos,
                 entrega,
                 pagos,
                 totalVenta,
-                timestamp: Date.now() // Útil para ordenar
+                creadoPor: currentUser.email, // 🔒 TRAZABILIDAD
+                timestamp: Date.now()
             };
 
             try {
-                document.getElementById('btn-guardar').innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Guardando...';
+                const btn = document.getElementById('btn-guardar');
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Procesando...';
                 
-                if (isFirebaseActive) {
-                    // Guardar en Firestore
-                    await addDoc(collection(db, "ventas"), registroDocumento);
+                if (ventaEditandoId) {
+                    // ACTUALIZAR DOC EXISTENTE
+                    const docRef = doc(db, "ventas", ventaEditandoId);
+                    await updateDoc(docRef, {
+                        ...registroDocumento, 
+                        modificadoPor: currentUser.email,
+                        fechaModificacion: Date.now()
+                    });
+                    alert("✅ Venta actualizada correctamente.");
+                    cancelarEdicion();
                 } else {
-                    // Fallback: Guardar en LocalStorage
-                    const ventasLocales = JSON.parse(localStorage.getItem('ventasPOS')) || [];
-                    ventasLocales.push(registroDocumento);
-                    localStorage.setItem('ventasPOS', JSON.stringify(ventasLocales));
-                    cargarVentasLocales(); // Actualizar UI
+                    // CREAR NUEVO
+                    await addDoc(collection(db, "ventas"), registroDocumento);
+                    
+                    // Limpiar Formulario UX
+                    document.getElementById('cliente').value = '';
+                    document.getElementById('medio-entrega').value = '';
+                    manejarCambioEntrega();
+                    document.getElementById('productos-container').innerHTML = '';
+                    document.getElementById('pagos-container').innerHTML = '';
+                    agregarFilaProducto(); agregarFilaPago();
+                    calcularTotales();
                 }
 
-                // Resetear Formulario
-                alert("✅ Venta registrada correctamente");
-                window.location.reload(); 
+                btn.innerHTML = '<i data-lucide="save" class="w-5 h-5"></i> ' + (ventaEditandoId ? 'Actualizar Venta' : 'Registrar Venta');
+                lucide.createIcons();
             } catch (error) {
                 console.error("Error al guardar:", error);
-                alert("Error al guardar la venta.");
-                document.getElementById('btn-guardar').innerHTML = '<i data-lucide="save" class="w-5 h-5"></i> Guardar Venta';
+                alert("Error de Permisos. Asegúrate de configurar las reglas en Firebase.");
+            }
+        };
+
+        // ==========================================
+        // CRUD: LEER, ELIMINAR Y CARGAR EDICIÓN
+        // ==========================================
+        function cargarVentasFirebase() {
+            const q = query(collection(db, "ventas"), orderBy("timestamp", "desc"), limit(10));
+            onSnapshot(q, (snapshot) => {
+                const contenedor = document.getElementById('lista-ventas');
+                contenedor.innerHTML = '';
+                
+                if(snapshot.empty) {
+                    contenedor.innerHTML = '<p class="text-sm text-slate-500 text-center py-4">No hay ventas registradas.</p>';
+                    return;
+                }
+
+                snapshot.forEach((doc) => {
+                    const v = doc.data();
+                    const vId = doc.id;
+                    const date = v.fecha;
+                    
+                    const html = `
+                        <div class="bg-slate-50 dark:bg-slate-700/30 p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col gap-2 transition-colors hover:shadow-md">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-bold text-slate-800 dark:text-slate-100 text-md">${v.cliente}</p>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 font-mono">${date} • <i data-lucide="user" class="inline w-3 h-3"></i> ${v.creadoPor.split('@')[0]}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-bold text-emerald-600 dark:text-emerald-400 text-md">${formatoMoneda.format(v.totalVenta)}</p>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${v.entrega.medio === 'Domi' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' : 'bg-slate-200 text-slate-700 dark:bg-slate-600 dark:text-slate-300'} uppercase">${v.entrega.medio}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-end gap-2 mt-2 pt-2 border-t dark:border-slate-600/50">
+                                <button onclick="cargarParaEditar('${vId}')" class="text-xs flex items-center gap-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 font-semibold px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors">
+                                    <i data-lucide="edit-3" class="w-3 h-3"></i> Editar
+                                </button>
+                                <button onclick="eliminarVenta('${vId}')" class="text-xs flex items-center gap-1 text-red-600 hover:text-red-800 dark:text-red-400 font-semibold px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors">
+                                    <i data-lucide="trash" class="w-3 h-3"></i> Borrar
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    contenedor.insertAdjacentHTML('beforeend', html);
+                });
+                lucide.createIcons();
+            });
+        }
+
+        window.eliminarVenta = async (id) => {
+            if (confirm("⚠️ ¿Estás totalmente seguro de eliminar este registro? Esta acción es auditable.")) {
+                try {
+                    await deleteDoc(doc(db, "ventas", id));
+                } catch (e) {
+                    console.error(e); alert("Error al eliminar. Revisa permisos.");
+                }
+            }
+        };
+
+        window.cargarParaEditar = async (id) => {
+            try {
+                const docSnap = await getDoc(doc(db, "ventas", id));
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    ventaEditandoId = id;
+                    
+                    // Scroll arriba
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                    // UI Changes
+                    document.getElementById('form-title').innerHTML = '<i data-lucide="edit-3" class="w-6 h-6 text-orange-500"></i> Editando Venta';
+                    document.getElementById('txt-btn-guardar').textContent = 'Actualizar Venta';
+                    document.getElementById('btn-guardar').classList.replace('bg-blue-600', 'bg-orange-600');
+                    document.getElementById('btn-guardar').classList.replace('hover:bg-blue-500', 'hover:bg-orange-500');
+                    document.getElementById('btn-cancelar-edicion').classList.remove('hidden');
+
+                    // Llenar datos básicos
+                    document.getElementById('cliente').value = data.cliente;
+                    document.getElementById('fecha').value = data.fecha;
+                    
+                    // Llenar Logística
+                    document.getElementById('medio-entrega').value = data.entrega.medio;
+                    manejarCambioEntrega();
+                    if(data.entrega.medio === 'Domi') {
+                        document.getElementById('encargado-domi').value = data.entrega.encargado;
+                        document.getElementById('costo-envio').value = data.entrega.costo;
+                    }
+
+                    // Limpiar y llenar Productos
+                    document.getElementById('productos-container').innerHTML = '';
+                    data.productos.forEach(p => agregarFilaProducto(p));
+
+                    // Limpiar y llenar Pagos
+                    document.getElementById('pagos-container').innerHTML = '';
+                    data.pagos.forEach(p => agregarFilaPago(p));
+
+                    calcularTotales();
+                    lucide.createIcons();
+                }
+            } catch(e) { console.error(e); }
+        };
+
+        window.cancelarEdicion = () => {
+            ventaEditandoId = null;
+            document.getElementById('form-title').innerHTML = '<i data-lucide="shopping-cart" class="w-6 h-6 text-blue-600 dark:text-blue-400"></i> Nueva Venta';
+            document.getElementById('txt-btn-guardar').textContent = 'Registrar Venta';
+            document.getElementById('btn-guardar').classList.replace('bg-orange-600', 'bg-blue-600');
+            document.getElementById('btn-guardar').classList.replace('hover:bg-orange-500', 'hover:bg-blue-500');
+            document.getElementById('btn-cancelar-edicion').classList.add('hidden');
+            
+            document.getElementById('cliente').value = '';
+            document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+            document.getElementById('medio-entrega').value = '';
+            manejarCambioEntrega();
+            document.getElementById('productos-container').innerHTML = '';
+            document.getElementById('pagos-container').innerHTML = '';
+            agregarFilaProducto(); agregarFilaPago();
+            calcularTotales();
+        };
+
+
+        // ==========================================
+        // AUDITORÍA (EXPORTACIÓN CON FILTRO)
+        // ==========================================
+        window.exportarCSV = async () => {
+            const fInicio = document.getElementById('filtro-inicio').value;
+            const fFin = document.getElementById('filtro-fin').value;
+
+            if(!fInicio || !fFin) return alert("Selecciona un rango de fechas válido.");
+
+            const btn = event.currentTarget;
+            const textOriginal = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Generando...';
+            
+            try {
+                // Consulta con filtro (Requiere Índice en Firestore, si no funciona usar consulta general y filtrar en JS)
+                // Para evitar errores de índices a usuarios nuevos, descargaremos todo y filtraremos en JS:
+                const querySnapshot = await getDocs(collection(db, "ventas"));
+                let ventas = [];
+                
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    // Filtro Local JS para no depender de índices complejos en Firebase
+                    if(data.fecha >= fInicio && data.fecha <= fFin) {
+                        data.idVenta = doc.id;
+                        ventas.push(data);
+                    }
+                });
+
+                if (ventas.length === 0) {
+                    alert(`No hay registros entre ${fInicio} y ${fFin}.`);
+                    btn.innerHTML = textOriginal;
+                    return;
+                }
+
+                let csvContent = "\uFEFF"; // BOM para caracteres latinos (Tildes)
+                csvContent += "ID_Venta,Fecha,Cliente,Tipo_Registro,Concepto_O_Cuenta,Nombre_Completo_Dict,Cantidad,Valor_Unitario,Total_Movimiento,Creado_Por\n";
+
+                ventas.forEach(v => {
+                    const cliente = `"${v.cliente.replace(/"/g, '""')}"`; // Escapar comas
+
+                    // 1. Productos
+                    v.productos.forEach(p => {
+                        const concepto = `"${p.concepto.replace(/"/g, '""')}"`;
+                        // Buscar en diccionario si existe
+                        const nombreCompletoDict = diccionarioProductos[p.concepto] ? `"${diccionarioProductos[p.concepto]}"` : '"N/A"';
+                        
+                        csvContent += `${v.idVenta},${v.fecha},${cliente},Producto,${concepto},${nombreCompletoDict},${p.cantidad},${p.valorUnitario},${p.total},${v.creadoPor}\n`;
+                    });
+
+                    // 2. Domicilio
+                    if (v.entrega.costo > 0) {
+                        csvContent += `${v.idVenta},${v.fecha},${cliente},Envio,"${v.entrega.medio} (${v.entrega.encargado})","N/A",1,${v.entrega.costo},${v.entrega.costo},${v.creadoPor}\n`;
+                    }
+
+                    // 3. Pagos
+                    v.pagos.forEach(p => {
+                        csvContent += `${v.idVenta},${v.fecha},${cliente},Pago,"${p.metodo} - ${p.cuenta}","N/A",1,0,${p.monto},${v.creadoPor}\n`;
+                    });
+                });
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", `Auditoria_FercoFarma_${fInicio}_a_${fFin}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+            } catch (e) {
+                console.error(e);
+                alert("Error exportando datos.");
+            } finally {
+                btn.innerHTML = textOriginal;
                 lucide.createIcons();
             }
         };
 
-        // Renderizar Ventas en Pantalla
-        function renderizarListaVentas(ventas) {
-            const contenedor = document.getElementById('lista-ventas');
-            if (ventas.length === 0) {
-                contenedor.innerHTML = '<p class="text-sm text-slate-500 dark:text-slate-400 text-center py-4">No hay ventas registradas.</p>';
-                return;
-            }
-
-            contenedor.innerHTML = '';
-            ventas.forEach(v => {
-                const date = new Date(v.fecha).toLocaleDateString('es-CO');
-                const html = `
-                    <div class="bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg border border-slate-200 dark:border-slate-600 flex justify-between items-center transition-colors">
-                        <div>
-                            <p class="font-bold text-slate-800 dark:text-slate-100 text-sm">${v.cliente}</p>
-                            <p class="text-xs text-slate-500 dark:text-slate-400">${date} • ${v.productos.length} ítems</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="font-bold text-emerald-600 dark:text-emerald-400 text-sm">${formatoMoneda.format(v.totalVenta)}</p>
-                            <p class="text-[10px] text-slate-400 dark:text-slate-500 uppercase">${v.entrega.medio}</p>
-                        </div>
-                    </div>
-                `;
-                contenedor.insertAdjacentHTML('beforeend', html);
-            });
-        }
-
-        // Listener de Firebase
-        function cargarVentasFirebase() {
-            const q = query(collection(db, "ventas"), orderBy("timestamp", "desc"), limit(5));
-            onSnapshot(q, (snapshot) => {
-                const ventas = [];
-                snapshot.forEach((doc) => ventas.push(doc.data()));
-                renderizarListaVentas(ventas);
-            });
-        }
-
-        // Cargar desde Local (Fallback)
-        function cargarVentasLocales() {
-            const ventas = JSON.parse(localStorage.getItem('ventasPOS')) || [];
-            // Ordenar por fecha descendente y tomar las últimas 5
-            ventas.sort((a, b) => b.timestamp - a.timestamp);
-            renderizarListaVentas(ventas.slice(0, 5));
-        }
-
 
         // ==========================================
-        // 6. MOTOR DE AUDITORÍA (EXPORTACIÓN A CSV)
+        // TEMA OSCURO / CLARO
         // ==========================================
-        window.exportarCSV = async () => {
-            let ventas = [];
+        window.toggleTheme = () => {
+            const html = document.documentElement;
+            const isDark = html.classList.contains('dark');
             
-            if (isFirebaseActive) {
-                const querySnapshot = await getDocs(collection(db, "ventas"));
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    data.idVenta = doc.id; // Asignar el ID de Firestore
-                    ventas.push(data);
-                });
+            if (isDark) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
             } else {
-                ventas = JSON.parse(localStorage.getItem('ventasPOS')) || [];
-                ventas.forEach((v, i) => v.idVenta = `LOCAL-${i+1}`);
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
             }
-
-            if (ventas.length === 0) return alert("No hay datos para exportar.");
-
-            // Lógica de "Aplanamiento" (Flattening) para Excel
-            // Transformamos 1 documento JSON en múltiples filas (Asiento Contable)
-            let csvContent = "ID_Venta,Fecha,Cliente,Tipo_Registro,Concepto/Cuenta,Cantidad,Valor_Unitario,Total_Movimiento\n";
-
-            ventas.forEach(v => {
-                const fecha = new Date(v.fecha).toLocaleDateString('es-CO');
-                const cliente = v.cliente.replace(/,/g, ''); // Limpiar comas para CSV
-
-                // 1. Filas de Productos (Suman al valor)
-                v.productos.forEach(p => {
-                    const concepto = p.concepto.replace(/,/g, '');
-                    csvContent += `${v.idVenta},${fecha},${cliente},Producto,${concepto},${p.cantidad},${p.valorUnitario},${p.total}\n`;
-                });
-
-                // 2. Fila de Domicilio (Si aplica)
-                if (v.entrega.costo > 0) {
-                    csvContent += `${v.idVenta},${fecha},${cliente},Envio,${v.entrega.medio} (${v.entrega.encargado}),1,${v.entrega.costo},${v.entrega.costo}\n`;
-                }
-
-                // 3. Filas de Pagos (Registrados para auditoría cruzada)
-                v.pagos.forEach(p => {
-                    csvContent += `${v.idVenta},${fecha},${cliente},Pago,${p.metodo} - ${p.cuenta},1,${p.monto},${p.monto}\n`;
-                });
-            });
-
-            // Forzar descarga del archivo
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            const url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", `Auditoria_Ventas_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
         };
+
+        function verificarTemaInicial() {
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
     </script>
 </body>
 </html>
