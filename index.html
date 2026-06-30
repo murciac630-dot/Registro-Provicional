@@ -640,14 +640,26 @@
             calcularTotales();
         };
 
-        window.agregarFilaProducto = () => {
+        // Mejora arquitectónica: Rellenado directo e instantáneo al crear el HTML
+        window.agregarFilaProducto = (data = null) => {
             contadorProductos++;
             const id = contadorProductos;
+            
+            // Validaciones iniciales
+            const conceptoData = data ? data.concepto : null;
+            let esOtro = false;
+            if (conceptoData && !Object.keys(diccionarioProductos).includes(conceptoData)) {
+                esOtro = true;
+            }
+
             let opcionesHTML = `<option value="">Seleccionar Producto...</option>`;
             Object.keys(diccionarioProductos).sort().forEach(p => {
-                opcionesHTML += `<option value="${p}">${p} - ${diccionarioProductos[p]}</option>`;
+                opcionesHTML += `<option value="${p}" ${conceptoData === p ? 'selected' : ''}>${p} - ${diccionarioProductos[p]}</option>`;
             });
-            opcionesHTML += `<option value="OTRO" class="font-bold text-blue-600">➕ OTRO (Escribir Manualmente)</option>`;
+            opcionesHTML += `<option value="OTRO" class="font-bold text-blue-600" ${esOtro ? 'selected' : ''}>➕ OTRO (Escribir Manualmente)</option>`;
+
+            const cantidadVal = data ? data.cantidad : 1;
+            const valorUnitarioVal = data ? data.valorUnitario : '';
 
             document.getElementById('productos-container').insertAdjacentHTML('beforeend', `
                 <div id="prod-${id}" class="flex flex-col md:flex-row gap-3 items-start md:items-center fade-in bg-white dark:bg-slate-800 p-4 md:p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm relative">
@@ -657,19 +669,19 @@
                         <select class="input-prod-select w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded bg-slate-50 dark:bg-slate-700 outline-none text-sm dark:text-white" onchange="verificarOtroProducto(this, ${id})">
                             ${opcionesHTML}
                         </select>
-                        <input type="text" id="prod-manual-${id}" class="input-prod-manual hidden w-full mt-2 p-2.5 border border-indigo-300 dark:border-indigo-600 rounded bg-indigo-50 dark:bg-indigo-900/30 outline-none text-sm dark:text-white" placeholder="Descripción..." oninput="calcularTotales()">
+                        <input type="text" id="prod-manual-${id}" class="input-prod-manual ${esOtro ? '' : 'hidden'} w-full mt-2 p-2.5 border border-indigo-300 dark:border-indigo-600 rounded bg-indigo-50 dark:bg-indigo-900/30 outline-none text-sm dark:text-white" placeholder="Descripción..." value="${esOtro ? conceptoData : ''}" oninput="calcularTotales()">
                     </div>
                     <div class="w-full md:w-3/12 flex gap-3 md:block">
                         <div class="w-1/2 md:w-full">
                             <label class="md:hidden text-xs font-bold text-slate-500 mb-1 block">Cant.</label>
-                            <input type="number" class="input-cant w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded bg-transparent outline-none text-sm text-center dark:text-white" value="1" min="1" oninput="calcularTotales()">
+                            <input type="number" class="input-cant w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded bg-transparent outline-none text-sm text-center dark:text-white" value="${cantidadVal}" min="1" oninput="calcularTotales()">
                         </div>
                     </div>
                     <div class="w-full md:w-3/12">
                         <label class="md:hidden text-xs font-bold text-slate-500 mb-1 block">Valor Unit.</label>
                         <div class="relative">
                             <span class="absolute left-3 top-2.5 text-slate-400">$</span>
-                            <input type="number" class="input-val w-full p-2.5 pl-8 border border-slate-300 dark:border-slate-600 rounded bg-transparent outline-none text-sm dark:text-white" placeholder="0" oninput="calcularTotales()">
+                            <input type="number" class="input-val w-full p-2.5 pl-8 border border-slate-300 dark:border-slate-600 rounded bg-transparent outline-none text-sm dark:text-white" placeholder="0" value="${valorUnitarioVal}" oninput="calcularTotales()">
                         </div>
                     </div>
                     <div class="hidden md:block w-1/12 text-center">
@@ -680,7 +692,8 @@
             lucide.createIcons();
             
             const tipo = document.querySelector('input[name="tipoMovimiento"]:checked').value;
-            if (tipo === 'Gasto' || tipo === 'Abono') {
+            // Solo forzamos 'OTRO' si estamos creando una fila vacía nueva en Gasto o Abono
+            if (!data && (tipo === 'Gasto' || tipo === 'Abono')) {
                 const sel = document.querySelector(`#prod-${id} .input-prod-select`);
                 sel.value = 'OTRO';
                 verificarOtroProducto(sel, id);
@@ -698,9 +711,14 @@
             calcularTotales();
         };
 
-        window.agregarFilaPago = () => {
+        window.agregarFilaPago = (data = null) => {
             contadorPagos++;
             const id = contadorPagos;
+            
+            const metodoVal = data ? data.metodo : '';
+            const cuentaVal = data ? data.cuenta : '';
+            const montoVal = data ? data.monto : '';
+
             document.getElementById('pagos-container').insertAdjacentHTML('beforeend', `
                 <div id="pago-${id}" class="flex flex-col md:flex-row gap-3 items-start md:items-center fade-in bg-white dark:bg-slate-800 p-4 md:p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm relative">
                     ${id > 1 ? `<button onclick="eliminarFila('pago-${id}')" class="md:hidden absolute top-2 right-2 text-red-500 bg-red-50 dark:bg-red-900/30 p-2 rounded-full"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
@@ -708,30 +726,30 @@
                         <label class="md:hidden text-xs font-bold text-slate-500 mb-1 block">Medio</label>
                         <select class="input-metodo w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded bg-slate-50 dark:bg-slate-700 outline-none text-sm dark:text-white">
                             <option value="">Medio...</option>
-                            <option value="Transferencia">Transferencia</option>
-                            <option value="Efectivo">Efectivo</option>
-                            <option value="Credito">Crédito</option>
-                            <option value="Cruce">Cruce</option>
-                            <option value="Bold">Bold</option>
+                            <option value="Transferencia" ${metodoVal === 'Transferencia' ? 'selected' : ''}>Transferencia</option>
+                            <option value="Efectivo" ${metodoVal === 'Efectivo' ? 'selected' : ''}>Efectivo</option>
+                            <option value="Credito" ${metodoVal === 'Credito' ? 'selected' : ''}>Crédito</option>
+                            <option value="Cruce" ${metodoVal === 'Cruce' ? 'selected' : ''}>Cruce</option>
+                            <option value="Bold" ${metodoVal === 'Bold' ? 'selected' : ''}>Bold</option>
                         </select>
                     </div>
                     <div class="w-full md:w-4/12">
                         <label class="md:hidden text-xs font-bold text-slate-500 mb-1 block">Cuenta/Caja</label>
                         <select class="input-cuenta w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded bg-slate-50 dark:bg-slate-700 outline-none text-sm dark:text-white">
                             <option value="">Cuenta...</option>
-                            <option value="Cris">Cris</option>
-                            <option value="JF">JF</option>
-                            <option value="Jhon">Jhon</option>
-                            <option value="Bodega">Bodega</option>
-                            <option value="Hades">Hades</option>
-                            <option value="General">Caja General</option>
+                            <option value="Cris" ${cuentaVal === 'Cris' ? 'selected' : ''}>Cris</option>
+                            <option value="JF" ${cuentaVal === 'JF' ? 'selected' : ''}>JF</option>
+                            <option value="Jhon" ${cuentaVal === 'Jhon' ? 'selected' : ''}>Jhon</option>
+                            <option value="Bodega" ${cuentaVal === 'Bodega' ? 'selected' : ''}>Bodega</option>
+                            <option value="Hades" ${cuentaVal === 'Hades' ? 'selected' : ''}>Hades</option>
+                            <option value="General" ${cuentaVal === 'General' ? 'selected' : ''}>Caja General</option>
                         </select>
                     </div>
                     <div class="w-full md:w-3/12">
                         <label class="md:hidden text-xs font-bold text-slate-500 mb-1 block">Monto</label>
                         <div class="relative">
                             <span class="absolute left-3 top-2.5 text-slate-400">$</span>
-                            <input type="number" class="input-monto w-full p-2.5 pl-8 border border-slate-300 dark:border-slate-600 rounded bg-transparent outline-none text-sm dark:text-white" placeholder="0" oninput="calcularTotales()">
+                            <input type="number" class="input-monto w-full p-2.5 pl-8 border border-slate-300 dark:border-slate-600 rounded bg-transparent outline-none text-sm dark:text-white" placeholder="0" value="${montoVal}" oninput="calcularTotales()">
                         </div>
                     </div>
                     <div class="hidden md:block w-1/12 text-center">
@@ -943,7 +961,7 @@
         };
 
         // ==========================================
-        // LA MEJORA: CARGAR PARA EDITAR (RELLENADO AUTOMÁTICO)
+        // LA MEJORA DEFINITIVA: CARGAR PARA EDITAR
         // ==========================================
         window.cargarParaEditar = async (id) => {
             const clienteActual = document.getElementById('cliente').value.trim();
@@ -991,54 +1009,24 @@
                         }
                     }
 
-                    // 3. Rellenar Productos (AQUÍ ESTABA EL ERROR: AHORA USAMOS setTimeout para esperar al DOM)
+                    // 3. Rellenar Productos (Carga Sincrónica)
                     document.getElementById('productos-container').innerHTML = '';
-                    contadorProductos = 0; // Reiniciar contador visual
-                    data.productos.forEach((p, index) => {
-                        agregarFilaProducto(); // Crea el HTML vacío
-                        setTimeout(() => { // Espera un milisegundo a que el HTML exista para rellenarlo
-                            const idRow = index + 1;
-                            const fila = document.getElementById(`prod-${idRow}`);
-                            if(fila) {
-                                const selectEl = fila.querySelector('.input-prod-select');
-                                const cantEl = fila.querySelector('.input-cant');
-                                const valEl = fila.querySelector('.input-val');
-                                
-                                if (Object.keys(diccionarioProductos).includes(p.concepto)) {
-                                    selectEl.value = p.concepto;
-                                } else {
-                                    selectEl.value = 'OTRO';
-                                    verificarOtroProducto(selectEl, idRow);
-                                    fila.querySelector('.input-prod-manual').value = p.concepto;
-                                }
-                                
-                                cantEl.value = p.cantidad;
-                                valEl.value = p.valorUnitario;
-                                calcularTotales(); // Recalcular en cada pasada
-                            }
-                        }, 10); 
+                    contadorProductos = 0; 
+                    data.productos.forEach((p) => {
+                        agregarFilaProducto(p); 
                     });
 
-                    // 4. Rellenar Pagos
+                    // 4. Rellenar Pagos (Carga Sincrónica)
                     document.getElementById('pagos-container').innerHTML = '';
                     contadorPagos = 0;
-                    data.pagos.forEach((p, index) => {
-                        agregarFilaPago();
-                        setTimeout(() => {
-                            const idRow = index + 1;
-                            const fila = document.getElementById(`pago-${idRow}`);
-                            if(fila) {
-                                fila.querySelector('.input-metodo').value = p.metodo;
-                                fila.querySelector('.input-cuenta').value = p.cuenta;
-                                fila.querySelector('.input-monto').value = p.monto;
-                                calcularTotales();
-                            }
-                        }, 10);
+                    data.pagos.forEach((p) => {
+                        agregarFilaPago(p); 
                     });
 
+                    calcularTotales();
                     lucide.createIcons();
                 } else {
-                    alert("❌ Error: Este registro ya no existe.");
+                    alert("❌ Error: Este registro ya no existe en la base de datos.");
                 }
             } catch(e) { console.error(e); }
         };
