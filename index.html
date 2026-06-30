@@ -223,8 +223,8 @@
             <!-- COLUMNA DERECHA: DASHBOARD & AUDITORÍA -->
             <div class="space-y-6">
                 
-                <!-- PANEL FINANCIERO -->
-                <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                <!-- PANEL FINANCIERO (Oculto por defecto para usuarios sin permisos) -->
+                <div id="panel-financiero" class="hidden bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 fade-in">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-md font-bold text-slate-800 dark:text-white flex items-center gap-2">
                             <i data-lucide="pie-chart" class="w-5 h-5 text-indigo-500"></i> Resumen Financiero
@@ -370,7 +370,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs, getDoc, setDoc, query, orderBy, limit, onSnapshot } 
         from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        // IMPORTANTE: inMemoryPersistence para forzar login al recargar
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, inMemoryPersistence } 
         from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
@@ -391,26 +390,27 @@
         // 🔒 SEGURIDAD: Persistencia estricta en memoria. F5 = Cierre de Sesión.
         setPersistence(auth, inMemoryPersistence).catch(console.error);
 
+        // Roles de Administración
+        const ADMIN_EMAIL = 'cris@fercofarma.com';
+
         // Variables Globales
         let currentUser = null;
         let ventaEditandoId = null;
         let contadorProductos = 0;
         let contadorPagos = 0;
-        let timerInactividad; // Cronómetro de seguridad
-        let datosDashboardCache = []; // Para no saturar base de datos
+        let timerInactividad;
         
         const formatoMoneda = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
-
-        // DICCIONARIO DINÁMICO (Ya no hay lista quemada)
         let diccionarioProductos = {}; 
 
 
         // ==========================================
-        // SISTEMA DE AUTENTICACIÓN E INACTIVIDAD
+        // SISTEMA DE AUTENTICACIÓN Y ROLES
         // ==========================================
         onAuthStateChanged(auth, async (user) => {
             const loginScreen = document.getElementById('login-screen');
             const appScreen = document.getElementById('app-screen');
+            const panelFinanciero = document.getElementById('panel-financiero');
             
             if (user) {
                 currentUser = user;
@@ -418,14 +418,22 @@
                 loginScreen.classList.add('hidden');
                 appScreen.classList.remove('hidden');
                 
+                // Lógica de Permisos (RBAC Básico)
+                if (user.email === ADMIN_EMAIL) {
+                    panelFinanciero.classList.remove('hidden'); // Muestra el panel a Cris
+                    calcularDashboard(); // Carga las finanzas solo si es admin
+                } else {
+                    panelFinanciero.classList.add('hidden'); // Oculta el panel a JF y Hades
+                }
+
                 await cargarDiccionario(); 
                 inicializarApp();
-                iniciarTimerSeguridad(); // Activar bomba de tiempo de 30 min
-                calcularDashboard(); // Cargar finanzas
+                iniciarTimerSeguridad();
             } else {
                 currentUser = null;
                 loginScreen.classList.remove('hidden');
                 appScreen.classList.add('hidden');
+                panelFinanciero.classList.add('hidden'); // Ocultar por seguridad
                 detenerTimerSeguridad();
             }
         });
@@ -454,7 +462,7 @@
             }
         };
 
-        // Lógica de inactividad (30 Minutos = 1.800.000 ms)
+        // Lógica de inactividad (30 Minutos)
         function reiniciarTimer() {
             if(currentUser) {
                 clearTimeout(timerInactividad);
@@ -481,7 +489,7 @@
 
 
         // ==========================================
-        // DICCIONARIO DE PRODUCTOS (DINÁMICO)
+        // DICCIONARIO DE PRODUCTOS
         // ==========================================
         async function cargarDiccionario() {
             try {
@@ -490,7 +498,6 @@
                 if (docSnap.exists()) {
                     diccionarioProductos = docSnap.data();
                 } else {
-                    // Seed inicial si está vacío
                     diccionarioProductos = { "MP": "Medio Pollo", "BT": "Botella" }; 
                     await setDoc(docRef, diccionarioProductos);
                 }
@@ -507,8 +514,6 @@
         function pintarGridDiccionario() {
             const container = document.getElementById('grid-diccionario');
             container.innerHTML = '';
-            
-            // Ordenar alfabéticamente las siglas
             const siglasOrdenadas = Object.keys(diccionarioProductos).sort();
             
             siglasOrdenadas.forEach(sigla => {
@@ -547,7 +552,6 @@
         };
 
         window.guardarDiccionario = async () => {
-            // Actualizar el objeto con los valores actuales de los inputs
             Object.keys(diccionarioProductos).forEach(sigla => {
                 const input = document.getElementById(`dict-${sigla}`);
                 if (input) diccionarioProductos[sigla] = input.value.trim();
@@ -555,9 +559,8 @@
 
             try {
                 await setDoc(doc(db, "configuracion", "diccionario_productos"), diccionarioProductos);
-                alert("✅ Glosario actualizado. Los menús de venta ya tienen los nuevos productos.");
+                alert("✅ Glosario actualizado.");
                 
-                // Actualizar los selects del formulario sin recargar
                 document.querySelectorAll('.input-prod-select').forEach(select => {
                     const valorAnterior = select.value;
                     let opcionesHTML = `<option value="">Seleccionar Producto...</option>`;
@@ -577,7 +580,7 @@
 
 
         // ==========================================
-        // LÓGICA DE FORMULARIO (INGRESOS Y EGRESOS)
+        // LÓGICA DE FORMULARIO
         // ==========================================
         function inicializarApp() {
             lucide.createIcons();
@@ -607,7 +610,6 @@
             const iconPagos = document.getElementById('icon-pagos');
             const seccionLogistica = document.getElementById('seccion-logistica');
             
-            // Adaptación de UX para Cuentas de Origen / Destino
             if (tipo === 'Venta') {
                 lblCliente.textContent = "Cliente";
                 lblProductos.innerHTML = '<i data-lucide="package" class="w-5 h-5 text-orange-500"></i> 1. Productos Vendidos';
@@ -706,7 +708,6 @@
         window.agregarFilaPago = (data = null) => {
             contadorPagos++;
             const id = contadorPagos;
-            // Se añade la cuenta JF
             const html = `
                 <div id="pago-${id}" class="flex flex-col md:flex-row gap-3 items-start md:items-center fade-in bg-white dark:bg-slate-800 p-4 md:p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm relative">
                     ${id > 1 ? `<button onclick="eliminarFila('pago-${id}')" class="md:hidden absolute top-2 right-2 text-red-500 bg-red-50 dark:bg-red-900/30 p-2 rounded-full"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
@@ -803,7 +804,7 @@
 
 
         // ==========================================
-        // BASE DE DATOS Y DASHBOARD FINANCIERO
+        // BASE DE DATOS Y OPERACIONES
         // ==========================================
         window.guardarMovimiento = async () => {
             const cliente = document.getElementById('cliente').value.trim();
@@ -849,7 +850,7 @@
             if (pagos.length === 0 || productos.length === 0) return alert("Completa conceptos y montos de caja.");
 
             const docData = {
-                tipoMovimiento, // 'Venta', 'Compra' o 'Gasto'
+                tipoMovimiento,
                 fecha, cliente, productos, entrega, pagos, totalVenta,
                 creadoPor: currentUser.email, timestamp: Date.now()
             };
@@ -874,11 +875,13 @@
                 }
                 btn.innerHTML = '<i data-lucide="save" class="w-5 h-5"></i> Registrar Movimiento';
                 lucide.createIcons();
-                calcularDashboard(); // Refrescar finanzas
+                
+                // Solo refrescamos el Dashboard si el usuario tiene permiso (ahorramos Base de datos)
+                if (currentUser.email === ADMIN_EMAIL) calcularDashboard();
+
             } catch (e) { alert("Error de Permisos."); }
         };
 
-        // Historial Global (No filtra por usuario, todos ven todo)
         function cargarVentasFirebase() {
             const q = query(collection(db, "ventas"), orderBy("timestamp", "desc"), limit(12));
             onSnapshot(q, (snapshot) => {
@@ -939,7 +942,7 @@
             if (confirm("⚠️ ¿Eliminar definitivamente este movimiento contable global?")) {
                 try { 
                     await deleteDoc(doc(db, "ventas", id)); 
-                    calcularDashboard(); 
+                    if (currentUser.email === ADMIN_EMAIL) calcularDashboard(); 
                 } catch (e) { alert("Error permisos."); }
             }
         };
@@ -1000,10 +1003,9 @@
             calcularTotales();
         };
 
-        // DASHBOARD INTELIGENTE
+        // DASHBOARD INTELIGENTE (Procesado solo si es Admin)
         window.calcularDashboard = async () => {
             try {
-                // Descarga un snapshot de la DB para hacer Business Intelligence local
                 const snap = await getDocs(collection(db, "ventas"));
                 
                 let totalVentas = 0;
@@ -1019,20 +1021,16 @@
                     if (esIngreso) totalVentas += data.totalVenta;
 
                     data.pagos.forEach(p => {
-                        // Calcular Cartera (Créditos a favor)
                         if (p.metodo === 'Credito' && esIngreso) {
                             totalCreditos += p.monto;
                             deudores[data.cliente] = (deudores[data.cliente] || 0) + p.monto;
                         }
-
-                        // Calcular Saldos en Cuentas Físicas/Digitales
                         if (saldos[p.cuenta] !== undefined) {
                             saldos[p.cuenta] += (p.monto * multiplicador);
                         }
                     });
                 });
 
-                // Renderizar en Pantalla
                 document.getElementById('dash-ventas').textContent = formatoMoneda.format(totalVentas);
                 document.getElementById('dash-creditos').textContent = formatoMoneda.format(totalCreditos);
                 
@@ -1043,7 +1041,6 @@
                     el.className = `text-sm font-bold ${val < 0 ? 'text-red-500' : 'text-slate-700 dark:text-slate-200'}`;
                 });
 
-                // Cargar datos al modal de cartera
                 const listaDeudores = document.getElementById('lista-deudores');
                 listaDeudores.innerHTML = '';
                 
@@ -1059,7 +1056,6 @@
                         `);
                     }
                 }
-
             } catch (error) {
                 console.error("Error cargando Dashboard:", error);
             }
