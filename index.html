@@ -92,7 +92,7 @@
             <!-- COLUMNA IZQUIERDA: FORMULARIO -->
             <div class="xl:col-span-2 space-y-6">
                 
-                <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+                <div id="form-container-main" class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-all duration-300">
                     
                     <div class="flex justify-between items-center mb-6 border-b dark:border-slate-700 pb-4">
                         <h2 id="form-title" class="text-xl font-bold flex items-center gap-2">
@@ -310,7 +310,7 @@
         </div>
     </div>
 
-    <!-- MODAL: DICCIONARIO DE SIGLAS (AHORA DINÁMICO) -->
+    <!-- MODAL: DICCIONARIO DE SIGLAS -->
     <div id="modal-diccionario" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm transition-opacity">
         <div class="glass-modal w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 m-4">
             <div class="p-6 border-b dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 rounded-t-2xl">
@@ -369,7 +369,6 @@
 
     <!-- ==================== SCRIPTS LÓGICOS ==================== -->
     <script type="module">
-        // 1. CONFIGURACIÓN FIREBASE (Ferco Farma)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs, getDoc, setDoc, query, orderBy, limit, onSnapshot } 
         from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -390,10 +389,10 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // 🔒 SEGURIDAD: Persistencia estricta en memoria. F5 = Cierre de Sesión.
+        // Seguridad: Persistencia en memoria
         setPersistence(auth, inMemoryPersistence).catch(console.error);
 
-        // Roles y Accesos (Lista Blanca)
+        // Lista Blanca
         const ADMIN_EMAIL = 'cris@fercofarma.com';
         const USUARIOS_PERMITIDOS = [
             'cris@fercofarma.com', 
@@ -412,7 +411,7 @@
         let diccionarioProductos = {}; 
 
         // ==========================================
-        // SISTEMA DE AUTENTICACIÓN Y ROLES
+        // AUTENTICACIÓN
         // ==========================================
         onAuthStateChanged(auth, async (user) => {
             const loginScreen = document.getElementById('login-screen');
@@ -421,10 +420,8 @@
             const errorTxt = document.getElementById('login-error');
             
             if (user) {
-                // 1. BARRERA DE SEGURIDAD CONTRA MAYÚSCULAS: Convertir a minúsculas
                 const correoIngresado = user.email.toLowerCase();
 
-                // 2. VERIFICACIÓN DE LISTA BLANCA
                 if (!USUARIOS_PERMITIDOS.includes(correoIngresado)) {
                     signOut(auth); 
                     errorTxt.textContent = "Acceso denegado: Usuario no autorizado por la gerencia.";
@@ -437,7 +434,6 @@
                 loginScreen.classList.add('hidden');
                 appScreen.classList.remove('hidden');
                 
-                // RBAC: Solo Admin ve finanzas
                 if (correoIngresado === ADMIN_EMAIL) {
                     panelFinanciero.classList.remove('hidden');
                     calcularDashboard(); 
@@ -459,7 +455,6 @@
 
         window.iniciarSesion = (e) => {
             e.preventDefault();
-            // Evitar problemas de espacios o mayúsculas en el login
             const email = document.getElementById('login-email').value.trim().toLowerCase();
             const pass = document.getElementById('login-pass').value;
             const btn = document.getElementById('btn-login');
@@ -468,22 +463,17 @@
             btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Conectando...';
             errorTxt.classList.add('hidden');
 
-            signInWithEmailAndPassword(auth, email, pass)
-                .catch((error) => {
-                    errorTxt.textContent = "Credenciales incorrectas.";
-                    errorTxt.classList.remove('hidden');
-                    btn.innerHTML = 'Ingresar al Sistema <i data-lucide="log-in" class="w-5 h-5"></i>';
-                    lucide.createIcons();
-                });
+            signInWithEmailAndPassword(auth, email, pass).catch((error) => {
+                errorTxt.textContent = "Credenciales incorrectas.";
+                errorTxt.classList.remove('hidden');
+                btn.innerHTML = 'Ingresar al Sistema <i data-lucide="log-in" class="w-5 h-5"></i>';
+                lucide.createIcons();
+            });
         };
 
-        window.cerrarSesionUsuario = () => {
-            if(confirm("¿Seguro que deseas salir del sistema?")) {
-                signOut(auth);
-            }
-        };
+        window.cerrarSesionUsuario = () => { if(confirm("¿Seguro que deseas salir del sistema?")) signOut(auth); };
 
-        // Lógica de inactividad
+        // Inactividad
         function reiniciarTimer() {
             if(currentUser) {
                 clearTimeout(timerInactividad);
@@ -509,7 +499,7 @@
         }
 
         // ==========================================
-        // DICCIONARIO DE PRODUCTOS
+        // DICCIONARIO
         // ==========================================
         async function cargarDiccionario() {
             try {
@@ -528,23 +518,19 @@
             pintarGridDiccionario();
             document.getElementById('modal-diccionario').style.display = 'flex';
         };
-        
         window.cerrarDiccionario = () => { document.getElementById('modal-diccionario').style.display = 'none'; };
 
         function pintarGridDiccionario() {
             const container = document.getElementById('grid-diccionario');
             container.innerHTML = '';
-            const siglasOrdenadas = Object.keys(diccionarioProductos).sort();
-            
-            siglasOrdenadas.forEach(sigla => {
-                const html = `
+            Object.keys(diccionarioProductos).sort().forEach(sigla => {
+                container.insertAdjacentHTML('beforeend', `
                     <div class="flex items-center gap-2 bg-white dark:bg-slate-800 p-2 rounded border border-slate-200 dark:border-slate-700">
                         <span class="font-bold text-indigo-600 dark:text-indigo-400 w-16 text-center">${sigla}</span>
                         <input type="text" id="dict-${sigla}" value="${diccionarioProductos[sigla]}" class="w-full p-1.5 border border-slate-300 dark:border-slate-600 rounded bg-slate-50 dark:bg-slate-700 outline-none text-xs dark:text-white">
                         <button onclick="eliminarSiglaTemporal('${sigla}')" class="text-red-500 hover:bg-red-100 p-1.5 rounded"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </div>
-                `;
-                container.insertAdjacentHTML('beforeend', html);
+                `);
             });
             lucide.createIcons();
         }
@@ -559,9 +545,7 @@
                 diccionarioProductos[sigla] = val;
                 idInput.value = ''; valInput.value = '';
                 pintarGridDiccionario();
-            } else {
-                alert("Completa ambos campos para añadir la sigla.");
-            }
+            } else { alert("Completa ambos campos para añadir la sigla."); }
         };
 
         window.eliminarSiglaTemporal = (sigla) => {
@@ -580,7 +564,6 @@
             try {
                 await setDoc(doc(db, "configuracion", "diccionario_productos"), diccionarioProductos);
                 alert("✅ Glosario actualizado.");
-                
                 document.querySelectorAll('.input-prod-select').forEach(select => {
                     const valorAnterior = select.value;
                     let opcionesHTML = `<option value="">Seleccionar Producto...</option>`;
@@ -591,24 +574,19 @@
                     select.innerHTML = opcionesHTML;
                     select.value = valorAnterior; 
                 });
-
                 cerrarDiccionario();
-            } catch (error) {
-                alert("Error de permisos guardando el diccionario.");
-            }
+            } catch (error) { alert("Error guardando el diccionario."); }
         };
 
         // ==========================================
-        // LÓGICA DE FORMULARIO Y ABONOS
+        // LÓGICA DEL FORMULARIO 
         // ==========================================
         function inicializarApp() {
             lucide.createIcons();
-            const hoy = new Date().toISOString().split('T')[0];
-            document.getElementById('fecha').value = hoy;
-            
+            document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
             const primerDiaMes = new Date(); primerDiaMes.setDate(1);
             document.getElementById('filtro-inicio').value = primerDiaMes.toISOString().split('T')[0];
-            document.getElementById('filtro-fin').value = hoy;
+            document.getElementById('filtro-fin').value = new Date().toISOString().split('T')[0];
 
             document.getElementById('productos-container').innerHTML = '';
             document.getElementById('pagos-container').innerHTML = '';
@@ -623,82 +601,55 @@
         window.manejarCambioTipo = () => {
             const tipo = document.querySelector('input[name="tipoMovimiento"]:checked').value;
             const boxTotales = document.getElementById('box-totales');
-            const lblCliente = document.getElementById('lbl-cliente');
-            const lblProductos = document.getElementById('lbl-productos');
-            const lblPagosTexto = document.getElementById('txt-lbl-pagos');
-            const iconPagos = document.getElementById('icon-pagos');
             const seccionLogistica = document.getElementById('seccion-logistica');
             
             if (tipo === 'Venta') {
-                lblCliente.textContent = "Cliente";
-                lblProductos.innerHTML = '<i data-lucide="package" class="w-5 h-5 text-orange-500"></i> 1. Productos Vendidos';
-                lblPagosTexto.textContent = "2. Medios de Pago (Ingreso a Cuenta)";
-                iconPagos.className = "w-5 h-5 text-emerald-500";
+                document.getElementById('lbl-cliente').textContent = "Cliente";
+                document.getElementById('lbl-productos').innerHTML = '<i data-lucide="package" class="w-5 h-5 text-orange-500"></i> 1. Productos Vendidos';
+                document.getElementById('txt-lbl-pagos').textContent = "2. Medios de Pago (Ingreso a Cuenta)";
+                document.getElementById('icon-pagos').className = "w-5 h-5 text-emerald-500";
                 document.getElementById('lbl-total-calc').textContent = "Total a Cobrar";
                 document.getElementById('lbl-total-pagado').textContent = "Total Recibido";
                 boxTotales.className = "bg-slate-800 dark:bg-slate-950 text-white p-5 rounded-xl flex flex-col md:flex-row justify-between items-center gap-6 shadow-inner border border-slate-700 transition-colors duration-300";
                 seccionLogistica.classList.remove('hidden');
             } else if (tipo === 'Compra' || tipo === 'Gasto') {
-                lblCliente.textContent = tipo === 'Compra' ? "Proveedor" : "Beneficiario o Descripción (Ej: EPM, Papelería)";
-                lblProductos.innerHTML = `<i data-lucide="${tipo==='Compra'?'package':'file-text'}" class="w-5 h-5 text-orange-500"></i> 1. Conceptos del ${tipo}`;
-                lblPagosTexto.textContent = "2. Cuenta de Origen del Dinero (De dónde salió)";
-                iconPagos.className = "w-5 h-5 text-red-400";
+                document.getElementById('lbl-cliente').textContent = tipo === 'Compra' ? "Proveedor" : "Beneficiario o Descripción (Ej: EPM)";
+                document.getElementById('lbl-productos').innerHTML = `<i data-lucide="${tipo==='Compra'?'package':'file-text'}" class="w-5 h-5 text-orange-500"></i> 1. Conceptos del ${tipo}`;
+                document.getElementById('txt-lbl-pagos').textContent = "2. Cuenta de Origen del Dinero (De dónde salió)";
+                document.getElementById('icon-pagos').className = "w-5 h-5 text-red-400";
                 document.getElementById('lbl-total-calc').textContent = `Total del ${tipo}`;
                 document.getElementById('lbl-total-pagado').textContent = "Total Egresado";
                 boxTotales.className = "bg-red-950 text-white p-5 rounded-xl flex flex-col md:flex-row justify-between items-center gap-6 shadow-inner border border-red-800 transition-colors duration-300";
                 
                 if(tipo === 'Gasto') {
                     seccionLogistica.classList.add('hidden');
-                    document.querySelectorAll('.input-prod-select').forEach((sel, i) => { if(sel.value === "") { sel.value = "OTRO"; verificarOtroProducto(sel, i+1); } });
                 } else {
                     seccionLogistica.classList.remove('hidden');
                 }
             } else if (tipo === 'Abono') {
-                lblCliente.textContent = "Cliente que realiza el abono";
-                lblProductos.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5 text-purple-500"></i> 1. Detalle del Abono';
-                lblPagosTexto.textContent = "2. Cuenta Destino (A dónde ingresa el abono)";
-                iconPagos.className = "w-5 h-5 text-emerald-500";
+                document.getElementById('lbl-cliente').textContent = "Cliente que realiza el abono";
+                document.getElementById('lbl-productos').innerHTML = '<i data-lucide="check-circle" class="w-5 h-5 text-purple-500"></i> 1. Detalle del Abono';
+                document.getElementById('txt-lbl-pagos').textContent = "2. Cuenta Destino (A dónde ingresa el abono)";
+                document.getElementById('icon-pagos').className = "w-5 h-5 text-emerald-500";
                 document.getElementById('lbl-total-calc').textContent = "Total a Descontar de Cartera";
                 document.getElementById('lbl-total-pagado').textContent = "Dinero Ingresado";
                 boxTotales.className = "bg-purple-950 text-white p-5 rounded-xl flex flex-col md:flex-row justify-between items-center gap-6 shadow-inner border border-purple-800 transition-colors duration-300";
                 seccionLogistica.classList.add('hidden');
-
-                // Forzar concepto "Abono de Cartera"
-                document.querySelectorAll('.input-prod-select').forEach((sel, i) => { 
-                    sel.value = "OTRO"; 
-                    verificarOtroProducto(sel, i+1); 
-                    const manual = document.getElementById(`prod-manual-${i+1}`);
-                    if(manual && manual.value === "") manual.value = "Abono a Cartera";
-                });
             }
             lucide.createIcons();
             calcularTotales();
         };
 
-        window.prepararAbono = (clienteDeudor) => {
-            cerrarModalCreditos();
-            document.querySelector('input[name="tipoMovimiento"][value="Abono"]').checked = true;
-            manejarCambioTipo();
-            document.getElementById('cliente').value = clienteDeudor;
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            
-            const valInput = document.querySelector('.input-val');
-            if(valInput) valInput.focus();
-        };
-
-        window.agregarFilaProducto = (data = null) => {
+        window.agregarFilaProducto = () => {
             contadorProductos++;
             const id = contadorProductos;
-            
             let opcionesHTML = `<option value="">Seleccionar Producto...</option>`;
             Object.keys(diccionarioProductos).sort().forEach(p => {
                 opcionesHTML += `<option value="${p}">${p} - ${diccionarioProductos[p]}</option>`;
             });
             opcionesHTML += `<option value="OTRO" class="font-bold text-blue-600">➕ OTRO (Escribir Manualmente)</option>`;
 
-            const esOtro = data && !Object.keys(diccionarioProductos).includes(data.concepto);
-
-            const html = `
+            document.getElementById('productos-container').insertAdjacentHTML('beforeend', `
                 <div id="prod-${id}" class="flex flex-col md:flex-row gap-3 items-start md:items-center fade-in bg-white dark:bg-slate-800 p-4 md:p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm relative">
                     ${id > 1 ? `<button onclick="eliminarFila('prod-${id}')" class="md:hidden absolute top-2 right-2 text-red-500 bg-red-50 dark:bg-red-900/30 p-2 rounded-full"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
                     <div class="w-full md:w-5/12">
@@ -706,42 +657,34 @@
                         <select class="input-prod-select w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded bg-slate-50 dark:bg-slate-700 outline-none text-sm dark:text-white" onchange="verificarOtroProducto(this, ${id})">
                             ${opcionesHTML}
                         </select>
-                        <input type="text" id="prod-manual-${id}" class="input-prod-manual ${esOtro ? '' : 'hidden'} w-full mt-2 p-2.5 border border-indigo-300 dark:border-indigo-600 rounded bg-indigo-50 dark:bg-indigo-900/30 outline-none text-sm dark:text-white" placeholder="Descripción..." value="${esOtro ? data.concepto : ''}" oninput="calcularTotales()">
+                        <input type="text" id="prod-manual-${id}" class="input-prod-manual hidden w-full mt-2 p-2.5 border border-indigo-300 dark:border-indigo-600 rounded bg-indigo-50 dark:bg-indigo-900/30 outline-none text-sm dark:text-white" placeholder="Descripción..." oninput="calcularTotales()">
                     </div>
                     <div class="w-full md:w-3/12 flex gap-3 md:block">
                         <div class="w-1/2 md:w-full">
                             <label class="md:hidden text-xs font-bold text-slate-500 mb-1 block">Cant.</label>
-                            <input type="number" class="input-cant w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded bg-transparent outline-none text-sm text-center dark:text-white" value="${data ? data.cantidad : '1'}" min="1" oninput="calcularTotales()">
+                            <input type="number" class="input-cant w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded bg-transparent outline-none text-sm text-center dark:text-white" value="1" min="1" oninput="calcularTotales()">
                         </div>
                     </div>
                     <div class="w-full md:w-3/12">
                         <label class="md:hidden text-xs font-bold text-slate-500 mb-1 block">Valor Unit.</label>
                         <div class="relative">
                             <span class="absolute left-3 top-2.5 text-slate-400">$</span>
-                            <input type="number" class="input-val w-full p-2.5 pl-8 border border-slate-300 dark:border-slate-600 rounded bg-transparent outline-none text-sm dark:text-white" placeholder="0" value="${data ? data.valorUnitario : ''}" oninput="calcularTotales()">
+                            <input type="number" class="input-val w-full p-2.5 pl-8 border border-slate-300 dark:border-slate-600 rounded bg-transparent outline-none text-sm dark:text-white" placeholder="0" oninput="calcularTotales()">
                         </div>
                     </div>
                     <div class="hidden md:block w-1/12 text-center">
                         ${id > 1 ? `<button onclick="eliminarFila('prod-${id}')" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>` : '<div class="w-9 h-9"></div>'}
                     </div>
                 </div>
-            `;
-            document.getElementById('productos-container').insertAdjacentHTML('beforeend', html);
-            
-            if (data) {
-                const selectEl = document.querySelector(`#prod-${id} .input-prod-select`);
-                selectEl.value = Object.keys(diccionarioProductos).includes(data.concepto) ? data.concepto : 'OTRO';
-            }
+            `);
             lucide.createIcons();
             
             const tipo = document.querySelector('input[name="tipoMovimiento"]:checked').value;
-            if ((tipo === 'Gasto' || tipo === 'Abono') && !data) {
-                const selectEl = document.querySelector(`#prod-${id} .input-prod-select`);
-                selectEl.value = 'OTRO';
-                verificarOtroProducto(selectEl, id);
-                if (tipo === 'Abono') {
-                    document.getElementById(`prod-manual-${id}`).value = "Abono a Cartera";
-                }
+            if (tipo === 'Gasto' || tipo === 'Abono') {
+                const sel = document.querySelector(`#prod-${id} .input-prod-select`);
+                sel.value = 'OTRO';
+                verificarOtroProducto(sel, id);
+                if (tipo === 'Abono') document.getElementById(`prod-manual-${id}`).value = "Abono a Cartera";
             }
         };
 
@@ -755,48 +698,47 @@
             calcularTotales();
         };
 
-        window.agregarFilaPago = (data = null) => {
+        window.agregarFilaPago = () => {
             contadorPagos++;
             const id = contadorPagos;
-            const html = `
+            document.getElementById('pagos-container').insertAdjacentHTML('beforeend', `
                 <div id="pago-${id}" class="flex flex-col md:flex-row gap-3 items-start md:items-center fade-in bg-white dark:bg-slate-800 p-4 md:p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm relative">
                     ${id > 1 ? `<button onclick="eliminarFila('pago-${id}')" class="md:hidden absolute top-2 right-2 text-red-500 bg-red-50 dark:bg-red-900/30 p-2 rounded-full"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
                     <div class="w-full md:w-4/12">
                         <label class="md:hidden text-xs font-bold text-slate-500 mb-1 block">Medio</label>
                         <select class="input-metodo w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded bg-slate-50 dark:bg-slate-700 outline-none text-sm dark:text-white">
                             <option value="">Medio...</option>
-                            <option value="Transferencia" ${data?.metodo === 'Transferencia' ? 'selected' : ''}>Transferencia</option>
-                            <option value="Efectivo" ${data?.metodo === 'Efectivo' ? 'selected' : ''}>Efectivo</option>
-                            <option value="Credito" ${data?.metodo === 'Credito' ? 'selected' : ''}>Crédito</option>
-                            <option value="Cruce" ${data?.metodo === 'Cruce' ? 'selected' : ''}>Cruce</option>
-                            <option value="Bold" ${data?.metodo === 'Bold' ? 'selected' : ''}>Bold</option>
+                            <option value="Transferencia">Transferencia</option>
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Credito">Crédito</option>
+                            <option value="Cruce">Cruce</option>
+                            <option value="Bold">Bold</option>
                         </select>
                     </div>
                     <div class="w-full md:w-4/12">
                         <label class="md:hidden text-xs font-bold text-slate-500 mb-1 block">Cuenta/Caja</label>
                         <select class="input-cuenta w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded bg-slate-50 dark:bg-slate-700 outline-none text-sm dark:text-white">
                             <option value="">Cuenta...</option>
-                            <option value="Cris" ${data?.cuenta === 'Cris' ? 'selected' : ''}>Cris</option>
-                            <option value="JF" ${data?.cuenta === 'JF' ? 'selected' : ''}>JF</option>
-                            <option value="Jhon" ${data?.cuenta === 'Jhon' ? 'selected' : ''}>Jhon</option>
-                            <option value="Bodega" ${data?.cuenta === 'Bodega' ? 'selected' : ''}>Bodega</option>
-                            <option value="Hades" ${data?.cuenta === 'Hades' ? 'selected' : ''}>Hades</option>
-                            <option value="General" ${data?.cuenta === 'General' ? 'selected' : ''}>Caja General</option>
+                            <option value="Cris">Cris</option>
+                            <option value="JF">JF</option>
+                            <option value="Jhon">Jhon</option>
+                            <option value="Bodega">Bodega</option>
+                            <option value="Hades">Hades</option>
+                            <option value="General">Caja General</option>
                         </select>
                     </div>
                     <div class="w-full md:w-3/12">
                         <label class="md:hidden text-xs font-bold text-slate-500 mb-1 block">Monto</label>
                         <div class="relative">
                             <span class="absolute left-3 top-2.5 text-slate-400">$</span>
-                            <input type="number" class="input-monto w-full p-2.5 pl-8 border border-slate-300 dark:border-slate-600 rounded bg-transparent outline-none text-sm dark:text-white" placeholder="0" value="${data ? data.monto : ''}" oninput="calcularTotales()">
+                            <input type="number" class="input-monto w-full p-2.5 pl-8 border border-slate-300 dark:border-slate-600 rounded bg-transparent outline-none text-sm dark:text-white" placeholder="0" oninput="calcularTotales()">
                         </div>
                     </div>
                     <div class="hidden md:block w-1/12 text-center">
                         ${id > 1 ? `<button onclick="eliminarFila('pago-${id}')" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>` : '<div class="w-9 h-9"></div>'}
                     </div>
                 </div>
-            `;
-            document.getElementById('pagos-container').insertAdjacentHTML('beforeend', html);
+            `);
             lucide.createIcons();
         };
 
@@ -839,8 +781,6 @@
 
             const btn = document.getElementById('btn-guardar');
             const alerta = document.getElementById('alerta-descuadre');
-            
-            // 💡 FIX APLICADO: >= 0 para permitir registros en cero (Muestras, garantías, cortesías)
             if (totalCobrar >= 0 && totalCobrar === totalPagos) {
                 btn.disabled = false; alerta.classList.add('hidden');
             } else {
@@ -855,7 +795,7 @@
         };
 
         // ==========================================
-        // BASE DE DATOS Y OPERACIONES
+        // GUARDAR MOVIMIENTO Y BASE DE DATOS
         // ==========================================
         window.guardarMovimiento = async () => {
             const cliente = document.getElementById('cliente').value.trim();
@@ -871,7 +811,7 @@
                 const concepto = s === 'OTRO' ? m : s;
                 const c = parseFloat(fila.querySelector('.input-cant').value) || 0;
                 const v = parseFloat(fila.querySelector('.input-val').value) || 0;
-                if (concepto && c > 0 && v >= 0) { // Permite v >= 0
+                if (concepto && c > 0 && v >= 0) {
                     productos.push({ 
                         concepto, 
                         esDiccionario: Object.keys(diccionarioProductos).includes(concepto), 
@@ -895,10 +835,7 @@
                 const metodo = fila.querySelector('.input-metodo').value;
                 const cuenta = fila.querySelector('.input-cuenta').value;
                 const monto = parseFloat(fila.querySelector('.input-monto').value) || 0;
-                if (metodo && cuenta && monto >= 0) { // Permite monto >= 0
-                    pagos.push({ metodo, cuenta, monto }); 
-                    totalVenta += monto; 
-                }
+                if (metodo && cuenta && monto >= 0) { pagos.push({ metodo, cuenta, monto }); totalVenta += monto; }
             });
 
             if (pagos.length === 0 || productos.length === 0) return alert("Completa conceptos y montos de caja.");
@@ -940,7 +877,7 @@
             onSnapshot(q, (snapshot) => {
                 const cont = document.getElementById('lista-ventas');
                 cont.innerHTML = '';
-                if(snapshot.empty) return cont.innerHTML = '<p class="text-sm text-slate-500 text-center py-4">No hay movimientos registrados por la empresa.</p>';
+                if(snapshot.empty) return cont.innerHTML = '<p class="text-sm text-slate-500 text-center py-4">No hay movimientos registrados.</p>';
 
                 snapshot.forEach((doc) => {
                     const v = doc.data();
@@ -1005,24 +942,46 @@
             }
         };
 
+        // ==========================================
+        // LA MEJORA: CARGAR PARA EDITAR (RELLENADO AUTOMÁTICO)
+        // ==========================================
         window.cargarParaEditar = async (id) => {
+            const clienteActual = document.getElementById('cliente').value.trim();
+            const totalActual = document.getElementById('txt-total-cobrar').textContent;
+            
+            if (!ventaEditandoId && (clienteActual !== '' || totalActual !== '$ 0')) {
+                if(!confirm("⚠️ Tienes un registro en progreso. ¿Descartarlo para editar este movimiento antiguo?")) {
+                    return; 
+                }
+            }
+
             try {
-                const d = await getDoc(doc(db, "ventas", id));
-                if (d.exists()) {
-                    const data = d.data();
+                const docSnap = await getDoc(doc(db, "ventas", id));
+                
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
                     ventaEditandoId = id;
+                    
                     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                    const formContainer = document.getElementById('form-container-main');
+                    formContainer.classList.add('ring-2', 'ring-orange-500', 'bg-orange-50/30', 'dark:bg-orange-900/10');
+
+                    document.getElementById('form-title').innerHTML = '<i data-lucide="edit-3" class="w-6 h-6 text-orange-500"></i> Editando Movimiento';
+                    document.getElementById('txt-btn-guardar').textContent = 'Actualizar Movimiento';
+                    document.getElementById('btn-guardar').classList.replace('bg-blue-600', 'bg-orange-600');
+                    document.getElementById('btn-guardar').classList.replace('hover:bg-blue-500', 'hover:bg-orange-500');
+                    document.getElementById('btn-cancelar-edicion').classList.remove('hidden');
 
                     const tipo = data.tipoMovimiento || 'Venta';
                     document.querySelector(`input[name="tipoMovimiento"][value="${tipo}"]`).checked = true;
                     manejarCambioTipo(); 
 
-                    document.getElementById('form-title').innerHTML = '<i data-lucide="edit-3" class="w-6 h-6 text-orange-500"></i> Editando Movimiento';
-                    document.getElementById('btn-cancelar-edicion').classList.remove('hidden');
-
+                    // 1. Rellenar Datos Generales
                     document.getElementById('cliente').value = data.cliente;
                     document.getElementById('fecha').value = data.fecha;
                     
+                    // 2. Rellenar Logística
                     if(tipo !== 'Gasto' && tipo !== 'Abono') {
                         document.getElementById('medio-entrega').value = data.entrega.medio;
                         manejarCambioEntrega();
@@ -1032,23 +991,71 @@
                         }
                     }
 
+                    // 3. Rellenar Productos (AQUÍ ESTABA EL ERROR: AHORA USAMOS setTimeout para esperar al DOM)
                     document.getElementById('productos-container').innerHTML = '';
-                    data.productos.forEach(p => agregarFilaProducto(p));
+                    contadorProductos = 0; // Reiniciar contador visual
+                    data.productos.forEach((p, index) => {
+                        agregarFilaProducto(); // Crea el HTML vacío
+                        setTimeout(() => { // Espera un milisegundo a que el HTML exista para rellenarlo
+                            const idRow = index + 1;
+                            const fila = document.getElementById(`prod-${idRow}`);
+                            if(fila) {
+                                const selectEl = fila.querySelector('.input-prod-select');
+                                const cantEl = fila.querySelector('.input-cant');
+                                const valEl = fila.querySelector('.input-val');
+                                
+                                if (Object.keys(diccionarioProductos).includes(p.concepto)) {
+                                    selectEl.value = p.concepto;
+                                } else {
+                                    selectEl.value = 'OTRO';
+                                    verificarOtroProducto(selectEl, idRow);
+                                    fila.querySelector('.input-prod-manual').value = p.concepto;
+                                }
+                                
+                                cantEl.value = p.cantidad;
+                                valEl.value = p.valorUnitario;
+                                calcularTotales(); // Recalcular en cada pasada
+                            }
+                        }, 10); 
+                    });
 
+                    // 4. Rellenar Pagos
                     document.getElementById('pagos-container').innerHTML = '';
-                    data.pagos.forEach(p => agregarFilaPago(p));
+                    contadorPagos = 0;
+                    data.pagos.forEach((p, index) => {
+                        agregarFilaPago();
+                        setTimeout(() => {
+                            const idRow = index + 1;
+                            const fila = document.getElementById(`pago-${idRow}`);
+                            if(fila) {
+                                fila.querySelector('.input-metodo').value = p.metodo;
+                                fila.querySelector('.input-cuenta').value = p.cuenta;
+                                fila.querySelector('.input-monto').value = p.monto;
+                                calcularTotales();
+                            }
+                        }, 10);
+                    });
 
-                    calcularTotales();
+                    lucide.createIcons();
+                } else {
+                    alert("❌ Error: Este registro ya no existe.");
                 }
             } catch(e) { console.error(e); }
         };
 
         window.cancelarEdicion = () => {
             ventaEditandoId = null;
+            
+            const formContainer = document.getElementById('form-container-main');
+            formContainer.classList.remove('ring-2', 'ring-orange-500', 'bg-orange-50/30', 'dark:bg-orange-900/10');
+
             document.querySelector('input[name="tipoMovimiento"][value="Venta"]').checked = true;
             manejarCambioTipo();
             
-            document.getElementById('form-title').innerHTML = '<i data-lucide="file-plus" class="w-6 h-6 text-blue-600 dark:text-blue-400"></i> Nuevo Movimiento';
+            document.getElementById('form-title').innerHTML = '<i data-lucide="file-plus" class="w-6 h-6 text-blue-600 dark:text-blue-400"></i> Nuevo Movimiento Contable';
+            document.getElementById('txt-btn-guardar').textContent = 'Registrar Movimiento';
+            document.getElementById('btn-guardar').classList.replace('bg-orange-600', 'bg-blue-600');
+            document.getElementById('btn-guardar').classList.replace('hover:bg-orange-500', 'hover:bg-blue-500');
             document.getElementById('btn-cancelar-edicion').classList.add('hidden');
             
             document.getElementById('cliente').value = '';
@@ -1061,7 +1068,20 @@
             calcularTotales();
         };
 
-        // DASHBOARD INTELIGENTE (Cartera y Saldos)
+        window.prepararAbono = (clienteDeudor) => {
+            cerrarModalCreditos();
+            document.querySelector('input[name="tipoMovimiento"][value="Abono"]').checked = true;
+            manejarCambioTipo();
+            document.getElementById('cliente').value = clienteDeudor;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setTimeout(() => {
+                const valInput = document.querySelector('.input-val');
+                if(valInput) valInput.focus();
+            }, 100);
+        };
+
+
+        // DASHBOARD INTELIGENTE
         window.calcularDashboard = async () => {
             try {
                 const snap = await getDocs(collection(db, "ventas"));
@@ -1084,19 +1104,17 @@
                             }
                         });
                     } else if (tipo === 'Abono') {
-                        // El abono resta a la deuda del cliente
                         deudores[data.cliente] = (deudores[data.cliente] || 0) - data.totalVenta;
                         data.pagos.forEach(p => {
-                            if (saldos[p.cuenta] !== undefined) saldos[p.cuenta] += p.monto; // Es un ingreso a caja
+                            if (saldos[p.cuenta] !== undefined) saldos[p.cuenta] += p.monto; 
                         });
                     } else if (tipo === 'Compra' || tipo === 'Gasto') {
                         data.pagos.forEach(p => {
-                            if (saldos[p.cuenta] !== undefined) saldos[p.cuenta] -= p.monto; // Es un egreso de caja
+                            if (saldos[p.cuenta] !== undefined) saldos[p.cuenta] -= p.monto; 
                         });
                     }
                 });
 
-                // Filtrar deudores con saldo cero o negativo
                 let totalCarteraActiva = 0;
                 const deudoresActivos = {};
                 for (const [cli, deuda] of Object.entries(deudores)) {
@@ -1106,7 +1124,6 @@
                     }
                 }
 
-                // Pintar UI
                 document.getElementById('dash-ventas').textContent = formatoMoneda.format(totalVentas);
                 document.getElementById('dash-creditos').textContent = formatoMoneda.format(totalCarteraActiva);
                 
@@ -1138,9 +1155,7 @@
                     }
                 }
                 lucide.createIcons();
-            } catch (error) {
-                console.error("Error cargando Dashboard:", error);
-            }
+            } catch (error) { console.error("Error cargando Dashboard:", error); }
         };
 
         window.abrirModalCreditos = () => { document.getElementById('modal-creditos').style.display = 'flex'; };
