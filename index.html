@@ -332,7 +332,7 @@
             </div>
 
             <div class="p-6 overflow-y-auto flex-1 bg-slate-50 dark:bg-slate-900">
-                <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Modifica los nombres existentes o guárdalos vacíos para eliminarlos de la lista.</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Modifica los nombres existentes o elimínalos del menú desplegable.</p>
                 <div id="grid-diccionario" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- JS Inyecta las siglas dinámicas aquí -->
                 </div>
@@ -366,7 +366,6 @@
             </div>
         </div>
     </div>
-
 
     <!-- ==================== SCRIPTS LÓGICOS ==================== -->
     <script type="module">
@@ -412,7 +411,6 @@
         const formatoMoneda = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
         let diccionarioProductos = {}; 
 
-
         // ==========================================
         // SISTEMA DE AUTENTICACIÓN Y ROLES
         // ==========================================
@@ -423,8 +421,11 @@
             const errorTxt = document.getElementById('login-error');
             
             if (user) {
-                // 1. BARRERA DE SEGURIDAD: Verificar si está en la Lista Blanca
-                if (!USUARIOS_PERMITIDOS.includes(user.email)) {
+                // 1. BARRERA DE SEGURIDAD CONTRA MAYÚSCULAS: Convertir a minúsculas
+                const correoIngresado = user.email.toLowerCase();
+
+                // 2. VERIFICACIÓN DE LISTA BLANCA
+                if (!USUARIOS_PERMITIDOS.includes(correoIngresado)) {
                     signOut(auth); 
                     errorTxt.textContent = "Acceso denegado: Usuario no autorizado por la gerencia.";
                     errorTxt.classList.remove('hidden');
@@ -432,12 +433,12 @@
                 }
 
                 currentUser = user;
-                document.getElementById('current-user-email').textContent = user.email;
+                document.getElementById('current-user-email').textContent = correoIngresado;
                 loginScreen.classList.add('hidden');
                 appScreen.classList.remove('hidden');
                 
                 // RBAC: Solo Admin ve finanzas
-                if (user.email === ADMIN_EMAIL) {
+                if (correoIngresado === ADMIN_EMAIL) {
                     panelFinanciero.classList.remove('hidden');
                     calcularDashboard(); 
                 } else {
@@ -458,7 +459,8 @@
 
         window.iniciarSesion = (e) => {
             e.preventDefault();
-            const email = document.getElementById('login-email').value;
+            // Evitar problemas de espacios o mayúsculas en el login
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
             const pass = document.getElementById('login-pass').value;
             const btn = document.getElementById('btn-login');
             const errorTxt = document.getElementById('login-error');
@@ -468,6 +470,7 @@
 
             signInWithEmailAndPassword(auth, email, pass)
                 .catch((error) => {
+                    errorTxt.textContent = "Credenciales incorrectas.";
                     errorTxt.classList.remove('hidden');
                     btn.innerHTML = 'Ingresar al Sistema <i data-lucide="log-in" class="w-5 h-5"></i>';
                     lucide.createIcons();
@@ -504,7 +507,6 @@
             window.removeEventListener('touchstart', reiniciarTimer);
             window.removeEventListener('scroll', reiniciarTimer);
         }
-
 
         // ==========================================
         // DICCIONARIO DE PRODUCTOS
@@ -596,7 +598,6 @@
             }
         };
 
-
         // ==========================================
         // LÓGICA DE FORMULARIO Y ABONOS
         // ==========================================
@@ -653,7 +654,6 @@
                     seccionLogistica.classList.remove('hidden');
                 }
             } else if (tipo === 'Abono') {
-                // Configuración especial para registrar un pago a un crédito
                 lblCliente.textContent = "Cliente que realiza el abono";
                 lblProductos.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5 text-purple-500"></i> 1. Detalle del Abono';
                 lblPagosTexto.textContent = "2. Cuenta Destino (A dónde ingresa el abono)";
@@ -675,7 +675,6 @@
             calcularTotales();
         };
 
-        // Función rápida para preparar un abono desde el Modal de Cartera
         window.prepararAbono = (clienteDeudor) => {
             cerrarModalCreditos();
             document.querySelector('input[name="tipoMovimiento"][value="Abono"]').checked = true;
@@ -683,7 +682,6 @@
             document.getElementById('cliente').value = clienteDeudor;
             window.scrollTo({ top: 0, behavior: 'smooth' });
             
-            // Foco en el valor unitario para agilizar
             const valInput = document.querySelector('.input-val');
             if(valInput) valInput.focus();
         };
@@ -839,4 +837,379 @@
             document.getElementById('txt-total-cobrar').textContent = formatoMoneda.format(totalCobrar);
             document.getElementById('txt-total-pagado').textContent = formatoMoneda.format(totalPagos);
 
-            const
+            const btn = document.getElementById('btn-guardar');
+            const alerta = document.getElementById('alerta-descuadre');
+            
+            // 💡 FIX APLICADO: >= 0 para permitir registros en cero (Muestras, garantías, cortesías)
+            if (totalCobrar >= 0 && totalCobrar === totalPagos) {
+                btn.disabled = false; alerta.classList.add('hidden');
+            } else {
+                btn.disabled = true;
+                if (totalCobrar >= 0) {
+                    alerta.classList.remove('hidden');
+                    document.getElementById('txt-descuadre').textContent = formatoMoneda.format(Math.abs(totalCobrar - totalPagos));
+                } else {
+                    alerta.classList.add('hidden');
+                }
+            }
+        };
+
+        // ==========================================
+        // BASE DE DATOS Y OPERACIONES
+        // ==========================================
+        window.guardarMovimiento = async () => {
+            const cliente = document.getElementById('cliente').value.trim();
+            const fecha = document.getElementById('fecha').value;
+            const tipoMovimiento = document.querySelector('input[name="tipoMovimiento"]:checked').value;
+            
+            if (!cliente) return alert("Ingresa Cliente, Proveedor o Beneficiario.");
+
+            const productos = [];
+            document.querySelectorAll('#productos-container > div').forEach(fila => {
+                const s = fila.querySelector('.input-prod-select').value;
+                const m = fila.querySelector('.input-prod-manual').value.trim();
+                const concepto = s === 'OTRO' ? m : s;
+                const c = parseFloat(fila.querySelector('.input-cant').value) || 0;
+                const v = parseFloat(fila.querySelector('.input-val').value) || 0;
+                if (concepto && c > 0 && v >= 0) { // Permite v >= 0
+                    productos.push({ 
+                        concepto, 
+                        esDiccionario: Object.keys(diccionarioProductos).includes(concepto), 
+                        cantidad: c, 
+                        valorUnitario: v, 
+                        total: c * v 
+                    });
+                }
+            });
+
+            const medioEntrega = document.getElementById('medio-entrega').value;
+            const entrega = (tipoMovimiento !== 'Gasto' && tipoMovimiento !== 'Abono') ? {
+                medio: medioEntrega || "Recoge",
+                encargado: medioEntrega === 'Domi' ? document.getElementById('encargado-domi').value : "N/A",
+                costo: medioEntrega === 'Domi' ? parseFloat(document.getElementById('costo-envio').value) || 0 : 0
+            } : { medio: "N/A", encargado: "N/A", costo: 0 };
+
+            const pagos = [];
+            let totalVenta = 0;
+            document.querySelectorAll('#pagos-container > div').forEach(fila => {
+                const metodo = fila.querySelector('.input-metodo').value;
+                const cuenta = fila.querySelector('.input-cuenta').value;
+                const monto = parseFloat(fila.querySelector('.input-monto').value) || 0;
+                if (metodo && cuenta && monto >= 0) { // Permite monto >= 0
+                    pagos.push({ metodo, cuenta, monto }); 
+                    totalVenta += monto; 
+                }
+            });
+
+            if (pagos.length === 0 || productos.length === 0) return alert("Completa conceptos y montos de caja.");
+
+            const docData = {
+                tipoMovimiento,
+                fecha, cliente, productos, entrega, pagos, totalVenta,
+                creadoPor: currentUser.email, timestamp: Date.now()
+            };
+
+            try {
+                const btn = document.getElementById('btn-guardar');
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Procesando...';
+                
+                if (ventaEditandoId) {
+                    await updateDoc(doc(db, "ventas", ventaEditandoId), { ...docData, modificadoPor: currentUser.email, fechaModificacion: Date.now() });
+                    alert("✅ Actualizado correctamente.");
+                    cancelarEdicion();
+                } else {
+                    await addDoc(collection(db, "ventas"), docData);
+                    document.getElementById('cliente').value = '';
+                    document.getElementById('medio-entrega').value = '';
+                    manejarCambioEntrega();
+                    document.getElementById('productos-container').innerHTML = '';
+                    document.getElementById('pagos-container').innerHTML = '';
+                    agregarFilaProducto(); agregarFilaPago();
+                    calcularTotales();
+                }
+                btn.innerHTML = '<i data-lucide="save" class="w-5 h-5"></i> Registrar Movimiento';
+                lucide.createIcons();
+                
+                if (currentUser.email === ADMIN_EMAIL) calcularDashboard();
+
+            } catch (e) { alert("Error de Permisos."); }
+        };
+
+        function cargarVentasFirebase() {
+            const q = query(collection(db, "ventas"), orderBy("timestamp", "desc"), limit(12));
+            onSnapshot(q, (snapshot) => {
+                const cont = document.getElementById('lista-ventas');
+                cont.innerHTML = '';
+                if(snapshot.empty) return cont.innerHTML = '<p class="text-sm text-slate-500 text-center py-4">No hay movimientos registrados por la empresa.</p>';
+
+                snapshot.forEach((doc) => {
+                    const v = doc.data();
+                    const vId = doc.id;
+                    const tipo = v.tipoMovimiento || 'Venta';
+                    
+                    let bgClass = "bg-slate-50 dark:bg-slate-700/30";
+                    let textClass = "text-emerald-600 dark:text-emerald-400";
+                    let tagClass = "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300";
+                    let label = "Venta";
+
+                    if (tipo === 'Compra') {
+                        bgClass = "bg-orange-50 dark:bg-orange-900/10";
+                        textClass = "text-orange-600 dark:text-orange-400";
+                        tagClass = "bg-orange-200 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300";
+                        label = "Compra";
+                    } else if (tipo === 'Gasto') {
+                        bgClass = "bg-red-50 dark:bg-red-900/10";
+                        textClass = "text-red-600 dark:text-red-400";
+                        tagClass = "bg-red-200 text-red-800 dark:bg-red-900/50 dark:text-red-300";
+                        label = "Gasto";
+                    } else if (tipo === 'Abono') {
+                        bgClass = "bg-purple-50 dark:bg-purple-900/10";
+                        textClass = "text-purple-600 dark:text-purple-400";
+                        tagClass = "bg-purple-200 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300";
+                        label = "Abono";
+                    }
+
+                    cont.insertAdjacentHTML('beforeend', `
+                        <div class="${bgClass} p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col gap-2 hover:shadow-md transition-colors">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded uppercase ${tagClass}">${label}</span>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400 font-mono">${v.fecha}</p>
+                                    </div>
+                                    <p class="font-bold text-slate-800 dark:text-slate-100 text-md line-clamp-1">${v.cliente}</p>
+                                    <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1" title="${v.creadoPor}">
+                                        <i data-lucide="user" class="inline w-3 h-3"></i> ${v.creadoPor.split('@')[0]}
+                                    </p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-bold ${textClass} text-lg">${(tipo === 'Gasto' || tipo === 'Compra') ? '-' : ''}${formatoMoneda.format(v.totalVenta)}</p>
+                                </div>
+                            </div>
+                            <div class="flex justify-end gap-2 mt-2 pt-2 border-t dark:border-slate-600/50">
+                                <button onclick="cargarParaEditar('${vId}')" class="text-xs text-blue-600 px-2 py-1 hover:bg-blue-100 rounded flex items-center gap-1"><i data-lucide="edit-3" class="w-3 h-3"></i> Editar</button>
+                                <button onclick="eliminarVenta('${vId}')" class="text-xs text-red-600 px-2 py-1 hover:bg-red-100 rounded flex items-center gap-1"><i data-lucide="trash" class="w-3 h-3"></i> Borrar</button>
+                            </div>
+                        </div>`);
+                });
+                lucide.createIcons();
+            });
+        }
+
+        window.eliminarVenta = async (id) => {
+            if (confirm("⚠️ ¿Eliminar definitivamente este movimiento contable global?")) {
+                try { 
+                    await deleteDoc(doc(db, "ventas", id)); 
+                    if (currentUser.email === ADMIN_EMAIL) calcularDashboard(); 
+                } catch (e) { alert("Error permisos."); }
+            }
+        };
+
+        window.cargarParaEditar = async (id) => {
+            try {
+                const d = await getDoc(doc(db, "ventas", id));
+                if (d.exists()) {
+                    const data = d.data();
+                    ventaEditandoId = id;
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                    const tipo = data.tipoMovimiento || 'Venta';
+                    document.querySelector(`input[name="tipoMovimiento"][value="${tipo}"]`).checked = true;
+                    manejarCambioTipo(); 
+
+                    document.getElementById('form-title').innerHTML = '<i data-lucide="edit-3" class="w-6 h-6 text-orange-500"></i> Editando Movimiento';
+                    document.getElementById('btn-cancelar-edicion').classList.remove('hidden');
+
+                    document.getElementById('cliente').value = data.cliente;
+                    document.getElementById('fecha').value = data.fecha;
+                    
+                    if(tipo !== 'Gasto' && tipo !== 'Abono') {
+                        document.getElementById('medio-entrega').value = data.entrega.medio;
+                        manejarCambioEntrega();
+                        if(data.entrega.medio === 'Domi') {
+                            document.getElementById('encargado-domi').value = data.entrega.encargado;
+                            document.getElementById('costo-envio').value = data.entrega.costo;
+                        }
+                    }
+
+                    document.getElementById('productos-container').innerHTML = '';
+                    data.productos.forEach(p => agregarFilaProducto(p));
+
+                    document.getElementById('pagos-container').innerHTML = '';
+                    data.pagos.forEach(p => agregarFilaPago(p));
+
+                    calcularTotales();
+                }
+            } catch(e) { console.error(e); }
+        };
+
+        window.cancelarEdicion = () => {
+            ventaEditandoId = null;
+            document.querySelector('input[name="tipoMovimiento"][value="Venta"]').checked = true;
+            manejarCambioTipo();
+            
+            document.getElementById('form-title').innerHTML = '<i data-lucide="file-plus" class="w-6 h-6 text-blue-600 dark:text-blue-400"></i> Nuevo Movimiento';
+            document.getElementById('btn-cancelar-edicion').classList.add('hidden');
+            
+            document.getElementById('cliente').value = '';
+            document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+            document.getElementById('medio-entrega').value = '';
+            manejarCambioEntrega();
+            document.getElementById('productos-container').innerHTML = '';
+            document.getElementById('pagos-container').innerHTML = '';
+            agregarFilaProducto(); agregarFilaPago();
+            calcularTotales();
+        };
+
+        // DASHBOARD INTELIGENTE (Cartera y Saldos)
+        window.calcularDashboard = async () => {
+            try {
+                const snap = await getDocs(collection(db, "ventas"));
+                
+                let totalVentas = 0;
+                let deudores = {};
+                let saldos = { "Cris": 0, "JF": 0, "Bodega": 0, "Hades": 0, "General": 0 };
+
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    const tipo = data.tipoMovimiento || 'Venta';
+
+                    if (tipo === 'Venta') {
+                        totalVentas += data.totalVenta;
+                        data.pagos.forEach(p => {
+                            if (p.metodo === 'Credito') {
+                                deudores[data.cliente] = (deudores[data.cliente] || 0) + p.monto;
+                            } else if (saldos[p.cuenta] !== undefined) {
+                                saldos[p.cuenta] += p.monto;
+                            }
+                        });
+                    } else if (tipo === 'Abono') {
+                        // El abono resta a la deuda del cliente
+                        deudores[data.cliente] = (deudores[data.cliente] || 0) - data.totalVenta;
+                        data.pagos.forEach(p => {
+                            if (saldos[p.cuenta] !== undefined) saldos[p.cuenta] += p.monto; // Es un ingreso a caja
+                        });
+                    } else if (tipo === 'Compra' || tipo === 'Gasto') {
+                        data.pagos.forEach(p => {
+                            if (saldos[p.cuenta] !== undefined) saldos[p.cuenta] -= p.monto; // Es un egreso de caja
+                        });
+                    }
+                });
+
+                // Filtrar deudores con saldo cero o negativo
+                let totalCarteraActiva = 0;
+                const deudoresActivos = {};
+                for (const [cli, deuda] of Object.entries(deudores)) {
+                    if (deuda > 0) {
+                        deudoresActivos[cli] = deuda;
+                        totalCarteraActiva += deuda;
+                    }
+                }
+
+                // Pintar UI
+                document.getElementById('dash-ventas').textContent = formatoMoneda.format(totalVentas);
+                document.getElementById('dash-creditos').textContent = formatoMoneda.format(totalCarteraActiva);
+                
+                ['Cris', 'JF', 'Bodega', 'Hades'].forEach(cuenta => {
+                    const val = saldos[cuenta] || 0;
+                    const el = document.getElementById(`dash-${cuenta.toLowerCase()}`);
+                    el.textContent = formatoMoneda.format(val);
+                    el.className = `text-sm font-bold ${val < 0 ? 'text-red-500' : 'text-slate-700 dark:text-slate-200'}`;
+                });
+
+                const listaDeudores = document.getElementById('lista-deudores');
+                listaDeudores.innerHTML = '';
+                
+                if(Object.keys(deudoresActivos).length === 0) {
+                    listaDeudores.innerHTML = '<p class="text-sm text-slate-500">No hay cartera pendiente. ¡Excelente!</p>';
+                } else {
+                    for (const [cliente, deuda] of Object.entries(deudoresActivos)) {
+                        listaDeudores.insertAdjacentHTML('beforeend', `
+                            <div class="flex justify-between items-center p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm">
+                                <span class="font-bold text-slate-700 dark:text-slate-300 uppercase">${cliente}</span>
+                                <div class="flex items-center gap-4">
+                                    <span class="font-bold text-purple-600 dark:text-purple-400">${formatoMoneda.format(deuda)}</span>
+                                    <button onclick="prepararAbono('${cliente}')" class="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-3 py-1.5 rounded text-xs font-bold hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors flex items-center gap-1 shadow-sm">
+                                        <i data-lucide="hand-coins" class="w-3 h-3"></i> Abonar
+                                    </button>
+                                </div>
+                            </div>
+                        `);
+                    }
+                }
+                lucide.createIcons();
+            } catch (error) {
+                console.error("Error cargando Dashboard:", error);
+            }
+        };
+
+        window.abrirModalCreditos = () => { document.getElementById('modal-creditos').style.display = 'flex'; };
+        window.cerrarModalCreditos = () => { document.getElementById('modal-creditos').style.display = 'none'; };
+
+
+        // EXPORTACIÓN A EXCEL
+        window.exportarCSV = async () => {
+            const fIn = document.getElementById('filtro-inicio').value;
+            const fFin = document.getElementById('filtro-fin').value;
+            if(!fIn || !fFin) return alert("Rango inválido.");
+
+            const btn = event.currentTarget;
+            const textOrig = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Generando...';
+            
+            try {
+                const snap = await getDocs(collection(db, "ventas"));
+                let movs = [];
+                snap.forEach((doc) => {
+                    const d = doc.data();
+                    if(d.fecha >= fIn && d.fecha <= fFin) { d.id = doc.id; movs.push(d); }
+                });
+
+                if (movs.length === 0) { alert("Sin registros."); btn.innerHTML = textOrig; return; }
+
+                let csv = "\uFEFFID_Movimiento,Fecha,Clasificacion,Cliente_Beneficiario,Tipo_Registro,Concepto_O_Cuenta,Nombre_Completo_Dict,Cantidad,Valor_Unitario,Total_Movimiento_Absoluto,Valor_Contable,Creado_Por\n";
+
+                movs.forEach(v => {
+                    const cli = `"${v.cliente.replace(/"/g, '""')}"`;
+                    const tipo = v.tipoMovimiento || 'Venta';
+                    const clasificacion = (tipo === 'Venta' || tipo === 'Abono') ? 'INGRESO' : 'EGRESO';
+                    const multiplicador = (tipo === 'Venta' || tipo === 'Abono') ? 1 : -1; 
+
+                    v.productos.forEach(p => {
+                        const conc = `"${p.concepto.replace(/"/g, '""')}"`;
+                        const dict = diccionarioProductos[p.concepto] ? `"${diccionarioProductos[p.concepto]}"` : '"N/A"';
+                        const valorContable = p.total * multiplicador;
+                        csv += `${v.id},${v.fecha},${clasificacion},${cli},Concepto,${conc},${dict},${p.cantidad},${p.valorUnitario},${p.total},${valorContable},${v.creadoPor}\n`;
+                    });
+
+                    if (v.entrega && v.entrega.costo > 0 && tipo !== 'Gasto' && tipo !== 'Abono') {
+                        const valorContable = v.entrega.costo * multiplicador;
+                        csv += `${v.id},${v.fecha},${clasificacion},${cli},Envio,"${v.entrega.medio} (${v.entrega.encargado})","N/A",1,${v.entrega.costo},${v.entrega.costo},${valorContable},${v.creadoPor}\n`;
+                    }
+
+                    v.pagos.forEach(p => {
+                        const valorContable = p.monto * multiplicador; 
+                        csv += `${v.id},${v.fecha},${clasificacion},${cli},Metodo_Pago,"${p.metodo} - ${p.cuenta}","N/A",1,0,${p.monto},${valorContable},${v.creadoPor}\n`;
+                    });
+                });
+
+                const link = document.createElement("a");
+                link.setAttribute("href", URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })));
+                link.setAttribute("download", `Auditoria_FercoFarma_${fIn}_a_${fFin}.csv`);
+                document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            } catch (e) { alert("Error exportando."); } finally { btn.innerHTML = textOrig; lucide.createIcons(); }
+        };
+
+        // TEMA OSCURO
+        window.toggleTheme = () => {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+        };
+        function verificarTemaInicial() {
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
+            else document.documentElement.classList.remove('dark');
+        }
+    </script>
+</body>
+</html>
