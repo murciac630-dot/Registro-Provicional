@@ -996,39 +996,44 @@
                     manejarCambioTipo(); 
 
                     // 1. Rellenar Datos Generales
-                    document.getElementById('cliente').value = data.cliente;
-                    document.getElementById('fecha').value = data.fecha;
+                    document.getElementById('cliente').value = data.cliente || '';
+                    document.getElementById('fecha').value = data.fecha || new Date().toISOString().split('T')[0];
                     
-                    // 2. Rellenar Logística
+                    // 2. Rellenar Logística (Con seguridad ante datos viejos sin 'entrega')
                     if(tipo !== 'Gasto' && tipo !== 'Abono') {
-                        document.getElementById('medio-entrega').value = data.entrega.medio;
+                        const entregaData = data.entrega || {};
+                        document.getElementById('medio-entrega').value = entregaData.medio || 'Recoge';
                         manejarCambioEntrega();
-                        if(data.entrega.medio === 'Domi') {
-                            document.getElementById('encargado-domi').value = data.entrega.encargado;
-                            document.getElementById('costo-envio').value = data.entrega.costo;
+                        if(entregaData.medio === 'Domi') {
+                            document.getElementById('encargado-domi').value = entregaData.encargado || '';
+                            document.getElementById('costo-envio').value = entregaData.costo || 0;
                         }
                     }
 
-                    // 3. Rellenar Productos (Carga Sincrónica)
+                    // 3. Rellenar Productos (Carga directa)
                     document.getElementById('productos-container').innerHTML = '';
                     contadorProductos = 0; 
-                    data.productos.forEach((p) => {
-                        agregarFilaProducto(p); 
-                    });
+                    if (Array.isArray(data.productos)) {
+                        data.productos.forEach((p) => {
+                            agregarFilaProducto(p); 
+                        });
+                    }
 
-                    // 4. Rellenar Pagos (Carga Sincrónica)
+                    // 4. Rellenar Pagos (Carga directa)
                     document.getElementById('pagos-container').innerHTML = '';
                     contadorPagos = 0;
-                    data.pagos.forEach((p) => {
-                        agregarFilaPago(p); 
-                    });
+                    if (Array.isArray(data.pagos)) {
+                        data.pagos.forEach((p) => {
+                            agregarFilaPago(p); 
+                        });
+                    }
 
                     calcularTotales();
                     lucide.createIcons();
                 } else {
                     alert("❌ Error: Este registro ya no existe en la base de datos.");
                 }
-            } catch(e) { console.error(e); }
+            } catch(e) { console.error("Error cargando edición:", e); }
         };
 
         window.cancelarEdicion = () => {
@@ -1084,22 +1089,28 @@
 
                     if (tipo === 'Venta') {
                         totalVentas += data.totalVenta;
-                        data.pagos.forEach(p => {
-                            if (p.metodo === 'Credito') {
-                                deudores[data.cliente] = (deudores[data.cliente] || 0) + p.monto;
-                            } else if (saldos[p.cuenta] !== undefined) {
-                                saldos[p.cuenta] += p.monto;
-                            }
-                        });
+                        if (Array.isArray(data.pagos)) {
+                            data.pagos.forEach(p => {
+                                if (p.metodo === 'Credito') {
+                                    deudores[data.cliente] = (deudores[data.cliente] || 0) + p.monto;
+                                } else if (saldos[p.cuenta] !== undefined) {
+                                    saldos[p.cuenta] += p.monto;
+                                }
+                            });
+                        }
                     } else if (tipo === 'Abono') {
                         deudores[data.cliente] = (deudores[data.cliente] || 0) - data.totalVenta;
-                        data.pagos.forEach(p => {
-                            if (saldos[p.cuenta] !== undefined) saldos[p.cuenta] += p.monto; 
-                        });
+                        if (Array.isArray(data.pagos)) {
+                            data.pagos.forEach(p => {
+                                if (saldos[p.cuenta] !== undefined) saldos[p.cuenta] += p.monto; 
+                            });
+                        }
                     } else if (tipo === 'Compra' || tipo === 'Gasto') {
-                        data.pagos.forEach(p => {
-                            if (saldos[p.cuenta] !== undefined) saldos[p.cuenta] -= p.monto; 
-                        });
+                        if (Array.isArray(data.pagos)) {
+                            data.pagos.forEach(p => {
+                                if (saldos[p.cuenta] !== undefined) saldos[p.cuenta] -= p.monto; 
+                            });
+                        }
                     }
                 });
 
@@ -1178,22 +1189,26 @@
                     const clasificacion = (tipo === 'Venta' || tipo === 'Abono') ? 'INGRESO' : 'EGRESO';
                     const multiplicador = (tipo === 'Venta' || tipo === 'Abono') ? 1 : -1; 
 
-                    v.productos.forEach(p => {
-                        const conc = `"${p.concepto.replace(/"/g, '""')}"`;
-                        const dict = diccionarioProductos[p.concepto] ? `"${diccionarioProductos[p.concepto]}"` : '"N/A"';
-                        const valorContable = p.total * multiplicador;
-                        csv += `${v.id},${v.fecha},${clasificacion},${cli},Concepto,${conc},${dict},${p.cantidad},${p.valorUnitario},${p.total},${valorContable},${v.creadoPor}\n`;
-                    });
+                    if (Array.isArray(v.productos)) {
+                        v.productos.forEach(p => {
+                            const conc = `"${p.concepto.replace(/"/g, '""')}"`;
+                            const dict = diccionarioProductos[p.concepto] ? `"${diccionarioProductos[p.concepto]}"` : '"N/A"';
+                            const valorContable = p.total * multiplicador;
+                            csv += `${v.id},${v.fecha},${clasificacion},${cli},Concepto,${conc},${dict},${p.cantidad},${p.valorUnitario},${p.total},${valorContable},${v.creadoPor}\n`;
+                        });
+                    }
 
                     if (v.entrega && v.entrega.costo > 0 && tipo !== 'Gasto' && tipo !== 'Abono') {
                         const valorContable = v.entrega.costo * multiplicador;
                         csv += `${v.id},${v.fecha},${clasificacion},${cli},Envio,"${v.entrega.medio} (${v.entrega.encargado})","N/A",1,${v.entrega.costo},${v.entrega.costo},${valorContable},${v.creadoPor}\n`;
                     }
 
-                    v.pagos.forEach(p => {
-                        const valorContable = p.monto * multiplicador; 
-                        csv += `${v.id},${v.fecha},${clasificacion},${cli},Metodo_Pago,"${p.metodo} - ${p.cuenta}","N/A",1,0,${p.monto},${valorContable},${v.creadoPor}\n`;
-                    });
+                    if (Array.isArray(v.pagos)) {
+                        v.pagos.forEach(p => {
+                            const valorContable = p.monto * multiplicador; 
+                            csv += `${v.id},${v.fecha},${clasificacion},${cli},Metodo_Pago,"${p.metodo} - ${p.cuenta}","N/A",1,0,${p.monto},${valorContable},${v.creadoPor}\n`;
+                        });
+                    }
                 });
 
                 const link = document.createElement("a");
