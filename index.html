@@ -390,8 +390,13 @@
         // 🔒 SEGURIDAD: Persistencia estricta en memoria. F5 = Cierre de Sesión.
         setPersistence(auth, inMemoryPersistence).catch(console.error);
 
-        // Roles de Administración
+        // Roles y Accesos (Lista Blanca)
         const ADMIN_EMAIL = 'cris@fercofarma.com';
+        const USUARIOS_PERMITIDOS = [
+            'cris@fercofarma.com', 
+            'jf@fercofarma.com', 
+            'hades@fercofarma.com'
+        ];
 
         // Variables Globales
         let currentUser = null;
@@ -411,14 +416,24 @@
             const loginScreen = document.getElementById('login-screen');
             const appScreen = document.getElementById('app-screen');
             const panelFinanciero = document.getElementById('panel-financiero');
+            const errorTxt = document.getElementById('login-error');
             
             if (user) {
+                // 1. BARRERA DE SEGURIDAD: Verificar si está en la Lista Blanca
+                if (!USUARIOS_PERMITIDOS.includes(user.email)) {
+                    signOut(auth); // Lo expulsa inmediatamente
+                    errorTxt.textContent = "Acceso denegado: Usuario no autorizado por la gerencia.";
+                    errorTxt.classList.remove('hidden');
+                    return; // Detiene toda la ejecución de la app
+                }
+
+                // 2. Si pasa la barrera, cargar la app
                 currentUser = user;
                 document.getElementById('current-user-email').textContent = user.email;
                 loginScreen.classList.add('hidden');
                 appScreen.classList.remove('hidden');
                 
-                // Lógica de Permisos (RBAC Básico)
+                // 3. Lógica de Permisos (RBAC) - Solo Admin ve finanzas
                 if (user.email === ADMIN_EMAIL) {
                     panelFinanciero.classList.remove('hidden'); // Muestra el panel a Cris
                     calcularDashboard(); // Carga las finanzas solo si es admin
