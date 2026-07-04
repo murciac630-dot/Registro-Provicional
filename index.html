@@ -1,16 +1,3 @@
-¡Excelente! Proceder con esta arquitectura multi-inquilino (Multi-Tenant) demuestra que estás pensando como un verdadero director de tecnología (CTO). Ailar los datos y generar cortes contables por fechas (timestamps) es la forma en la que los grandes sistemas (como SAP o Salesforce) operan bajo el capó.
-
-A continuación te presento el código maestro con **todas las funcionalidades de Hades implementadas**.
-
-### 🛠️ ¿Qué vas a notar en este nuevo código?
-
-1. **Doble Panel Inteligente:** Si entras tú (`cris@fercofarma.com`), verás el panel de siempre, pero con una nueva tarjeta naranja al final llamada **"Deuda Domicilios (Hades)"** y el botón **"Liquidar"**. Si entra Hades, él solo verá su propio panel (con un color distintivo) con sus subtotales de Ventas, Compras, Gastos y su propia deuda de domicilios en tiempo real.
-2. **Aislamiento Total:** El historial de la derecha y el modal de "Cartera (Créditos)" ahora tienen un filtro inteligente en el cliente. Si Hades los abre, **solo le mostrarán sus clientes y sus registros**. Para ti, seguirá mostrándose todo lo de la empresa.
-3. **El Selector de Inventario:** Cuando Hades cree un registro, automáticamente aparecerá una casilla llamada "Origen" al lado del producto, permitiéndole elegir **"Ferco Farma"** o **"Propio"**. Esto quedará registrado en la base de datos y se exportará en tu Excel de auditoría.
-
-Copia este bloque de código completo y pégalo en tu archivo `index.html`:
-
-```html:ERP Ferco Farma:index.html
 <!DOCTYPE html>
 <html lang="es" class="light">
 <head>
