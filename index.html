@@ -448,7 +448,7 @@
     <!-- ==================== SCRIPTS LÓGICOS ==================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs, getDoc, setDoc, query, orderBy, limit, onSnapshot } 
+        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs, getDoc, setDoc, query, limit, onSnapshot } 
         from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, inMemoryPersistence } 
         from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -467,9 +467,10 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
+        // Seguridad: Persistencia en memoria
         setPersistence(auth, inMemoryPersistence).catch(console.error);
 
-        // Roles y Accesos
+        // Lista Blanca
         const ADMIN_EMAIL = 'cris@fercofarma.com';
         const HADES_EMAIL = 'hades@fercofarma.com';
         const USUARIOS_PERMITIDOS = ['cris@fercofarma.com', 'jf@fercofarma.com', 'hades@fercofarma.com'];
@@ -505,7 +506,7 @@
                     return; 
                 }
 
-                currentUser = user; // Asignamos el usuario a la variable global primero
+                currentUser = user;
                 document.getElementById('current-user-email').textContent = correoIngresado;
                 loginScreen.classList.add('hidden');
                 appScreen.classList.remove('hidden');
@@ -523,7 +524,7 @@
 
                 await cargarConfiguracionHades();
                 await cargarDiccionario(); 
-                inicializarApp(); // Llamamos a inicializarApp DESPUÉS de setear currentUser
+                inicializarApp();
                 iniciarTimerSeguridad();
             } else {
                 currentUser = null;
@@ -695,13 +696,10 @@
             contadorProductos = 0; contadorPagos = 0;
             
             agregarFilaProducto(); agregarFilaPago();
-            cargarVentasFirebase(); // Trae el historial de ventas
+            cargarVentasFirebase();
             verificarTemaInicial();
             manejarCambioTipo(); 
-            // Solo calcula el Dashboard si es Admin o Hades (evitamos errores si no se cumple ninguna de las dos o currentUser falla por un momento)
-            if (currentUser && (currentUser.email === ADMIN_EMAIL || currentUser.email === HADES_EMAIL)) {
-                calcularDashboard();
-            }
+            if (currentUser && (currentUser.email === ADMIN_EMAIL || currentUser.email === HADES_EMAIL)) calcularDashboard();
         }
 
         window.manejarCambioTipo = () => {
@@ -1014,33 +1012,30 @@
             } catch (e) { alert("Error de Permisos al guardar en la base de datos."); }
         };
 
+        // LA SOLUCIÓN DEL 4 DE JULIO: QUITAR ORDERBY Y ORDENAR EN JAVASCRIPT
         function cargarVentasFirebase() {
-            // Se quita el orderBy('timestamp') para evitar que Firebase oculte datos que no tienen index compuesto en tu consola
-            const q = query(collection(db, "ventas"), limit(60));
+            // Quitamos orderBy para evitar bloqueos por índices de Firebase
+            const q = query(collection(db, "ventas"), limit(100)); 
             onSnapshot(q, (snapshot) => {
                 const cont = document.getElementById('lista-ventas');
                 cont.innerHTML = '';
                 
-                let docCount = 0;
-                
-                // Extraer todos los documentos a un array para ordenarlos manualmente en JavaScript
                 let movimientosArray = [];
                 snapshot.forEach((doc) => {
-                    let data = doc.data();
-                    data.id = doc.id;
-                    // Asignar un timestamp falso si no existe para que el ordenamiento no falle
-                    if (!data.timestamp) data.timestamp = 0;
-                    movimientosArray.push(data);
+                    let d = doc.data();
+                    d.id = doc.id;
+                    d.timestamp = d.timestamp || 0; // Proteccion datos viejos
+                    movimientosArray.push(d);
                 });
 
-                // Ordenar manualmente de más reciente a más antiguo
+                // ORDENAR MANUALMENTE
                 movimientosArray.sort((a, b) => b.timestamp - a.timestamp);
                 
+                let docCount = 0;
+                
                 movimientosArray.forEach((v) => {
-                    // Filtrar la vista de Hades
                     if (currentUser && currentUser.email === HADES_EMAIL && v.creadoPor !== HADES_EMAIL) return;
-
-                    if (docCount >= 12) return; // Limitar visualmente a 12
+                    if (docCount >= 12) return; 
                     docCount++;
 
                     const vId = v.id;
@@ -1068,9 +1063,6 @@
                         label = "Abono";
                     }
 
-                    const clienteNombre = v.cliente || "Sin Nombre";
-                    const creadorNombre = v.creadoPor ? v.creadoPor.split('@')[0] : "App";
-
                     cont.insertAdjacentHTML('beforeend', `
                         <div class="${bgClass} p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col gap-2 hover:shadow-md transition-colors">
                             <div class="flex justify-between items-start">
@@ -1079,9 +1071,9 @@
                                         <span class="text-[10px] font-bold px-2 py-0.5 rounded uppercase ${tagClass}">${label}</span>
                                         <p class="text-xs text-slate-500 dark:text-slate-400 font-mono">${v.fecha}</p>
                                     </div>
-                                    <p class="font-bold text-slate-800 dark:text-slate-100 text-md line-clamp-1">${clienteNombre}</p>
+                                    <p class="font-bold text-slate-800 dark:text-slate-100 text-md line-clamp-1">${v.cliente}</p>
                                     <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1" title="${v.creadoPor}">
-                                        <i data-lucide="user" class="inline w-3 h-3"></i> ${creadorNombre}
+                                        <i data-lucide="user" class="inline w-3 h-3"></i> ${v.creadoPor.split('@')[0]}
                                     </p>
                                 </div>
                                 <div class="text-right">
@@ -1143,7 +1135,7 @@
                     document.querySelector(`input[name="tipoMovimiento"][value="${tipo}"]`).checked = true;
                     manejarCambioTipo(); 
 
-                    document.getElementById('cliente').value = data.cliente || "";
+                    document.getElementById('cliente').value = data.cliente;
                     document.getElementById('fecha').value = data.fecha;
                     
                     if(tipo !== 'Gasto' && tipo !== 'Abono') {
@@ -1211,13 +1203,11 @@
         };
 
         // ==========================================
-        // DASHBOARD MULTI-TENANT (BLINDADO)
+        // DASHBOARD MULTI-TENANT (SÚPER BLINDADO Y DEFENSIVO)
         // ==========================================
         window.calcularDashboard = async () => {
             try {
-                if (!currentUser) return; // Si no hay usuario, no intentes calcular nada
-
-                // Quitamos orderBy para evitar bloqueos por índices faltantes en Firebase
+                // Obtenemos todos los documentos. SIN ORDERBY para no perder datos viejos
                 const snap = await getDocs(collection(db, "ventas"));
                 
                 let totalVentasGlobal = 0;
@@ -1234,26 +1224,27 @@
                     const data = doc.data();
                     const tipo = data.tipoMovimiento || 'Venta';
                     const esDeHades = data.creadoPor === HADES_EMAIL;
-                    const totalMonto = data.totalVenta || 0; 
+                    // Usamos parseFloat como escudo anti-errores matemáticos
+                    const totalMonto = parseFloat(data.totalVenta) || 0; 
                     const pagosArray = data.pagos || []; 
                     const cliente = data.cliente || "Sin Nombre";
 
                     if (tipo === 'Venta') {
                         totalVentasGlobal += totalMonto;
                         pagosArray.forEach(p => {
-                            const montoPago = p.monto || 0;
+                            const montoPago = parseFloat(p.monto) || 0;
                             if (p.metodo === 'Credito') deudoresGlobal[cliente] = (deudoresGlobal[cliente] || 0) + montoPago;
                             else if (saldosGlobales[p.cuenta] !== undefined) saldosGlobales[p.cuenta] += montoPago;
                         });
                     } else if (tipo === 'Abono') {
                         deudoresGlobal[cliente] = (deudoresGlobal[cliente] || 0) - totalMonto;
                         pagosArray.forEach(p => {
-                            const montoPago = p.monto || 0;
+                            const montoPago = parseFloat(p.monto) || 0;
                             if (saldosGlobales[p.cuenta] !== undefined) saldosGlobales[p.cuenta] += montoPago; 
                         });
                     } else if (tipo === 'Compra' || tipo === 'Gasto') {
                         pagosArray.forEach(p => {
-                            const montoPago = p.monto || 0;
+                            const montoPago = parseFloat(p.monto) || 0;
                             if (saldosGlobales[p.cuenta] !== undefined) saldosGlobales[p.cuenta] -= montoPago; 
                         });
                     }
@@ -1262,7 +1253,7 @@
                         if (tipo === 'Venta') {
                             hadesVentas += totalMonto;
                             pagosArray.forEach(p => { 
-                                if (p.metodo === 'Credito') deudoresHades[cliente] = (deudoresHades[cliente] || 0) + (p.monto || 0); 
+                                if (p.metodo === 'Credito') deudoresHades[cliente] = (deudoresHades[cliente] || 0) + (parseFloat(p.monto) || 0); 
                             });
                         }
                         if (tipo === 'Compra') hadesCompras += totalMonto;
@@ -1271,7 +1262,7 @@
                             deudoresHades[cliente] = (deudoresHades[cliente] || 0) - totalMonto;
                         }
 
-                        const costoEnvio = (data.entrega && data.entrega.costo) ? data.entrega.costo : 0;
+                        const costoEnvio = (data.entrega && data.entrega.costo) ? parseFloat(data.entrega.costo) : 0;
                         const timestampRegistro = data.timestamp || 0; 
                         if (costoEnvio > 0 && timestampRegistro >= fechaCorteDomisHades) {
                             hadesDeudaDomis += costoEnvio;
@@ -1292,9 +1283,10 @@
                 }
 
                 const listaDeudoresHTML = document.getElementById('lista-deudores');
-                listaDeudoresHTML.innerHTML = '';
+                if(listaDeudoresHTML) listaDeudoresHTML.innerHTML = '';
 
-                if (currentUser.email === HADES_EMAIL) {
+                // VALIDACIÓN DE SEGURIDAD EXTREMA: Asegurarnos de que currentUser exista antes de pintar
+                if (currentUser && currentUser.email === HADES_EMAIL) {
                     document.getElementById('dash-hades-ventas').textContent = formatoMoneda.format(hadesVentas);
                     document.getElementById('dash-hades-compras').textContent = formatoMoneda.format(hadesCompras);
                     document.getElementById('dash-hades-gastos').textContent = formatoMoneda.format(hadesGastos);
@@ -1306,7 +1298,7 @@
                         listaDeudoresHTML.insertAdjacentHTML('beforeend', getDeudorCardHTML(cliente, deuda));
                     }
 
-                } else if (currentUser.email === ADMIN_EMAIL) {
+                } else if (currentUser && currentUser.email === ADMIN_EMAIL) {
                     document.getElementById('dash-ventas').textContent = formatoMoneda.format(totalVentasGlobal);
                     document.getElementById('dash-creditos').textContent = formatoMoneda.format(totalCarteraGlobalActiva);
                     document.getElementById('dash-admin-domis-hades').textContent = formatoMoneda.format(hadesDeudaDomis);
@@ -1357,19 +1349,20 @@
             lucide.createIcons();
 
             try {
-                // Ordenamiento manual para evitar Error de Indices de Firebase
+                // SOLUCIÓN DEL ÍNDICE: Se pide todo SIN ORDENAR por Firebase.
                 const q = query(collection(db, "ventas"));
                 const querySnapshot = await getDocs(q);
                 
                 let todosLosMovimientos = [];
                 querySnapshot.forEach((doc) => {
-                    let data = doc.data();
-                    if(!data.timestamp) data.timestamp = 0;
-                    todosLosMovimientos.push(data);
+                    let d = doc.data();
+                    d.timestamp = d.timestamp || 0; // Proteccion
+                    todosLosMovimientos.push(d);
                 });
-                // Ordenar más recientes primero
+
+                // Ordenamos mediante JavaScript para evadir el bloqueo
                 todosLosMovimientos.sort((a, b) => b.timestamp - a.timestamp);
-                
+
                 const dias = {}; 
 
                 todosLosMovimientos.forEach((data) => {
@@ -1380,7 +1373,7 @@
                     dias[fecha].movimientos.push(data);
                     
                     const tipo = data.tipoMovimiento || 'Venta';
-                    const monto = data.totalVenta || 0;
+                    const monto = parseFloat(data.totalVenta) || 0;
                     if (tipo === 'Venta' || tipo === 'Abono') {
                         dias[fecha].ingresos += monto;
                     } else if (tipo === 'Compra' || tipo === 'Gasto') {
@@ -1408,7 +1401,7 @@
                         const signo = tipo === 'Compra' || tipo === 'Gasto' ? '-' : '';
                         const clienteNom = mov.cliente || "Desconocido";
                         const creador = (mov.creadoPor || "App").split('@')[0];
-                        const montoF = mov.totalVenta || 0;
+                        const montoF = parseFloat(mov.totalVenta) || 0;
                         
                         filasHTML += `
                             <div class="flex justify-between items-center py-2 border-b dark:border-slate-700/50 last:border-0">
@@ -1497,7 +1490,7 @@
                         const conc = p.concepto ? `"${p.concepto.replace(/"/g, '""')}"` : '"N/A"';
                         const dict = diccionarioProductos[p.concepto] ? `"${diccionarioProductos[p.concepto]}"` : '"N/A"';
                         const origenInv = p.origen ? `"${p.origen}"` : '"N/A"';
-                        const totalProd = p.total || 0;
+                        const totalProd = parseFloat(p.total) || 0;
                         const cantProd = p.cantidad || 0;
                         const valUnit = p.valorUnitario || 0;
                         const valorContable = totalProd * multiplicador;
@@ -1505,12 +1498,13 @@
                     });
 
                     if (v.entrega && v.entrega.costo > 0 && tipo !== 'Gasto' && tipo !== 'Abono') {
-                        const valorContable = v.entrega.costo * multiplicador;
-                        csv += `${v.id},${v.fecha},${clasificacion},${cli},Envio,"${v.entrega.medio} (${v.entrega.encargado})","N/A","N/A",1,${v.entrega.costo},${v.entrega.costo},${valorContable},${v.creadoPor}\n`;
+                        const costoEnvioF = parseFloat(v.entrega.costo) || 0;
+                        const valorContable = costoEnvioF * multiplicador;
+                        csv += `${v.id},${v.fecha},${clasificacion},${cli},Envio,"${v.entrega.medio} (${v.entrega.encargado})","N/A","N/A",1,${costoEnvioF},${costoEnvioF},${valorContable},${v.creadoPor}\n`;
                     }
 
                     pagosArray.forEach(p => {
-                        const montoPago = p.monto || 0;
+                        const montoPago = parseFloat(p.monto) || 0;
                         const valorContable = montoPago * multiplicador; 
                         csv += `${v.id},${v.fecha},${clasificacion},${cli},Metodo_Pago,"${p.metodo} - ${p.cuenta}","N/A","N/A",1,0,${montoPago},${valorContable},${v.creadoPor}\n`;
                     });
