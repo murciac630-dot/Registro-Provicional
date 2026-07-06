@@ -1014,8 +1014,8 @@
 
         // LA SOLUCIÓN DEL 4 DE JULIO: QUITAR ORDERBY Y ORDENAR EN JAVASCRIPT
         function cargarVentasFirebase() {
-            // Quitamos orderBy para evitar bloqueos por índices de Firebase
-            const q = query(collection(db, "ventas"), limit(100)); 
+            // Obtenemos TODO sin limit para asegurar que no se queden por fuera los más recientes
+            const q = query(collection(db, "ventas")); 
             onSnapshot(q, (snapshot) => {
                 const cont = document.getElementById('lista-ventas');
                 cont.innerHTML = '';
@@ -1024,18 +1024,19 @@
                 snapshot.forEach((doc) => {
                     let d = doc.data();
                     d.id = doc.id;
-                    d.timestamp = d.timestamp || 0; // Proteccion datos viejos
+                    // FALLBACK INTELIGENTE: Si no tiene timestamp, usa la fecha para no enviarlo al fondo del todo
+                    d.timestamp = d.timestamp || (d.fecha ? new Date(d.fecha + "T12:00:00").getTime() : 0);
                     movimientosArray.push(d);
                 });
 
-                // ORDENAR MANUALMENTE
+                // ORDENAR MANUALMENTE: De más reciente a más antiguo
                 movimientosArray.sort((a, b) => b.timestamp - a.timestamp);
                 
                 let docCount = 0;
                 
                 movimientosArray.forEach((v) => {
                     if (currentUser && currentUser.email === HADES_EMAIL && v.creadoPor !== HADES_EMAIL) return;
-                    if (docCount >= 12) return; 
+                    if (docCount >= 15) return; // Aumentamos a 15 registros visibles en pantalla
                     docCount++;
 
                     const vId = v.id;
