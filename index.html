@@ -1468,7 +1468,7 @@
                     <span class="font-bold text-slate-700 dark:text-slate-300 uppercase">${cliente}</span>
                     <div class="flex items-center gap-4">
                         <span class="font-bold text-purple-600 dark:text-purple-400">${formatoMoneda.format(deuda)}</span>
-                        <button onclick="prepararAbono('${cliente}')" class="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-3 py-1.5 rounded text-xs font-bold hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors flex items-center gap-1 shadow-sm">
+                        <button onclick="abrirModalAbonoRapido('${cliente}', ${deuda})" class="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-3 py-1.5 rounded text-xs font-bold hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors flex items-center gap-1 shadow-sm">
                             <i data-lucide="hand-coins" class="w-3 h-3"></i> Abonar
                         </button>
                     </div>
@@ -1479,6 +1479,82 @@
         window.abrirModalCreditos = () => { document.getElementById('modal-creditos').style.display = 'flex'; };
         window.cerrarModalCreditos = () => { document.getElementById('modal-creditos').style.display = 'none'; };
 
+        // ==========================================
+        // LÓGICA DE ABONO RÁPIDO
+        // ==========================================
+        let abonoRapidoClienteActual = '';
+        let abonoRapidoDeudaActual = 0;
+
+        window.abrirModalAbonoRapido = (cliente, deuda) => {
+            abonoRapidoClienteActual = cliente;
+            abonoRapidoDeudaActual = deuda;
+            
+            document.getElementById('abono-rapido-cliente').textContent = cliente;
+            document.getElementById('abono-rapido-deuda').textContent = formatoMoneda.format(deuda);
+            document.getElementById('abono-rapido-monto').value = '';
+            document.getElementById('abono-rapido-metodo').value = '';
+            document.getElementById('abono-rapido-cuenta').value = '';
+            
+            document.getElementById('modal-abono-rapido').style.display = 'flex';
+        };
+
+        window.cerrarModalAbonoRapido = () => {
+            document.getElementById('modal-abono-rapido').style.display = 'none';
+        };
+
+        window.procesarAbonoRapido = async () => {
+            const monto = parseFloat(document.getElementById('abono-rapido-monto').value) || 0;
+            const metodo = document.getElementById('abono-rapido-metodo').value;
+            const cuenta = document.getElementById('abono-rapido-cuenta').value;
+            
+            if (monto <= 0) return alert("El monto debe ser mayor a 0.");
+            if (monto > abonoRapidoDeudaActual) {
+                if(!confirm(`El monto ingresado (${formatoMoneda.format(monto)}) es mayor a la deuda total del cliente (${formatoMoneda.format(abonoRapidoDeudaActual)}). ¿Deseas continuar de todos modos?`)) {
+                    return;
+                }
+            }
+            if (!metodo) return alert("Selecciona un medio de pago.");
+            if (!cuenta) return alert("Selecciona una cuenta destino.");
+            
+            const docData = {
+                tipoMovimiento: "Abono",
+                fecha: new Date().toISOString().split('T')[0],
+                cliente: abonoRapidoClienteActual,
+                notas: "Abono rápido registrado desde el Gestor de Cartera",
+                productos: [{ 
+                    concepto: "Abono a Cartera", 
+                    esDiccionario: false, 
+                    origen: "Ferco Farma",
+                    cantidad: 1, 
+                    valorUnitario: monto, 
+                    total: monto 
+                }],
+                entrega: { medio: "N/A", encargado: "N/A", costo: 0 },
+                pagos: [{ metodo, cuenta, monto }],
+                totalVenta: monto,
+                creadoPor: currentUser.email, 
+                timestamp: Date.now()
+            };
+
+            const btn = document.getElementById('btn-procesar-abono');
+            const textOrig = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Procesando...';
+            
+            try {
+                await addDoc(collection(db, "ventas"), docData);
+                cerrarModalAbonoRapido();
+                // Refresca todo automáticamente, si la deuda llega a 0, el cliente desaparecerá de la lista
+                if (currentUser) calcularDashboard();
+            } catch (e) { 
+                alert("Error de Permisos al guardar el abono."); 
+            } finally {
+                btn.innerHTML = textOrig;
+                lucide.createIcons();
+            }
+        };
+
+        // ==========================================
+        // REPORTE DIARIO GLOBAL (Solo Admin)
         // ==========================================
         // REPORTE DIARIO Y DETALLES DE REGISTRO
         // ==========================================
