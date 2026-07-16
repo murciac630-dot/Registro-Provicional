@@ -99,30 +99,39 @@
                             <i data-lucide="file-plus" class="w-6 h-6 text-blue-600 dark:text-blue-400"></i>
                             Nuevo Movimiento Contable
                         </h2>
-                        <button id="btn-cancelar-edicion" onclick="cancelarEdicion()" class="hidden text-sm text-red-500 hover:text-red-700 font-semibold flex items-center gap-1">
+                        <button id="btn-cancelar-edicion" onclick="cancelarEdicion()" class="hidden text-sm text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300 font-bold flex items-center gap-1 bg-orange-100 dark:bg-orange-900/30 px-3 py-1.5 rounded-lg transition-colors">
                             <i data-lucide="x-circle" class="w-4 h-4"></i> Cancelar Edición
                         </button>
                     </div>
 
-                    <!-- 0. TIPO DE MOVIMIENTO -->
-                    <div class="mb-6 bg-slate-100 dark:bg-slate-750 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <!-- 0. TIPO DE MOVIMIENTO (Diseño Premium con Peer) -->
+                    <div class="mb-6 bg-slate-50 dark:bg-slate-750 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                         <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">Clasificación de la Operación</label>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            <label class="flex items-center gap-2 p-2.5 rounded-lg border-2 border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-900/20 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors">
-                                <input type="radio" name="tipoMovimiento" value="Venta" checked onchange="manejarCambioTipo()" class="w-4 h-4 text-blue-600 focus:ring-blue-500">
-                                <span class="font-bold text-xs md:text-sm text-blue-700 dark:text-blue-400">Venta</span>
+                        <div class="grid grid-cols-3 gap-3">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="tipoMovimiento" value="Venta" class="peer sr-only" checked onchange="manejarCambioTipo()">
+                                <div class="rounded-lg border-2 border-slate-200 dark:border-slate-600 p-3 text-center text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 peer-checked:border-blue-600 peer-checked:bg-blue-600 peer-checked:text-white transition-all font-bold shadow-sm">
+                                    Venta
+                                </div>
                             </label>
-                            <label class="flex items-center gap-2 p-2.5 rounded-lg border-2 border-orange-200 dark:border-orange-900 bg-orange-50 dark:bg-orange-900/20 cursor-pointer hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors">
-                                <input type="radio" name="tipoMovimiento" value="Compra" onchange="manejarCambioTipo()" class="w-4 h-4 text-orange-600 focus:ring-orange-500">
-                                <span class="font-bold text-xs md:text-sm text-orange-700 dark:text-orange-400">Compra</span>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="tipoMovimiento" value="Compra" class="peer sr-only" onchange="manejarCambioTipo()">
+                                <div class="rounded-lg border-2 border-slate-200 dark:border-slate-600 p-3 text-center text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 peer-checked:border-orange-500 peer-checked:bg-orange-500 peer-checked:text-white transition-all font-bold shadow-sm">
+                                    Compra
+                                </div>
                             </label>
-                            <label class="flex items-center gap-2 p-2.5 rounded-lg border-2 border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-900/20 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors">
-                                <input type="radio" name="tipoMovimiento" value="Gasto" onchange="manejarCambioTipo()" class="w-4 h-4 text-red-600 focus:ring-red-500">
-                                <span class="font-bold text-xs md:text-sm text-red-700 dark:text-red-400">Gasto</span>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="tipoMovimiento" value="Gasto" class="peer sr-only" onchange="manejarCambioTipo()">
+                                <div class="rounded-lg border-2 border-slate-200 dark:border-slate-600 p-3 text-center text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 peer-checked:border-rose-600 peer-checked:bg-rose-600 peer-checked:text-white transition-all font-bold shadow-sm">
+                                    Gasto
+                                </div>
                             </label>
-                            <label class="flex items-center gap-2 p-2.5 rounded-lg border-2 border-purple-200 dark:border-purple-900 bg-purple-50 dark:bg-purple-900/20 cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors">
-                                <input type="radio" name="tipoMovimiento" value="Abono" onchange="manejarCambioTipo()" class="w-4 h-4 text-purple-600 focus:ring-purple-500">
-                                <span class="font-bold text-xs md:text-sm text-purple-700 dark:text-purple-400">Abono</span>
+                            <!-- Abono oculto en UI estándar, se activa por JS -->
+                            <label id="label-tipo-abono" class="hidden cursor-pointer">
+                                <input type="radio" name="tipoMovimiento" value="Abono" class="peer sr-only" onchange="manejarCambioTipo()">
+                                <div class="rounded-lg border-2 border-slate-200 dark:border-slate-600 p-3 text-center text-slate-500 dark:text-slate-400 peer-checked:border-purple-600 peer-checked:bg-purple-600 peer-checked:text-white transition-all font-bold shadow-sm">
+                                    Abono a Cartera
+                                </div>
                             </label>
                         </div>
                     </div>
@@ -142,18 +151,18 @@
                     <!-- 2. Productos / Conceptos -->
                     <div class="mb-6">
                         <h3 id="lbl-productos" class="text-md font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                            <i data-lucide="package" class="w-5 h-5 text-orange-500"></i> 1. Productos / Conceptos
+                            <i data-lucide="package" class="w-5 h-5 text-blue-500" id="icon-productos"></i> 1. Productos / Conceptos
                         </h3>
                         <div id="productos-container" class="space-y-3">
                             <!-- Inyectado por JS -->
                         </div>
-                        <button onclick="agregarFilaProducto()" class="mt-4 w-full md:w-auto bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-colors">
+                        <button onclick="agregarFilaProducto()" class="mt-4 w-full md:w-auto bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-colors border border-slate-300 dark:border-slate-600">
                             <i data-lucide="plus" class="w-4 h-4"></i> Añadir Concepto
                         </button>
                     </div>
 
-                    <!-- 3. Logística (Ocultable según tipo) -->
-                    <div id="seccion-logistica" class="mb-6 bg-slate-50 dark:bg-slate-750 p-4 rounded-xl border border-slate-200 dark:border-slate-700 transition-all duration-300">
+                    <!-- 3. Logística -->
+                    <div id="seccion-logistica" class="mb-6 bg-slate-50 dark:bg-slate-750/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700 transition-all duration-300">
                         <h3 class="text-md font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
                             <i data-lucide="truck" class="w-5 h-5 text-indigo-500"></i> Logística de Entrega
                         </h3>
@@ -171,10 +180,10 @@
                                 <select id="encargado-domi" class="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none dark:text-white">
                                     <option value="">Seleccionar...</option>
                                     <option value="JF">JF</option>
+                                    <option value="David">David</option>
+                                    <option value="Mono">Mono</option>
                                     <option value="Cris">Cris</option>
                                     <option value="Valentino Rossi">Valentino Rossi</option>
-                                    <option value="Mono">Mono</option>
-                                    <option value="David">David</option>
                                     <option value="Delivery App">Delivery App</option>
                                 </select>
                             </div>
@@ -194,12 +203,20 @@
                         <div id="pagos-container" class="space-y-3">
                             <!-- Inyectado por JS -->
                         </div>
-                        <button onclick="agregarFilaPago()" class="mt-4 w-full md:w-auto bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-colors">
+                        <button onclick="agregarFilaPago()" class="mt-4 w-full md:w-auto bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-colors border border-slate-300 dark:border-slate-600">
                             <i data-lucide="plus" class="w-4 h-4"></i> Añadir Método
                         </button>
                     </div>
 
-                    <!-- 5. Totales -->
+                    <!-- 5. NOTAS (Nuevo) -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-2">
+                            <i data-lucide="message-square" class="w-4 h-4"></i> Notas / Observaciones (Opcional)
+                        </label>
+                        <textarea id="notas" rows="2" class="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-transparent focus:ring-2 focus:ring-blue-500 outline-none dark:text-white text-sm" placeholder="Añade detalles, comentarios o recordatorios sobre este registro..."></textarea>
+                    </div>
+
+                    <!-- 6. Totales -->
                     <div id="box-totales" class="bg-slate-800 dark:bg-slate-950 text-white p-5 rounded-xl flex flex-col md:flex-row justify-between items-center gap-6 shadow-inner border border-slate-700 transition-colors duration-300">
                         <div class="flex gap-8 w-full md:w-auto justify-between md:justify-start">
                             <div>
@@ -227,11 +244,11 @@
             <!-- COLUMNA DERECHA: DASHBOARD & AUDITORÍA -->
             <div class="space-y-6">
                 
-                <!-- PANEL FINANCIERO (Solo Admin) -->
+                <!-- PANEL FINANCIERO (Admin y Supervisor JF) -->
                 <div id="panel-financiero" class="hidden bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 fade-in">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-md font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                            <i data-lucide="pie-chart" class="w-5 h-5 text-indigo-500"></i> Resumen Financiero
+                            <i data-lucide="pie-chart" class="w-5 h-5 text-indigo-500"></i> Resumen Financiero Global
                         </h2>
                         <button onclick="calcularDashboard()" class="text-xs bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 p-1.5 rounded transition-colors" title="Actualizar Saldos">
                             <i data-lucide="refresh-cw" class="w-4 h-4 text-slate-600 dark:text-slate-300"></i>
@@ -269,22 +286,29 @@
                         </div>
                     </div>
 
-                    <button onclick="abrirModalReporte()" class="mt-4 w-full bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md transition-colors flex items-center justify-center gap-2">
-                        <i data-lucide="calendar" class="w-4 h-4"></i> Ver Reporte Diario
-                    </button>
+                    <!-- SECCIÓN DE DOMICILIARIOS GLOBAL -->
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 border-b dark:border-slate-700 pb-1 mt-4">Costos de Domicilios Generados</p>
+                    <div id="div-costos-domis-global" class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
+                        <!-- JS Inyecta las tarjetas aquí -->
+                    </div>
 
                     <!-- SECCIÓN DE COBRO HADES (DOMICILIOS) -->
-                    <div class="mt-4 pt-4 border-t dark:border-slate-700">
+                    <div class="pt-4 border-t dark:border-slate-700">
                         <div class="flex justify-between items-center bg-orange-50 dark:bg-orange-900/10 p-3 rounded-lg border border-orange-100 dark:border-orange-800/30">
                             <div>
                                 <p class="text-[10px] text-orange-700 dark:text-orange-400 font-bold uppercase tracking-wider">Deuda Domicilios (Hades)</p>
                                 <p id="dash-admin-domis-hades" class="text-lg font-bold text-slate-800 dark:text-slate-200">$ 0</p>
                             </div>
-                            <button onclick="liquidarDomisHades()" class="bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg text-xs font-bold shadow-sm transition-colors flex items-center gap-1">
+                            <!-- Oculto para JF -->
+                            <button id="btn-liquidar-hades" onclick="liquidarDomisHades()" class="bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg text-xs font-bold shadow-sm transition-colors flex items-center gap-1">
                                 <i data-lucide="check-circle" class="w-4 h-4"></i> Liquidar
                             </button>
                         </div>
                     </div>
+
+                    <button onclick="abrirModalReporte()" class="mt-4 w-full bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="calendar" class="w-4 h-4"></i> Ver Reporte Diario Completo
+                    </button>
                 </div>
 
                 <!-- PANEL DISTRIBUIDOR (Solo Hades) -->
@@ -320,18 +344,38 @@
                         </div>
                     </div>
 
-                    <div class="bg-slate-900 p-4 rounded-lg border border-slate-700 flex justify-between items-center mt-2">
+                    <div class="bg-slate-900 p-4 rounded-lg border border-slate-700 flex justify-between items-center mt-4">
                         <div>
-                            <p class="text-[10px] uppercase font-bold text-slate-400">Deuda por Domicilios</p>
+                            <p class="text-[10px] uppercase font-bold text-slate-400">Deuda con Ferco Farma (Domis)</p>
                             <p id="dash-hades-domis" class="text-xl font-bold text-orange-400">$ 0</p>
                         </div>
                         <i data-lucide="bike" class="w-8 h-8 text-slate-600"></i>
                     </div>
+
+                    <button onclick="abrirModalReporte()" class="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-lg text-sm font-bold shadow-md transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="calendar" class="w-4 h-4"></i> Ver Mi Reporte Diario
+                    </button>
+                </div>
+
+                <!-- LÍNEA DE TIEMPO (Solo Lectura) -->
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-md font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                            <i data-lucide="history" class="w-5 h-5 text-slate-500"></i> Últimos Movimientos
+                        </h2>
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 border-b dark:border-slate-700 pb-2">Visualización rápida de los últimos 5 registros ingresados. Para ver detalles o editar, usa el <b>Reporte Diario</b>.</p>
+                    
+                    <div id="lista-ventas" class="space-y-3">
+                        <div class="flex justify-center items-center py-8">
+                            <i data-lucide="loader-2" class="w-6 h-6 animate-spin text-blue-500"></i>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- AUDITORÍA Y EXPORTACIÓN -->
-                <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                    <div class="mb-6 border-b dark:border-slate-700 pb-6">
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mt-6">
+                    <div class="mb-2">
                         <h3 class="text-md font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-2">
                             <i data-lucide="file-spreadsheet" class="w-5 h-5 text-green-600"></i> Exportar Auditoría
                         </h3>
@@ -350,19 +394,6 @@
                         <button onclick="exportarCSV()" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-lg font-bold transition-all shadow-md flex items-center justify-center gap-2">
                             <i data-lucide="download" class="w-4 h-4"></i> Descargar CSV
                         </button>
-                    </div>
-
-                    <!-- Lista de Movimientos Recientes Globales -->
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-md font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                            <i data-lucide="history" class="w-5 h-5 text-slate-500"></i> Línea de Tiempo
-                        </h2>
-                    </div>
-                    
-                    <div id="lista-ventas" class="space-y-3 max-h-[400px] overflow-y-auto pr-2">
-                        <div class="flex justify-center items-center py-8">
-                            <i data-lucide="loader-2" class="w-6 h-6 animate-spin text-blue-500"></i>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -427,8 +458,8 @@
     </div>
 
     <!-- MODAL: REPORTE DIARIO GLOBAL -->
-    <div id="modal-reporte" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/80 backdrop-blur-sm transition-opacity">
-        <div class="glass-modal w-full max-w-4xl h-[90vh] flex flex-col rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 m-4">
+    <div id="modal-reporte" class="fixed inset-0 z-[50] hidden items-center justify-center bg-slate-900/80 backdrop-blur-sm transition-opacity">
+        <div class="glass-modal w-full max-w-4xl h-[90vh] flex flex-col rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 m-4 relative">
             <div class="p-6 border-b dark:border-slate-700 flex justify-between items-center bg-slate-900 rounded-t-2xl">
                 <h2 class="text-xl font-bold flex items-center gap-2 text-white">
                     <i data-lucide="calendar-days" class="text-blue-400"></i> Reporte Global por Fechas
@@ -445,10 +476,89 @@
         </div>
     </div>
 
+    <!-- MODAL: DETALLES DE REGISTRO (CON EDITAR/BORRAR) -->
+    <div id="modal-detalle-registro" class="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-900/80 backdrop-blur-md transition-opacity">
+        <div class="glass-modal w-full max-w-xl max-h-[90vh] flex flex-col rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 m-4">
+            
+            <div class="p-5 border-b dark:border-slate-700 flex justify-between items-start bg-white dark:bg-slate-800 rounded-t-2xl">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-1">
+                        <i data-lucide="file-text" class="text-blue-500"></i> Detalles del Movimiento
+                    </h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-mono" id="detalle-fecha-creador">Fecha | Creador</p>
+                </div>
+                <button onclick="cerrarModalDetalle()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">
+                    <i data-lucide="x" class="w-5 h-5 dark:text-white"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-1 bg-slate-50 dark:bg-slate-900 space-y-6">
+                <!-- Info principal -->
+                <div class="flex justify-between items-center bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <div>
+                        <p class="text-[10px] uppercase font-bold text-slate-500">Cliente / Entidad</p>
+                        <p class="text-lg font-bold text-slate-800 dark:text-white" id="detalle-cliente">Nombre</p>
+                        <span id="detalle-tipo-badge" class="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded uppercase bg-slate-200 text-slate-700">TIPO</span>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] uppercase font-bold text-slate-500">Valor Total</p>
+                        <p class="text-2xl font-bold text-slate-800 dark:text-white" id="detalle-total">$0</p>
+                    </div>
+                </div>
+
+                <!-- Productos / Logistica -->
+                <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                    <h3 class="bg-slate-100 dark:bg-slate-750 p-3 text-sm font-bold text-slate-700 dark:text-slate-300 border-b dark:border-slate-700 flex items-center gap-2">
+                        <i data-lucide="package" class="w-4 h-4 text-orange-500"></i> Conceptos y Entrega
+                    </h3>
+                    <div class="p-4">
+                        <ul id="detalle-lista-productos" class="space-y-2 text-sm text-slate-600 dark:text-slate-300 mb-4">
+                            <!-- JS inyecta prods -->
+                        </ul>
+                        <div id="detalle-logistica" class="hidden pt-3 border-t dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                            <!-- JS inyecta logistica -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagos -->
+                <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                    <h3 class="bg-slate-100 dark:bg-slate-750 p-3 text-sm font-bold text-slate-700 dark:text-slate-300 border-b dark:border-slate-700 flex items-center gap-2">
+                        <i data-lucide="wallet" class="w-4 h-4 text-emerald-500"></i> Medios de Pago
+                    </h3>
+                    <div class="p-4">
+                        <ul id="detalle-lista-pagos" class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                            <!-- JS inyecta pagos -->
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Notas -->
+                <div id="detalle-box-notas" class="hidden bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-200 dark:border-amber-800/30 p-4">
+                    <p class="text-[10px] uppercase font-bold text-amber-700 dark:text-amber-500 mb-1 flex items-center gap-1"><i data-lucide="message-square" class="w-3 h-3"></i> Notas Adicionales</p>
+                    <p id="detalle-texto-notas" class="text-sm text-slate-700 dark:text-slate-300 italic"></p>
+                </div>
+            </div>
+
+            <!-- Botones de Acción (Condicionales según Rol) -->
+            <div id="detalle-acciones" class="p-5 border-t dark:border-slate-700 bg-white dark:bg-slate-800 rounded-b-2xl flex justify-between items-center gap-4">
+                <p class="text-xs text-slate-500" id="detalle-aviso-permisos">Acciones de administrador</p>
+                <div class="flex gap-2">
+                    <button id="btn-detalle-editar" class="bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-1">
+                        <i data-lucide="edit-3" class="w-4 h-4"></i> Editar Registro
+                    </button>
+                    <button id="btn-detalle-borrar" class="bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-1">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i> Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ==================== SCRIPTS LÓGICOS ==================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs, getDoc, setDoc, query, limit, onSnapshot } 
+        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs, getDoc, setDoc, query, orderBy, limit, onSnapshot } 
         from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, inMemoryPersistence } 
         from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -467,13 +577,13 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // Seguridad: Persistencia en memoria
         setPersistence(auth, inMemoryPersistence).catch(console.error);
 
-        // Lista Blanca
+        // Roles y Accesos
         const ADMIN_EMAIL = 'cris@fercofarma.com';
+        const SUPERVISOR_EMAIL = 'jf@fercofarma.com';
         const HADES_EMAIL = 'hades@fercofarma.com';
-        const USUARIOS_PERMITIDOS = ['cris@fercofarma.com', 'jf@fercofarma.com', 'hades@fercofarma.com'];
+        const USUARIOS_PERMITIDOS = [ADMIN_EMAIL, SUPERVISOR_EMAIL, HADES_EMAIL];
 
         // Variables Globales
         let currentUser = null;
@@ -482,6 +592,8 @@
         let contadorPagos = 0;
         let timerInactividad;
         let fechaCorteDomisHades = 0; 
+        
+        window.movimientosCache = []; // Caché para el modal de detalles
         
         const formatoMoneda = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
         let diccionarioProductos = {}; 
@@ -511,15 +623,19 @@
                 loginScreen.classList.add('hidden');
                 appScreen.classList.remove('hidden');
                 
-                if (correoIngresado === ADMIN_EMAIL) {
+                if (correoIngresado === ADMIN_EMAIL || correoIngresado === SUPERVISOR_EMAIL) {
                     panelFinanciero.classList.remove('hidden');
                     panelHades.classList.add('hidden');
+                    
+                    // Solo admin puede liquidar deuda
+                    if(correoIngresado === SUPERVISOR_EMAIL) {
+                        document.getElementById('btn-liquidar-hades').classList.add('hidden');
+                    } else {
+                        document.getElementById('btn-liquidar-hades').classList.remove('hidden');
+                    }
                 } else if (correoIngresado === HADES_EMAIL) {
                     panelFinanciero.classList.add('hidden');
                     panelHades.classList.remove('hidden');
-                } else {
-                    panelFinanciero.classList.add('hidden');
-                    panelHades.classList.add('hidden');
                 }
 
                 await cargarConfiguracionHades();
@@ -693,32 +809,36 @@
 
             document.getElementById('productos-container').innerHTML = '';
             document.getElementById('pagos-container').innerHTML = '';
+            document.getElementById('notas').value = '';
             contadorProductos = 0; contadorPagos = 0;
             
             agregarFilaProducto(); agregarFilaPago();
             cargarVentasFirebase();
             verificarTemaInicial();
             manejarCambioTipo(); 
-            if (currentUser && (currentUser.email === ADMIN_EMAIL || currentUser.email === HADES_EMAIL)) calcularDashboard();
+            if (currentUser) calcularDashboard();
         }
 
         window.manejarCambioTipo = () => {
+            // El checked de los radio ocultos cambiará visualmente gracias a las clases 'peer-checked' de Tailwind
             const tipo = document.querySelector('input[name="tipoMovimiento"]:checked').value;
             const boxTotales = document.getElementById('box-totales');
             const seccionLogistica = document.getElementById('seccion-logistica');
+            const iconProds = document.getElementById('icon-productos');
             
             if (tipo === 'Venta') {
                 document.getElementById('lbl-cliente').textContent = "Cliente";
-                document.getElementById('lbl-productos').innerHTML = '<i data-lucide="package" class="w-5 h-5 text-orange-500"></i> 1. Productos Vendidos';
+                document.getElementById('lbl-productos').innerHTML = '<i data-lucide="package" class="w-5 h-5 text-blue-500"></i> 1. Productos Vendidos';
                 document.getElementById('txt-lbl-pagos').textContent = "2. Medios de Pago (Ingreso a Cuenta)";
                 document.getElementById('icon-pagos').className = "w-5 h-5 text-emerald-500";
                 document.getElementById('lbl-total-calc').textContent = "Total a Cobrar";
                 document.getElementById('lbl-total-pagado').textContent = "Total Recibido";
                 boxTotales.className = "bg-slate-800 dark:bg-slate-950 text-white p-5 rounded-xl flex flex-col md:flex-row justify-between items-center gap-6 shadow-inner border border-slate-700 transition-colors duration-300";
                 seccionLogistica.classList.remove('hidden');
+                document.getElementById('label-tipo-abono').classList.add('hidden'); // Ocultar abono visual
             } else if (tipo === 'Compra' || tipo === 'Gasto') {
                 document.getElementById('lbl-cliente').textContent = tipo === 'Compra' ? "Proveedor" : "Beneficiario o Descripción";
-                document.getElementById('lbl-productos').innerHTML = `<i data-lucide="${tipo==='Compra'?'package':'file-text'}" class="w-5 h-5 text-orange-500"></i> 1. Conceptos del ${tipo}`;
+                document.getElementById('lbl-productos').innerHTML = `<i data-lucide="${tipo==='Compra'?'package':'file-text'}" class="w-5 h-5 text-${tipo==='Compra'?'orange':'rose'}-500"></i> 1. Conceptos del ${tipo}`;
                 document.getElementById('txt-lbl-pagos').textContent = "2. Cuenta de Origen del Dinero (De dónde salió)";
                 document.getElementById('icon-pagos').className = "w-5 h-5 text-red-400";
                 document.getElementById('lbl-total-calc').textContent = `Total del ${tipo}`;
@@ -727,7 +847,9 @@
                 
                 if(tipo === 'Gasto') seccionLogistica.classList.add('hidden');
                 else seccionLogistica.classList.remove('hidden');
+                document.getElementById('label-tipo-abono').classList.add('hidden');
             } else if (tipo === 'Abono') {
+                document.getElementById('label-tipo-abono').classList.remove('hidden'); // Mostrar solo si se forzó el click
                 document.getElementById('lbl-cliente').textContent = "Cliente que realiza el abono";
                 document.getElementById('lbl-productos').innerHTML = '<i data-lucide="check-circle" class="w-5 h-5 text-purple-500"></i> 1. Detalle del Abono';
                 document.getElementById('txt-lbl-pagos').textContent = "2. Cuenta Destino (A dónde ingresa el abono)";
@@ -935,6 +1057,7 @@
         window.guardarMovimiento = async () => {
             const cliente = document.getElementById('cliente').value.trim();
             const fecha = document.getElementById('fecha').value;
+            const notas = document.getElementById('notas').value.trim();
             const tipoMovimiento = document.querySelector('input[name="tipoMovimiento"]:checked').value;
             
             if (!cliente) return alert("Ingresa Cliente, Proveedor o Beneficiario.");
@@ -982,7 +1105,7 @@
 
             const docData = {
                 tipoMovimiento,
-                fecha, cliente, productos, entrega, pagos, totalVenta,
+                fecha, cliente, notas, productos, entrega, pagos, totalVenta,
                 creadoPor: currentUser.email, timestamp: Date.now()
             };
 
@@ -997,6 +1120,7 @@
                 } else {
                     await addDoc(collection(db, "ventas"), docData);
                     document.getElementById('cliente').value = '';
+                    document.getElementById('notas').value = '';
                     document.getElementById('medio-entrega').value = '';
                     manejarCambioEntrega();
                     document.getElementById('productos-container').innerHTML = '';
@@ -1007,163 +1131,147 @@
                 btn.innerHTML = '<i data-lucide="save" class="w-5 h-5"></i> Registrar Movimiento';
                 lucide.createIcons();
                 
-                if (currentUser && (currentUser.email === ADMIN_EMAIL || currentUser.email === HADES_EMAIL)) calcularDashboard();
+                if (currentUser) calcularDashboard();
 
             } catch (e) { alert("Error de Permisos al guardar en la base de datos."); }
         };
 
-        // LA SOLUCIÓN DEL 4 DE JULIO: QUITAR ORDERBY Y ORDENAR EN JAVASCRIPT
+        // ==========================================
+        // LÍNEA DE TIEMPO (SOLO LECTURA, 5 ITEMS, CON COLORES POR USUARIO)
+        // ==========================================
         function cargarVentasFirebase() {
-            // Obtenemos TODO sin limit para asegurar que no se queden por fuera los más recientes
-            const q = query(collection(db, "ventas")); 
+            // Traemos los últimos 20 por si hay filtros de Hades que salten registros, aseguramos 5 visuales.
+            const q = query(collection(db, "ventas"), orderBy("timestamp", "desc"), limit(20));
             onSnapshot(q, (snapshot) => {
                 const cont = document.getElementById('lista-ventas');
                 cont.innerHTML = '';
                 
-                let movimientosArray = [];
-                snapshot.forEach((doc) => {
-                    let d = doc.data();
-                    d.id = doc.id;
-                    // FALLBACK INTELIGENTE: Si no tiene timestamp, usa la fecha para no enviarlo al fondo del todo
-                    d.timestamp = d.timestamp || (d.fecha ? new Date(d.fecha + "T12:00:00").getTime() : 0);
-                    movimientosArray.push(d);
-                });
-
-                // ORDENAR MANUALMENTE: De más reciente a más antiguo
-                movimientosArray.sort((a, b) => b.timestamp - a.timestamp);
-                
                 let docCount = 0;
                 
-                movimientosArray.forEach((v) => {
+                snapshot.forEach((doc) => {
+                    const v = doc.data();
+                    
                     if (currentUser && currentUser.email === HADES_EMAIL && v.creadoPor !== HADES_EMAIL) return;
-                    if (docCount >= 15) return; // Aumentamos a 15 registros visibles en pantalla
+                    if (docCount >= 5) return; 
                     docCount++;
 
-                    const vId = v.id;
                     const tipo = v.tipoMovimiento || 'Venta';
+                    const creadorUser = (v.creadoPor || "App").toLowerCase();
                     
-                    let bgClass = "bg-slate-50 dark:bg-slate-700/30";
-                    let textClass = "text-emerald-600 dark:text-emerald-400";
-                    let tagClass = "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300";
-                    let label = "Venta";
-
-                    if (tipo === 'Compra') {
-                        bgClass = "bg-orange-50 dark:bg-orange-900/10";
-                        textClass = "text-orange-600 dark:text-orange-400";
-                        tagClass = "bg-orange-200 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300";
-                        label = "Compra";
-                    } else if (tipo === 'Gasto') {
-                        bgClass = "bg-red-50 dark:bg-red-900/10";
-                        textClass = "text-red-600 dark:text-red-400";
-                        tagClass = "bg-red-200 text-red-800 dark:bg-red-900/50 dark:text-red-300";
-                        label = "Gasto";
-                    } else if (tipo === 'Abono') {
-                        bgClass = "bg-purple-50 dark:bg-purple-900/10";
-                        textClass = "text-purple-600 dark:text-purple-400";
-                        tagClass = "bg-purple-200 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300";
-                        label = "Abono";
+                    // Colores por Usuario
+                    let userBorder = 'border-slate-200 dark:border-slate-700';
+                    let userBg = 'bg-white dark:bg-slate-800';
+                    
+                    if (creadorUser === ADMIN_EMAIL) {
+                        userBorder = 'border-blue-300 dark:border-blue-800/50';
+                        userBg = 'bg-blue-50/30 dark:bg-blue-900/10';
+                    } else if (creadorUser === SUPERVISOR_EMAIL) {
+                        userBorder = 'border-emerald-300 dark:border-emerald-800/50';
+                        userBg = 'bg-emerald-50/30 dark:bg-emerald-900/10';
+                    } else if (creadorUser === HADES_EMAIL) {
+                        userBorder = 'border-purple-300 dark:border-purple-800/50';
+                        userBg = 'bg-purple-50/30 dark:bg-purple-900/10';
                     }
+                    
+                    // Badge del tipo
+                    let tagClass = "bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300";
+                    if (tipo === 'Venta') tagClass = "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300";
+                    else if (tipo === 'Compra') tagClass = "bg-orange-200 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300";
+                    else if (tipo === 'Gasto') tagClass = "bg-rose-200 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300";
+                    else if (tipo === 'Abono') tagClass = "bg-purple-200 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300";
+
+                    // Lista de Productos (Cantidad x Nombre)
+                    let prodsHtml = '<ul class="text-[11px] text-slate-500 dark:text-slate-400 mt-2 list-disc list-inside leading-tight">';
+                    (v.productos || []).forEach(p => {
+                        prodsHtml += `<li><b>${p.cantidad}</b> x ${p.concepto}</li>`;
+                    });
+                    prodsHtml += '</ul>';
 
                     cont.insertAdjacentHTML('beforeend', `
-                        <div class="${bgClass} p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col gap-2 hover:shadow-md transition-colors">
+                        <div class="${userBg} p-4 rounded-xl border ${userBorder} flex flex-col gap-1 transition-colors">
                             <div class="flex justify-between items-start">
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
-                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded uppercase ${tagClass}">${label}</span>
-                                        <p class="text-xs text-slate-500 dark:text-slate-400 font-mono">${v.fecha}</p>
+                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${tagClass}">${tipo}</span>
+                                        <p class="text-[10px] text-slate-400 dark:text-slate-500 font-mono flex items-center gap-1">
+                                            <i data-lucide="user" class="w-3 h-3"></i> ${creadorUser.split('@')[0]}
+                                        </p>
                                     </div>
-                                    <p class="font-bold text-slate-800 dark:text-slate-100 text-md line-clamp-1">${v.cliente}</p>
-                                    <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1" title="${v.creadoPor}">
-                                        <i data-lucide="user" class="inline w-3 h-3"></i> ${v.creadoPor.split('@')[0]}
-                                    </p>
+                                    <p class="font-bold text-slate-800 dark:text-slate-200 text-sm line-clamp-1">${v.cliente || 'Sin Nombre'}</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="font-bold ${textClass} text-lg">${(tipo === 'Gasto' || tipo === 'Compra') ? '-' : ''}${formatoMoneda.format(v.totalVenta)}</p>
+                                    <p class="font-bold text-slate-700 dark:text-slate-300 text-md">${(tipo === 'Gasto' || tipo === 'Compra') ? '-' : ''}${formatoMoneda.format(v.totalVenta || 0)}</p>
                                 </div>
                             </div>
-                            <div class="flex justify-end gap-2 mt-2 pt-2 border-t dark:border-slate-600/50">
-                                <button onclick="cargarParaEditar('${vId}')" class="text-xs text-blue-600 px-2 py-1 hover:bg-blue-100 rounded flex items-center gap-1"><i data-lucide="edit-3" class="w-3 h-3"></i> Editar</button>
-                                <button onclick="eliminarVenta('${vId}')" class="text-xs text-red-600 px-2 py-1 hover:bg-red-100 rounded flex items-center gap-1"><i data-lucide="trash" class="w-3 h-3"></i> Borrar</button>
-                            </div>
+                            ${prodsHtml}
                         </div>`);
                 });
-                if (docCount === 0) cont.innerHTML = '<p class="text-sm text-slate-500 text-center py-4">No hay movimientos registrados para mostrar.</p>';
+                if (docCount === 0) cont.innerHTML = '<p class="text-sm text-slate-500 text-center py-4">No hay movimientos recientes.</p>';
                 lucide.createIcons();
             });
         }
 
-        window.eliminarVenta = async (id) => {
-            if (confirm("⚠️ ¿Eliminar definitivamente este movimiento contable?")) {
-                try { 
-                    await deleteDoc(doc(db, "ventas", id)); 
-                    if (currentUser && (currentUser.email === ADMIN_EMAIL || currentUser.email === HADES_EMAIL)) calcularDashboard(); 
-                } catch (e) { alert("Error permisos."); }
-            }
-        };
+        // ==========================================
+        // EDICIÓN DE REGISTRO
+        // ==========================================
+        window.cargarParaEditar = () => {
+            const id = ventaEditandoId; 
+            const mov = window.movimientosCache.find(m => m.id === id);
+            
+            if (!mov) return alert("❌ Error: No se encontraron los datos para editar.");
 
-        window.cargarParaEditar = async (id) => {
             const clienteActual = document.getElementById('cliente').value.trim();
             const totalActual = document.getElementById('txt-total-cobrar').textContent;
             
-            if (!ventaEditandoId && (clienteActual !== '' || totalActual !== '$ 0')) {
-                if(!confirm("⚠️ Tienes un registro en progreso. ¿Descartarlo para editar este movimiento antiguo?")) {
+            if (clienteActual !== '' || totalActual !== '$ 0') {
+                if(!confirm("⚠️ Tienes un registro en progreso en el formulario. ¿Descartarlo para editar este movimiento antiguo?")) {
                     return; 
                 }
             }
 
-            try {
-                const docSnap = await getDoc(doc(db, "ventas", id));
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    
-                    if (currentUser.email === HADES_EMAIL && data.creadoPor !== HADES_EMAIL) {
-                        alert("No tienes permisos para editar registros de otros usuarios."); return;
-                    }
+            cerrarModalDetalle();
+            cerrarModalReporte();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
 
-                    ventaEditandoId = id;
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+            const formContainer = document.getElementById('form-container-main');
+            formContainer.classList.add('ring-2', 'ring-orange-500', 'bg-orange-50/30', 'dark:bg-orange-900/10');
 
-                    const formContainer = document.getElementById('form-container-main');
-                    formContainer.classList.add('ring-2', 'ring-orange-500', 'bg-orange-50/30', 'dark:bg-orange-900/10');
+            document.getElementById('form-title').innerHTML = '<i data-lucide="edit-3" class="w-6 h-6 text-orange-500"></i> Editando Movimiento';
+            document.getElementById('txt-btn-guardar').textContent = 'Actualizar Movimiento';
+            document.getElementById('btn-guardar').classList.replace('bg-blue-600', 'bg-orange-600');
+            document.getElementById('btn-guardar').classList.replace('hover:bg-blue-500', 'hover:bg-orange-500');
+            document.getElementById('btn-cancelar-edicion').classList.remove('hidden');
 
-                    document.getElementById('form-title').innerHTML = '<i data-lucide="edit-3" class="w-6 h-6 text-orange-500"></i> Editando Movimiento';
-                    document.getElementById('txt-btn-guardar').textContent = 'Actualizar Movimiento';
-                    document.getElementById('btn-guardar').classList.replace('bg-blue-600', 'bg-orange-600');
-                    document.getElementById('btn-guardar').classList.replace('hover:bg-blue-500', 'hover:bg-orange-500');
-                    document.getElementById('btn-cancelar-edicion').classList.remove('hidden');
+            const tipo = mov.tipoMovimiento || 'Venta';
+            if (tipo === 'Abono') document.getElementById('label-tipo-abono').classList.remove('hidden');
+            document.querySelector(`input[name="tipoMovimiento"][value="${tipo}"]`).checked = true;
+            manejarCambioTipo(); 
 
-                    const tipo = data.tipoMovimiento || 'Venta';
-                    document.querySelector(`input[name="tipoMovimiento"][value="${tipo}"]`).checked = true;
-                    manejarCambioTipo(); 
-
-                    document.getElementById('cliente').value = data.cliente;
-                    document.getElementById('fecha').value = data.fecha;
-                    
-                    if(tipo !== 'Gasto' && tipo !== 'Abono') {
-                        document.getElementById('medio-entrega').value = data.entrega?.medio || "Recoge";
-                        manejarCambioEntrega();
-                        if(data.entrega?.medio === 'Domi') {
-                            document.getElementById('encargado-domi').value = data.entrega?.encargado || "";
-                            document.getElementById('costo-envio').value = data.entrega?.costo || 0;
-                        }
-                    }
-
-                    document.getElementById('productos-container').innerHTML = '';
-                    contadorProductos = 0; 
-                    const prodsArray = data.productos || [];
-                    prodsArray.forEach((p) => { agregarFilaProducto(p); });
-
-                    document.getElementById('pagos-container').innerHTML = '';
-                    contadorPagos = 0;
-                    const pagosArray = data.pagos || [];
-                    pagosArray.forEach((p) => { agregarFilaPago(p); });
-
-                    calcularTotales();
-                    lucide.createIcons();
-                } else {
-                    alert("❌ Error: Este registro ya no existe en la base de datos.");
+            document.getElementById('cliente').value = mov.cliente || '';
+            document.getElementById('fecha').value = mov.fecha || '';
+            document.getElementById('notas').value = mov.notas || '';
+            
+            if(tipo !== 'Gasto' && tipo !== 'Abono') {
+                document.getElementById('medio-entrega').value = mov.entrega?.medio || "Recoge";
+                manejarCambioEntrega();
+                if(mov.entrega?.medio === 'Domi') {
+                    document.getElementById('encargado-domi').value = mov.entrega?.encargado || "";
+                    document.getElementById('costo-envio').value = mov.entrega?.costo || 0;
                 }
-            } catch(e) { console.error(e); }
+            }
+
+            document.getElementById('productos-container').innerHTML = '';
+            contadorProductos = 0; 
+            const prodsArray = mov.productos || [];
+            prodsArray.forEach((p) => { agregarFilaProducto(p); });
+
+            document.getElementById('pagos-container').innerHTML = '';
+            contadorPagos = 0;
+            const pagosArray = mov.pagos || [];
+            pagosArray.forEach((p) => { agregarFilaPago(p); });
+
+            calcularTotales();
+            lucide.createIcons();
         };
 
         window.cancelarEdicion = () => {
@@ -1172,6 +1280,7 @@
             const formContainer = document.getElementById('form-container-main');
             formContainer.classList.remove('ring-2', 'ring-orange-500', 'bg-orange-50/30', 'dark:bg-orange-900/10');
 
+            document.getElementById('label-tipo-abono').classList.add('hidden');
             document.querySelector('input[name="tipoMovimiento"][value="Venta"]').checked = true;
             manejarCambioTipo();
             
@@ -1183,6 +1292,7 @@
             
             document.getElementById('cliente').value = '';
             document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+            document.getElementById('notas').value = '';
             document.getElementById('medio-entrega').value = '';
             manejarCambioEntrega();
             document.getElementById('productos-container').innerHTML = '';
@@ -1191,8 +1301,20 @@
             calcularTotales();
         };
 
+        window.eliminarVenta = async () => {
+            if (confirm("⚠️ ¿Eliminar definitivamente este movimiento de la base de datos?")) {
+                try { 
+                    await deleteDoc(doc(db, "ventas", ventaEditandoId)); 
+                    cerrarModalDetalle();
+                    abrirModalReporte(); // Recargar reporte para ver el cambio
+                    if (currentUser) calcularDashboard(); 
+                } catch (e) { alert("Error de permisos. No puedes borrar este registro."); }
+            }
+        };
+
         window.prepararAbono = (clienteDeudor) => {
             cerrarModalCreditos();
+            document.getElementById('label-tipo-abono').classList.remove('hidden');
             document.querySelector('input[name="tipoMovimiento"][value="Abono"]').checked = true;
             manejarCambioTipo();
             document.getElementById('cliente').value = clienteDeudor;
@@ -1204,16 +1326,16 @@
         };
 
         // ==========================================
-        // DASHBOARD MULTI-TENANT (SÚPER BLINDADO Y DEFENSIVO)
+        // DASHBOARD MULTI-TENANT
         // ==========================================
         window.calcularDashboard = async () => {
             try {
-                // Obtenemos todos los documentos. SIN ORDERBY para no perder datos viejos
                 const snap = await getDocs(collection(db, "ventas"));
                 
                 let totalVentasGlobal = 0;
                 let deudoresGlobal = {};
                 let saldosGlobales = { "Cris": 0, "JF": 0, "Bodega": 0, "Hades": 0, "General": 0 };
+                let domisTotales = { "JF": 0, "David": 0, "Mono": 0, "Cris": 0, "Valentino Rossi": 0, "Delivery App": 0 };
 
                 let hadesVentas = 0;
                 let hadesCompras = 0;
@@ -1225,47 +1347,51 @@
                     const data = doc.data();
                     const tipo = data.tipoMovimiento || 'Venta';
                     const esDeHades = data.creadoPor === HADES_EMAIL;
-                    // Usamos parseFloat como escudo anti-errores matemáticos
-                    const totalMonto = parseFloat(data.totalVenta) || 0; 
+                    const totalMonto = data.totalVenta || 0; 
                     const pagosArray = data.pagos || []; 
                     const cliente = data.cliente || "Sin Nombre";
 
                     if (tipo === 'Venta') {
                         totalVentasGlobal += totalMonto;
                         pagosArray.forEach(p => {
-                            const montoPago = parseFloat(p.monto) || 0;
+                            const montoPago = p.monto || 0;
                             if (p.metodo === 'Credito') deudoresGlobal[cliente] = (deudoresGlobal[cliente] || 0) + montoPago;
                             else if (saldosGlobales[p.cuenta] !== undefined) saldosGlobales[p.cuenta] += montoPago;
                         });
                     } else if (tipo === 'Abono') {
                         deudoresGlobal[cliente] = (deudoresGlobal[cliente] || 0) - totalMonto;
                         pagosArray.forEach(p => {
-                            const montoPago = parseFloat(p.monto) || 0;
+                            const montoPago = p.monto || 0;
                             if (saldosGlobales[p.cuenta] !== undefined) saldosGlobales[p.cuenta] += montoPago; 
                         });
                     } else if (tipo === 'Compra' || tipo === 'Gasto') {
                         pagosArray.forEach(p => {
-                            const montoPago = parseFloat(p.monto) || 0;
+                            const montoPago = p.monto || 0;
                             if (saldosGlobales[p.cuenta] !== undefined) saldosGlobales[p.cuenta] -= montoPago; 
                         });
+                    }
+
+                    // Sumar Totales de Domicilios Global
+                    const costoEnvio = (data.entrega && data.entrega.costo) ? parseFloat(data.entrega.costo) : 0;
+                    const encargado = data.entrega && data.entrega.encargado ? data.entrega.encargado : '';
+                    if (costoEnvio > 0 && encargado && domisTotales[encargado] !== undefined) {
+                        domisTotales[encargado] += costoEnvio;
                     }
 
                     if (esDeHades) {
                         if (tipo === 'Venta') {
                             hadesVentas += totalMonto;
                             pagosArray.forEach(p => { 
-                                if (p.metodo === 'Credito') deudoresHades[cliente] = (deudoresHades[cliente] || 0) + (parseFloat(p.monto) || 0); 
+                                if (p.metodo === 'Credito') deudoresHades[cliente] = (deudoresHades[cliente] || 0) + (p.monto || 0); 
                             });
                         }
                         if (tipo === 'Compra') hadesCompras += totalMonto;
                         if (tipo === 'Gasto') hadesGastos += totalMonto;
-                        if (tipo === 'Abono') {
-                            deudoresHades[cliente] = (deudoresHades[cliente] || 0) - totalMonto;
-                        }
+                        if (tipo === 'Abono') deudoresHades[cliente] = (deudoresHades[cliente] || 0) - totalMonto;
 
-                        const costoEnvio = (data.entrega && data.entrega.costo) ? parseFloat(data.entrega.costo) : 0;
+                        // Deuda de Hades: Solo suma si NO es Delivery App y es posterior al corte
                         const timestampRegistro = data.timestamp || 0; 
-                        if (costoEnvio > 0 && timestampRegistro >= fechaCorteDomisHades) {
+                        if (costoEnvio > 0 && encargado !== 'Delivery App' && timestampRegistro >= fechaCorteDomisHades) {
                             hadesDeudaDomis += costoEnvio;
                         }
                     }
@@ -1284,10 +1410,9 @@
                 }
 
                 const listaDeudoresHTML = document.getElementById('lista-deudores');
-                if(listaDeudoresHTML) listaDeudoresHTML.innerHTML = '';
+                listaDeudoresHTML.innerHTML = '';
 
-                // VALIDACIÓN DE SEGURIDAD EXTREMA: Asegurarnos de que currentUser exista antes de pintar
-                if (currentUser && currentUser.email === HADES_EMAIL) {
+                if (currentUser.email === HADES_EMAIL) {
                     document.getElementById('dash-hades-ventas').textContent = formatoMoneda.format(hadesVentas);
                     document.getElementById('dash-hades-compras').textContent = formatoMoneda.format(hadesCompras);
                     document.getElementById('dash-hades-gastos').textContent = formatoMoneda.format(hadesGastos);
@@ -1299,7 +1424,7 @@
                         listaDeudoresHTML.insertAdjacentHTML('beforeend', getDeudorCardHTML(cliente, deuda));
                     }
 
-                } else if (currentUser && currentUser.email === ADMIN_EMAIL) {
+                } else if (currentUser.email === ADMIN_EMAIL || currentUser.email === SUPERVISOR_EMAIL) {
                     document.getElementById('dash-ventas').textContent = formatoMoneda.format(totalVentasGlobal);
                     document.getElementById('dash-creditos').textContent = formatoMoneda.format(totalCarteraGlobalActiva);
                     document.getElementById('dash-admin-domis-hades').textContent = formatoMoneda.format(hadesDeudaDomis);
@@ -1312,6 +1437,21 @@
                             el.className = `text-sm font-bold ${val < 0 ? 'text-red-500' : 'text-slate-700 dark:text-slate-200'}`;
                         }
                     });
+
+                    // Renderizar Tarjetas de Domiciliarios
+                    const divDomisGlobal = document.getElementById('div-costos-domis-global');
+                    divDomisGlobal.innerHTML = '';
+                    for (const [encargado, total] of Object.entries(domisTotales)) {
+                        const esApp = encargado === 'Delivery App';
+                        const colorClass = esApp ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-200';
+                        const bgClass = esApp ? 'bg-indigo-50 dark:bg-indigo-900/10 border-indigo-100 dark:border-indigo-800/30' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700';
+                        divDomisGlobal.insertAdjacentHTML('beforeend', `
+                            <div class="${bgClass} p-2 rounded border">
+                                <p class="text-[10px] text-slate-500 font-bold">${encargado}</p>
+                                <p class="text-sm font-bold ${colorClass}">${formatoMoneda.format(total)}</p>
+                            </div>
+                        `);
+                    }
 
                     if(Object.keys(deudoresActivosGlobales).length === 0) listaDeudoresHTML.innerHTML = '<p class="text-sm text-slate-500">La empresa no tiene cartera pendiente.</p>';
                     for (const [cliente, deuda] of Object.entries(deudoresActivosGlobales)) {
@@ -1340,7 +1480,7 @@
         window.cerrarModalCreditos = () => { document.getElementById('modal-creditos').style.display = 'none'; };
 
         // ==========================================
-        // REPORTE DIARIO GLOBAL (Solo Admin)
+        // REPORTE DIARIO Y DETALLES DE REGISTRO
         // ==========================================
         window.abrirModalReporte = async () => {
             const modal = document.getElementById('modal-reporte');
@@ -1348,43 +1488,40 @@
             modal.style.display = 'flex';
             contenedor.innerHTML = '<div class="flex justify-center py-12"><i data-lucide="loader-2" class="w-8 h-8 animate-spin text-blue-500"></i></div>';
             lucide.createIcons();
+            
+            window.movimientosCache = []; 
 
             try {
-                // SOLUCIÓN DEL ÍNDICE: Se pide todo SIN ORDENAR por Firebase.
-                const q = query(collection(db, "ventas"));
-                const querySnapshot = await getDocs(q);
-                
-                let todosLosMovimientos = [];
-                querySnapshot.forEach((doc) => {
-                    let d = doc.data();
-                    d.timestamp = d.timestamp || 0; // Proteccion
-                    todosLosMovimientos.push(d);
-                });
-
-                // Ordenamos mediante JavaScript para evadir el bloqueo
-                todosLosMovimientos.sort((a, b) => b.timestamp - a.timestamp);
-
+                const snap = await getDocs(collection(db, "ventas"));
                 const dias = {}; 
 
-                todosLosMovimientos.forEach((data) => {
+                snap.forEach((doc) => {
+                    const data = doc.data();
+                    data.id = doc.id;
+                    
+                    // Filtro de Roles para el Reporte
+                    if (currentUser && currentUser.email === HADES_EMAIL && data.creadoPor !== HADES_EMAIL) return;
+
+                    window.movimientosCache.push(data); // Guardar en caché para abrir detalle rápido
+
                     const fecha = data.fecha || "Sin Fecha"; 
-                    if (!dias[fecha]) {
-                        dias[fecha] = { movimientos: [], ingresos: 0, egresos: 0 };
-                    }
+                    if (!dias[fecha]) dias[fecha] = { movimientos: [], ingresos: 0, egresos: 0 };
                     dias[fecha].movimientos.push(data);
                     
                     const tipo = data.tipoMovimiento || 'Venta';
-                    const monto = parseFloat(data.totalVenta) || 0;
-                    if (tipo === 'Venta' || tipo === 'Abono') {
-                        dias[fecha].ingresos += monto;
-                    } else if (tipo === 'Compra' || tipo === 'Gasto') {
-                        dias[fecha].egresos += monto;
-                    }
+                    const monto = data.totalVenta || 0;
+                    if (tipo === 'Venta' || tipo === 'Abono') dias[fecha].ingresos += monto;
+                    else if (tipo === 'Compra' || tipo === 'Gasto') dias[fecha].egresos += monto;
+                });
+
+                // Ordenar días y movimientos dentro de cada día (más reciente primero)
+                const fechasOrdenadas = Object.keys(dias).sort((a, b) => new Date(b) - new Date(a));
+                fechasOrdenadas.forEach(f => {
+                    dias[f].movimientos.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
                 });
 
                 contenedor.innerHTML = '';
-                const fechasOrdenadas = Object.keys(dias).sort((a, b) => new Date(b) - new Date(a));
-
+                
                 if(fechasOrdenadas.length === 0) {
                     contenedor.innerHTML = '<p class="text-center text-slate-500 mt-10">No hay movimientos registrados.</p>';
                     return;
@@ -1393,43 +1530,51 @@
                 fechasOrdenadas.forEach(fechaStr => {
                     const diaData = dias[fechaStr];
                     const balance = diaData.ingresos - diaData.egresos;
-                    const colorBalance = balance >= 0 ? 'text-emerald-500' : 'text-red-500';
+                    const colorBalance = balance >= 0 ? 'text-emerald-500' : 'text-rose-500';
 
                     let filasHTML = '';
                     diaData.movimientos.forEach(mov => {
                         const tipo = mov.tipoMovimiento || 'Venta';
-                        const colorBadge = tipo === 'Venta' || tipo === 'Abono' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300';
+                        let colorBadge = "bg-slate-200 text-slate-700";
+                        if (tipo === 'Venta') colorBadge = "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300";
+                        else if (tipo === 'Compra') colorBadge = "bg-orange-200 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300";
+                        else if (tipo === 'Gasto') colorBadge = "bg-rose-200 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300";
+                        else if (tipo === 'Abono') colorBadge = "bg-purple-200 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300";
+
                         const signo = tipo === 'Compra' || tipo === 'Gasto' ? '-' : '';
-                        const clienteNom = mov.cliente || "Desconocido";
+                        const clienteNom = mov.cliente || "Sin Nombre";
                         const creador = (mov.creadoPor || "App").split('@')[0];
-                        const montoF = parseFloat(mov.totalVenta) || 0;
+                        const montoF = mov.totalVenta || 0;
                         
                         filasHTML += `
-                            <div class="flex justify-between items-center py-2 border-b dark:border-slate-700/50 last:border-0">
+                            <div onclick="abrirDetalleRegistro('${mov.id}')" class="flex justify-between items-center py-3 border-b dark:border-slate-700/50 last:border-0 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/80 px-2 rounded transition-colors group">
                                 <div class="flex items-center gap-3">
                                     <span class="text-[9px] font-bold px-2 py-0.5 rounded uppercase ${colorBadge} w-14 text-center">${tipo}</span>
                                     <div>
-                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200 capitalize">${clienteNom}</p>
+                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200 capitalize group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">${clienteNom}</p>
                                         <p class="text-[10px] text-slate-400 flex items-center gap-1"><i data-lucide="user" class="w-3 h-3"></i> ${creador}</p>
                                     </div>
                                 </div>
-                                <p class="text-sm font-bold text-slate-600 dark:text-slate-300">${signo}${formatoMoneda.format(montoF)}</p>
+                                <div class="flex items-center gap-3">
+                                    <p class="text-sm font-bold text-slate-600 dark:text-slate-300">${signo}${formatoMoneda.format(montoF)}</p>
+                                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300 group-hover:text-blue-500 transition-colors"></i>
+                                </div>
                             </div>
                         `;
                     });
 
                     const tarjetaDia = `
                         <div class="mb-6 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden fade-in">
-                            <div class="bg-slate-100 dark:bg-slate-750 p-4 border-b dark:border-slate-700 flex flex-col md:flex-row justify-between items-center gap-2">
+                            <div class="bg-slate-100 dark:bg-slate-750 p-4 border-b dark:border-slate-700 flex flex-col md:flex-row justify-between items-center gap-4">
                                 <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
                                     <i data-lucide="calendar" class="text-indigo-500 w-5 h-5"></i> ${fechaStr}
                                 </h3>
                                 <div class="flex gap-4">
-                                    <div class="text-right">
+                                    <div class="text-right hidden md:block">
                                         <p class="text-[10px] uppercase text-slate-500 font-bold">Ingresos</p>
                                         <p class="text-sm font-bold text-slate-700 dark:text-slate-300">${formatoMoneda.format(diaData.ingresos)}</p>
                                     </div>
-                                    <div class="text-right">
+                                    <div class="text-right hidden md:block">
                                         <p class="text-[10px] uppercase text-slate-500 font-bold">Egresos</p>
                                         <p class="text-sm font-bold text-slate-700 dark:text-slate-300">${formatoMoneda.format(diaData.egresos)}</p>
                                     </div>
@@ -1439,7 +1584,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="p-4 bg-slate-50 dark:bg-slate-800/50">
+                            <div class="p-2 bg-slate-50 dark:bg-slate-800/30">
                                 ${filasHTML}
                             </div>
                         </div>
@@ -1449,12 +1594,105 @@
                 lucide.createIcons();
 
             } catch (error) {
-                console.log(error);
                 contenedor.innerHTML = `<div class="text-center py-10 text-red-500"><p class="font-bold">Error cargando el reporte. Revisa los permisos o tu conexión.</p></div>`;
             }
         };
 
         window.cerrarModalReporte = () => { document.getElementById('modal-reporte').style.display = 'none'; };
+
+        // MODAL DETALLE DE REGISTRO
+        window.abrirDetalleRegistro = (id) => {
+            const mov = window.movimientosCache.find(m => m.id === id);
+            if (!mov) return;
+
+            ventaEditandoId = id; // Guardamos el ID global por si decide Editar/Borrar
+            
+            const tipo = mov.tipoMovimiento || 'Venta';
+            let colorBadge = "bg-slate-200 text-slate-700";
+            if (tipo === 'Venta') colorBadge = "bg-blue-100 text-blue-700";
+            else if (tipo === 'Compra') colorBadge = "bg-orange-200 text-orange-800";
+            else if (tipo === 'Gasto') colorBadge = "bg-rose-200 text-rose-800";
+            else if (tipo === 'Abono') colorBadge = "bg-purple-200 text-purple-800";
+
+            document.getElementById('detalle-cliente').textContent = mov.cliente || "Sin Nombre";
+            document.getElementById('detalle-tipo-badge').textContent = tipo;
+            document.getElementById('detalle-tipo-badge').className = `inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded uppercase ${colorBadge}`;
+            document.getElementById('detalle-fecha-creador').innerHTML = `${mov.fecha} | <i data-lucide="user" class="inline w-3 h-3"></i> ${mov.creadoPor}`;
+            document.getElementById('detalle-total').textContent = formatoMoneda.format(mov.totalVenta || 0);
+
+            // Notas
+            const boxNotas = document.getElementById('detalle-box-notas');
+            const txtNotas = document.getElementById('detalle-texto-notas');
+            if (mov.notas && mov.notas.trim() !== '') {
+                boxNotas.classList.remove('hidden');
+                txtNotas.textContent = `"${mov.notas}"`;
+            } else {
+                boxNotas.classList.add('hidden');
+            }
+
+            // Lista de Productos
+            const prodsUl = document.getElementById('detalle-lista-productos');
+            prodsUl.innerHTML = '';
+            (mov.productos || []).forEach(p => {
+                const origenTxt = p.origen === 'Propio' ? `<span class="text-[9px] bg-slate-200 dark:bg-slate-700 px-1 py-0.5 rounded ml-1 text-slate-500">Propio</span>` : '';
+                prodsUl.insertAdjacentHTML('beforeend', `
+                    <li class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700/50 pb-1 last:border-0">
+                        <span><b>${p.cantidad}</b> x ${p.concepto} ${origenTxt}</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200">${formatoMoneda.format(p.total || 0)}</span>
+                    </li>
+                `);
+            });
+
+            // Logística
+            const logisDiv = document.getElementById('detalle-logistica');
+            if (mov.entrega && mov.entrega.medio === 'Domi') {
+                logisDiv.classList.remove('hidden');
+                logisDiv.innerHTML = `Envío por: <b>${mov.entrega.encargado}</b> (Costo: ${formatoMoneda.format(mov.entrega.costo)})`;
+            } else if (mov.entrega && mov.entrega.medio === 'Recoge') {
+                logisDiv.classList.remove('hidden');
+                logisDiv.innerHTML = `Método de entrega: <b>Recoge en Punto</b>`;
+            } else {
+                logisDiv.classList.add('hidden');
+            }
+
+            // Pagos
+            const pagosUl = document.getElementById('detalle-lista-pagos');
+            pagosUl.innerHTML = '';
+            (mov.pagos || []).forEach(p => {
+                pagosUl.insertAdjacentHTML('beforeend', `
+                    <li class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700/50 pb-1 last:border-0">
+                        <span>${p.metodo} <i data-lucide="arrow-right" class="inline w-3 h-3 mx-1 text-slate-400"></i> <b>${p.cuenta}</b></span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200">${formatoMoneda.format(p.monto || 0)}</span>
+                    </li>
+                `);
+            });
+
+            // Permisos de Botones Editar/Borrar
+            const btnEditar = document.getElementById('btn-detalle-editar');
+            const btnBorrar = document.getElementById('btn-detalle-borrar');
+            const aviso = document.getElementById('detalle-aviso-permisos');
+            
+            const isOwner = currentUser.email === mov.creadoPor;
+            const isAdmin = currentUser.email === ADMIN_EMAIL;
+            
+            if (isAdmin || isOwner) {
+                btnEditar.style.display = 'flex';
+                btnBorrar.style.display = 'flex';
+                aviso.textContent = "Acciones permitidas";
+                btnEditar.onclick = () => cargarParaEditar();
+                btnBorrar.onclick = () => eliminarVenta();
+            } else {
+                btnEditar.style.display = 'none';
+                btnBorrar.style.display = 'none';
+                aviso.textContent = "Solo visualización";
+            }
+
+            lucide.createIcons();
+            document.getElementById('modal-detalle-registro').style.display = 'flex';
+        };
+
+        window.cerrarModalDetalle = () => { document.getElementById('modal-detalle-registro').style.display = 'none'; };
+
 
         // EXPORTACIÓN A EXCEL
         window.exportarCSV = async () => {
@@ -1476,13 +1714,15 @@
 
                 if (movs.length === 0) { alert("Sin registros."); btn.innerHTML = textOrig; return; }
 
-                let csv = "\uFEFFID_Movimiento,Fecha,Clasificacion,Cliente_Beneficiario,Tipo_Registro,Concepto_O_Cuenta,Nombre_Completo_Dict,Origen_Inventario,Cantidad,Valor_Unitario,Total_Movimiento_Absoluto,Valor_Contable,Creado_Por\n";
+                let csv = "\uFEFFID_Movimiento,Fecha,Clasificacion,Cliente_Beneficiario,Notas,Tipo_Registro,Concepto_O_Cuenta,Nombre_Completo_Dict,Origen_Inventario,Encargado_Envio,Cantidad,Valor_Unitario,Total_Movimiento_Absoluto,Valor_Contable,Creado_Por\n";
 
                 movs.forEach(v => {
                     const cli = v.cliente ? `"${v.cliente.replace(/"/g, '""')}"` : '"Sin Nombre"';
+                    const notas = v.notas ? `"${v.notas.replace(/"/g, '""').replace(/\n/g, " ")}"` : '"N/A"';
                     const tipo = v.tipoMovimiento || 'Venta';
                     const clasificacion = (tipo === 'Venta' || tipo === 'Abono') ? 'INGRESO' : 'EGRESO';
                     const multiplicador = (tipo === 'Venta' || tipo === 'Abono') ? 1 : -1; 
+                    const logisEncargado = v.entrega && v.entrega.encargado ? `"${v.entrega.encargado}"` : '"N/A"';
                     
                     const prodsArray = v.productos || [];
                     const pagosArray = v.pagos || [];
@@ -1491,23 +1731,22 @@
                         const conc = p.concepto ? `"${p.concepto.replace(/"/g, '""')}"` : '"N/A"';
                         const dict = diccionarioProductos[p.concepto] ? `"${diccionarioProductos[p.concepto]}"` : '"N/A"';
                         const origenInv = p.origen ? `"${p.origen}"` : '"N/A"';
-                        const totalProd = parseFloat(p.total) || 0;
+                        const totalProd = p.total || 0;
                         const cantProd = p.cantidad || 0;
                         const valUnit = p.valorUnitario || 0;
                         const valorContable = totalProd * multiplicador;
-                        csv += `${v.id},${v.fecha},${clasificacion},${cli},Concepto,${conc},${dict},${origenInv},${cantProd},${valUnit},${totalProd},${valorContable},${v.creadoPor}\n`;
+                        csv += `${v.id},${v.fecha},${clasificacion},${cli},${notas},Concepto,${conc},${dict},${origenInv},${logisEncargado},${cantProd},${valUnit},${totalProd},${valorContable},${v.creadoPor}\n`;
                     });
 
                     if (v.entrega && v.entrega.costo > 0 && tipo !== 'Gasto' && tipo !== 'Abono') {
-                        const costoEnvioF = parseFloat(v.entrega.costo) || 0;
-                        const valorContable = costoEnvioF * multiplicador;
-                        csv += `${v.id},${v.fecha},${clasificacion},${cli},Envio,"${v.entrega.medio} (${v.entrega.encargado})","N/A","N/A",1,${costoEnvioF},${costoEnvioF},${valorContable},${v.creadoPor}\n`;
+                        const valorContable = v.entrega.costo * multiplicador;
+                        csv += `${v.id},${v.fecha},${clasificacion},${cli},${notas},Envio,"Envio Domicilio","N/A","N/A",${logisEncargado},1,${v.entrega.costo},${v.entrega.costo},${valorContable},${v.creadoPor}\n`;
                     }
 
                     pagosArray.forEach(p => {
-                        const montoPago = parseFloat(p.monto) || 0;
+                        const montoPago = p.monto || 0;
                         const valorContable = montoPago * multiplicador; 
-                        csv += `${v.id},${v.fecha},${clasificacion},${cli},Metodo_Pago,"${p.metodo} - ${p.cuenta}","N/A","N/A",1,0,${montoPago},${valorContable},${v.creadoPor}\n`;
+                        csv += `${v.id},${v.fecha},${clasificacion},${cli},${notas},Metodo_Pago,"${p.metodo} - ${p.cuenta}","N/A","N/A",${logisEncargado},1,0,${montoPago},${valorContable},${v.creadoPor}\n`;
                     });
                 });
 
