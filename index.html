@@ -70,7 +70,6 @@
             outline: none;
         }
         
-        /* Modificación para el ícono de calendario en input date (hacerlo visible en fondo oscuro) */
         ::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
     </style>
 </head>
@@ -79,7 +78,6 @@
     <!-- ==================== PANTALLA DE LOGIN ==================== -->
     <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-brand-bg transition-colors">
         <div class="bg-brand-panel p-8 rounded-2xl shadow-2xl w-full max-w-md border border-brand-border relative overflow-hidden">
-            <!-- Deco Glow -->
             <div class="absolute -top-20 -right-20 w-40 h-40 bg-brand-primary rounded-full blur-[80px] opacity-20"></div>
             
             <div class="text-center mb-8 relative z-10">
@@ -172,6 +170,13 @@
                                     Gasto
                                 </div>
                             </label>
+                            <!-- Abono oculto en UI estándar -->
+                            <label id="label-tipo-abono" class="hidden cursor-pointer">
+                                <input type="radio" name="tipoMovimiento" value="Abono" class="peer sr-only" onchange="manejarCambioTipo()">
+                                <div class="rounded-lg border border-brand-border bg-brand-card p-3 text-center text-brand-textSec peer-checked:border-brand-secondary peer-checked:bg-brand-secondary/10 peer-checked:text-brand-secondary transition-all font-bold shadow-sm font-display tracking-wide">
+                                    Abono a Cartera
+                                </div>
+                            </label>
                         </div>
                     </div>
 
@@ -179,7 +184,7 @@
                     <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label id="lbl-cliente" class="block text-xs font-mono text-brand-textSec mb-1 uppercase tracking-wider">Cliente / Proveedor</label>
-                            <input type="text" id="cliente" class="w-full p-2.5 rounded-lg transition-colors" placeholder="Nombre / Entidad">
+                            <input type="text" id="cliente" class="w-full p-2.5 rounded-lg transition-colors uppercase" placeholder="Nombre / Entidad">
                         </div>
                         <div>
                             <label class="block text-xs font-mono text-brand-textSec mb-1 uppercase tracking-wider">Fecha Operación</label>
@@ -219,6 +224,12 @@
                                 <select id="encargado-domi" class="w-full p-2.5 rounded-lg transition-colors">
                                     <option value="">Seleccionar...</option>
                                     <option value="JF">JF</option>
+                                    <option value="CRIS">CRIS</option>
+                                    <option value="MONO">MONO</option>
+                                    <option value="DAVID">DAVID</option>
+                                    <option value="HADES">HADES</option>
+                                    <option value="VALENTINO ROSSI">VALENTINO ROSSI</option>
+                                    <option value="DELIVERY APP">DELIVERY APP</option>
                                 </select>
                             </div>
                             <div id="div-costo-envio" class="hidden">
@@ -312,16 +323,16 @@
                             <p id="dash-cris" class="font-mono text-sm font-bold text-brand-text">$ 0</p>
                         </div>
                         <div class="bg-brand-success/5 p-2.5 rounded border border-brand-success/20">
-                            <p class="font-mono text-[9px] text-brand-success uppercase tracking-widest mb-0.5 opacity-80">Cuenta JF</p>
-                            <p id="dash-jf" class="font-mono text-sm font-bold text-brand-text">$ 0</p>
-                        </div>
-                        <div class="bg-brand-success/5 p-2.5 rounded border border-brand-success/20">
-                            <p class="font-mono text-[9px] text-brand-success uppercase tracking-widest mb-0.5 opacity-80">Caja Bodega</p>
-                            <p id="dash-bodega" class="font-mono text-sm font-bold text-brand-text">$ 0</p>
+                            <p class="font-mono text-[9px] text-brand-success uppercase tracking-widest mb-0.5 opacity-80">Cuenta Jhon</p>
+                            <p id="dash-jhon" class="font-mono text-sm font-bold text-brand-text">$ 0</p>
                         </div>
                         <div class="bg-brand-success/5 p-2.5 rounded border border-brand-success/20">
                             <p class="font-mono text-[9px] text-brand-success uppercase tracking-widest mb-0.5 opacity-80">Cuenta Hades</p>
                             <p id="dash-hades" class="font-mono text-sm font-bold text-brand-text">$ 0</p>
+                        </div>
+                        <div class="bg-brand-success/5 p-2.5 rounded border border-brand-success/20">
+                            <p class="font-mono text-[9px] text-brand-success uppercase tracking-widest mb-0.5 opacity-80">Caja Bodega</p>
+                            <p id="dash-bodega" class="font-mono text-sm font-bold text-brand-text">$ 0</p>
                         </div>
                     </div>
 
@@ -338,7 +349,6 @@
                                 <p class="font-mono text-[9px] text-brand-warning font-bold uppercase tracking-widest opacity-80 mb-1">CtaxCobrar Domis (Hades)</p>
                                 <p id="dash-admin-domis-hades" class="font-mono text-lg font-bold text-brand-warning drop-shadow-[0_0_5px_rgba(255,213,0,0.3)]">$ 0</p>
                             </div>
-                            <!-- Oculto para JF -->
                             <button id="btn-liquidar-hades" onclick="liquidarDomisHades()" class="bg-brand-warning/10 hover:bg-brand-warning border border-brand-warning hover:text-brand-bg text-brand-warning px-3 py-2 rounded-lg font-mono text-[10px] uppercase font-bold transition-all shadow-[0_0_10px_rgba(255,213,0,0.1)] flex items-center gap-1">
                                 <i data-lucide="check-square" class="w-3 h-3"></i> CUT
                             </button>
@@ -530,11 +540,10 @@
                         <label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase tracking-widest">Destino</label>
                         <select id="abono-rapido-cuenta" class="w-full p-2.5 font-mono text-xs bg-brand-card border border-brand-border rounded-lg outline-none">
                             <option value="">Caja...</option>
-                            <option value="Cris">Cris</option>
-                            <option value="JF">JF</option>
-                            <option value="Bodega">Bodega</option>
-                            <option value="Hades">Hades</option>
-                            <option value="General">General</option>
+                            <option value="CRIS">CRIS</option>
+                            <option value="JHON">JHON</option>
+                            <option value="HADES">HADES</option>
+                            <option value="BODEGA">BODEGA</option>
                         </select>
                     </div>
                 </div>
@@ -557,6 +566,15 @@
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
+            
+            <!-- Buscador Integrado -->
+            <div class="px-6 py-4 bg-brand-panel border-b border-brand-border flex gap-4">
+                <div class="relative w-full">
+                    <i data-lucide="search" class="absolute left-3 top-3 w-4 h-4 text-brand-textSec"></i>
+                    <input type="text" id="buscador-reporte" onkeyup="filtrarReporte()" placeholder="Buscar por cliente, monto, tipo o responsable..." class="w-full pl-10 p-2.5 rounded-lg transition-colors font-mono text-xs bg-brand-bg border border-brand-border text-brand-text outline-none focus:border-brand-primary">
+                </div>
+            </div>
+
             <div class="p-6 overflow-y-auto flex-1 bg-brand-bg" id="contenedor-reporte-dias">
                 <div class="flex justify-center items-center py-12">
                     <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-brand-primary"></i>
@@ -565,7 +583,7 @@
         </div>
     </div>
 
-    <!-- MODAL: DETALLES DE REGISTRO (CON EDITAR/BORRAR) -->
+    <!-- MODAL: DETALLES DE REGISTRO (CON EDITAR/BORRAR/IMPRIMIR) -->
     <div id="modal-detalle-registro" class="fixed inset-0 z-[60] hidden items-center justify-center bg-brand-bg/90 backdrop-blur-md transition-opacity">
         <div class="glass-modal w-full max-w-xl max-h-[90vh] flex flex-col rounded-2xl m-4 border-brand-primary/40 shadow-[0_0_30px_rgba(0,245,255,0.1)]">
             
@@ -634,6 +652,9 @@
             <div id="detalle-acciones" class="p-5 border-t border-brand-border bg-brand-panel rounded-b-2xl flex justify-between items-center gap-4">
                 <p class="text-[9px] font-mono uppercase tracking-widest text-brand-textSec" id="detalle-aviso-permisos">SYS_PERMISSIONS</p>
                 <div class="flex gap-2">
+                    <button onclick="imprimirRecibo()" class="bg-brand-success/10 hover:bg-brand-success border border-brand-success hover:text-brand-bg text-brand-success px-4 py-2 rounded-lg font-mono text-[10px] font-bold tracking-widest uppercase transition-all flex items-center gap-2">
+                        <i data-lucide="printer" class="w-3 h-3"></i> Print
+                    </button>
                     <button id="btn-detalle-editar" class="bg-brand-primary/10 hover:bg-brand-primary border border-brand-primary hover:text-brand-bg text-brand-primary px-4 py-2 rounded-lg font-mono text-[10px] font-bold tracking-widest uppercase transition-all flex items-center gap-2">
                         <i data-lucide="edit-3" class="w-3 h-3"></i> Modificar
                     </button>
@@ -648,7 +669,7 @@
     <!-- ==================== SCRIPTS LÓGICOS ==================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs, getDoc, setDoc, query, orderBy, limit, onSnapshot } 
+        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs, getDoc, setDoc, onSnapshot } 
         from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, inMemoryPersistence } 
         from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -910,7 +931,6 @@
         window.manejarCambioTipo = () => {
             const tipo = document.querySelector('input[name="tipoMovimiento"]:checked').value;
             const seccionLogistica = document.getElementById('seccion-logistica');
-            const iconProds = document.getElementById('icon-productos');
             const txtTotCalc = document.getElementById('txt-total-cobrar');
             const lblTotCalc = document.getElementById('lbl-total-calc');
             const txtTotPag = document.getElementById('txt-total-pagado');
@@ -1067,12 +1087,10 @@
                         <label class="md:hidden text-[9px] font-mono text-brand-textSec mb-1 block uppercase tracking-widest">Target</label>
                         <select class="input-cuenta w-full p-2.5 border border-brand-border rounded-lg bg-brand-panel font-mono text-xs outline-none">
                             <option value="">Caja/Cta...</option>
-                            <option value="Cris" ${cuentaVal === 'Cris' ? 'selected' : ''}>Cris</option>
-                            <option value="JF" ${cuentaVal === 'JF' ? 'selected' : ''}>JF</option>
-                            <option value="Jhon" ${cuentaVal === 'Jhon' ? 'selected' : ''}>Jhon</option>
-                            <option value="Bodega" ${cuentaVal === 'Bodega' ? 'selected' : ''}>Bodega</option>
-                            <option value="Hades" ${cuentaVal === 'Hades' ? 'selected' : ''}>Hades</option>
-                            <option value="General" ${cuentaVal === 'General' ? 'selected' : ''}>General</option>
+                            <option value="CRIS" ${cuentaVal === 'CRIS' ? 'selected' : ''}>CRIS</option>
+                            <option value="JHON" ${cuentaVal === 'JHON' ? 'selected' : ''}>JHON</option>
+                            <option value="HADES" ${cuentaVal === 'HADES' ? 'selected' : ''}>HADES</option>
+                            <option value="BODEGA" ${cuentaVal === 'BODEGA' ? 'selected' : ''}>BODEGA</option>
                         </select>
                     </div>
                     <div class="w-full md:w-3/12">
@@ -1146,7 +1164,10 @@
         // GUARDAR MOVIMIENTO Y BASE DE DATOS
         // ==========================================
         window.guardarMovimiento = async () => {
-            const cliente = document.getElementById('cliente').value.trim();
+            const clienteRaw = document.getElementById('cliente').value.trim();
+            // Corrección Crítica: Convertir a Mayúsculas automáticamente para evitar duplicados en cartera
+            const cliente = clienteRaw.toUpperCase();
+            
             const fecha = document.getElementById('fecha').value;
             const notas = document.getElementById('notas').value.trim();
             const tipoMovimiento = document.querySelector('input[name="tipoMovimiento"]:checked').value;
@@ -1228,27 +1249,37 @@
         };
 
         // ==========================================
-        // LÍNEA DE TIEMPO (Solo 5 items, Colores Cyberpunk)
+        // LÍNEA DE TIEMPO (Solo 5 items, Orden en Memoria por Escalabilidad)
         // ==========================================
         function cargarVentasFirebase() {
-            const q = query(collection(db, "ventas"), orderBy("timestamp", "desc"), limit(20));
-            onSnapshot(q, (snapshot) => {
+            // Utilizamos el método de escalabilidad: Descargamos todo localmente sin queries complejos
+            onSnapshot(collection(db, "ventas"), (snapshot) => {
                 const cont = document.getElementById('lista-ventas');
                 cont.innerHTML = '';
                 
-                let docCount = 0;
+                let movs = [];
+                snapshot.forEach(doc => movs.push({id: doc.id, ...doc.data()}));
                 
-                snapshot.forEach((doc) => {
-                    const v = doc.data();
-                    
-                    if (currentUser && currentUser.email === HADES_EMAIL && v.creadoPor !== HADES_EMAIL) return;
-                    if (docCount >= 5) return; 
-                    docCount++;
+                // Ordenar por Timestamp Descendente localmente
+                movs.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
+                
+                // Filtrar Aislamiento Hades
+                if (currentUser && currentUser.email === HADES_EMAIL) {
+                    movs = movs.filter(m => m.creadoPor === HADES_EMAIL);
+                }
 
+                // Limitar a los últimos 5
+                movs = movs.slice(0, 5);
+
+                if (movs.length === 0) {
+                    cont.innerHTML = '<p class="text-xs font-mono text-brand-textSec text-center py-4 uppercase tracking-widest">NO_DATA</p>';
+                    return;
+                }
+                
+                movs.forEach((v) => {
                     const tipo = v.tipoMovimiento || 'Venta';
                     const creadorUser = (v.creadoPor || "App").toLowerCase();
                     
-                    // Colores por Usuario (Cyberpunk Palette)
                     let userBorder = 'border-brand-border';
                     let userBg = 'bg-brand-bg';
                     
@@ -1263,7 +1294,6 @@
                         userBg = 'bg-brand-secondary/5';
                     }
                     
-                    // Badge del tipo
                     let tagClass = "bg-brand-card text-brand-textSec border border-brand-border";
                     let sign = "";
                     if (tipo === 'Venta') { tagClass = "bg-brand-primary/10 text-brand-primary border border-brand-primary/30"; }
@@ -1271,7 +1301,6 @@
                     else if (tipo === 'Gasto') { tagClass = "bg-brand-error/10 text-brand-error border border-brand-error/30"; sign = "-"; }
                     else if (tipo === 'Abono') { tagClass = "bg-brand-secondary/10 text-brand-secondary border border-brand-secondary/30"; }
 
-                    // Lista de Productos (Cantidad x Nombre)
                     let prodsHtml = '<ul class="text-[10px] font-mono text-brand-textSec mt-3 space-y-1">';
                     (v.productos || []).forEach(p => {
                         prodsHtml += `<li class="flex items-center gap-2"><div class="w-1 h-1 rounded-full bg-brand-border"></div><b>${p.cantidad}</b> x ${p.concepto}</li>`;
@@ -1297,7 +1326,6 @@
                             ${prodsHtml}
                         </div>`);
                 });
-                if (docCount === 0) cont.innerHTML = '<p class="text-xs font-mono text-brand-textSec text-center py-4 uppercase tracking-widest">NO_DATA</p>';
                 lucide.createIcons();
             });
         }
@@ -1311,27 +1339,24 @@
             
             if (!mov) return alert("SYS_ERR: BLOCK_NOT_FOUND.");
 
-            const clienteActual = document.getElementById('cliente').value.trim();
-            const totalActual = document.getElementById('txt-total-cobrar').textContent;
-            
-            if (clienteActual !== '' || totalActual !== '$ 0') {
-                if(!confirm("SYS_WARN: Unsaved changes in form. Overwrite?")) {
-                    return; 
-                }
-            }
-
+            // Cerramos ventanas previas y subimos al inicio
             cerrarModalDetalle();
             cerrarModalReporte();
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
             const formContainer = document.getElementById('form-container-main');
-            formContainer.classList.add('ring-1', 'ring-brand-warning', 'bg-brand-warning/5', 'shadow-[0_0_30px_rgba(255,213,0,0.1)]');
+            const backdrop = document.getElementById('edit-backdrop');
 
-            document.getElementById('form-title').innerHTML = '<i data-lucide="edit-3" class="w-5 h-5 text-brand-warning"></i> MODIFICANDO BLOQUE';
-            document.getElementById('txt-btn-guardar').textContent = 'UPDATE STATE';
+            // EFECTO MODAL: Oscurecemos el fondo y resaltamos el formulario
+            backdrop.classList.remove('hidden');
+            formContainer.classList.add('z-50', 'ring-2', 'ring-brand-warning', 'bg-brand-warning/5', 'shadow-[0_0_50px_rgba(255,213,0,0.15)]');
+
+            document.getElementById('form-title').innerHTML = '<i data-lucide="edit-3" class="w-5 h-5 text-brand-warning"></i> MODIFICANDO BLOQUE DE DATOS';
+            document.getElementById('txt-btn-guardar').textContent = 'ACTUALIZAR REGISTRO';
             document.getElementById('btn-guardar').className = "w-full md:w-auto bg-brand-warning hover:bg-brand-warning/80 text-brand-bg px-8 py-3 rounded-lg font-display font-bold transition-all shadow-[0_0_15px_rgba(255,213,0,0.3)] hover:shadow-[0_0_25px_rgba(255,213,0,0.5)] flex items-center justify-center gap-2 tracking-wide uppercase text-sm";
             document.getElementById('btn-cancelar-edicion').classList.remove('hidden');
 
+            // Precarga de Datos Básicos
             const tipo = mov.tipoMovimiento || 'Venta';
             if (tipo === 'Abono') document.getElementById('label-tipo-abono').classList.remove('hidden');
             document.querySelector(`input[name="tipoMovimiento"][value="${tipo}"]`).checked = true;
@@ -1341,20 +1366,24 @@
             document.getElementById('fecha').value = mov.fecha || '';
             document.getElementById('notas').value = mov.notas || '';
             
+            // Precarga de Logística (Evitando el error de mayúsculas)
             if(tipo !== 'Gasto' && tipo !== 'Abono') {
                 document.getElementById('medio-entrega').value = mov.entrega?.medio || "Recoge";
                 manejarCambioEntrega();
                 if(mov.entrega?.medio === 'Domi') {
-                    document.getElementById('encargado-domi').value = mov.entrega?.encargado || "";
+                    const encargadoBD = (mov.entrega?.encargado || "").toUpperCase();
+                    document.getElementById('encargado-domi').value = encargadoBD;
                     document.getElementById('costo-envio').value = mov.entrega?.costo || 0;
                 }
             }
 
+            // Precarga de Productos
             document.getElementById('productos-container').innerHTML = '';
             contadorProductos = 0; 
             const prodsArray = mov.productos || [];
             prodsArray.forEach((p) => { agregarFilaProducto(p); });
 
+            // Precarga de Pagos
             document.getElementById('pagos-container').innerHTML = '';
             contadorPagos = 0;
             const pagosArray = mov.pagos || [];
@@ -1368,7 +1397,11 @@
             ventaEditandoId = null;
             
             const formContainer = document.getElementById('form-container-main');
-            formContainer.classList.remove('ring-1', 'ring-brand-warning', 'bg-brand-warning/5', 'shadow-[0_0_30px_rgba(255,213,0,0.1)]');
+            const backdrop = document.getElementById('edit-backdrop');
+            
+            // Quitamos el Efecto Modal
+            backdrop.classList.add('hidden');
+            formContainer.classList.remove('z-50', 'ring-2', 'ring-brand-warning', 'bg-brand-warning/5', 'shadow-[0_0_50px_rgba(255,213,0,0.15)]');
 
             document.getElementById('label-tipo-abono').classList.add('hidden');
             document.querySelector('input[name="tipoMovimiento"][value="Venta"]').checked = true;
@@ -1408,7 +1441,7 @@
         let abonoRapidoDeudaActual = 0;
 
         window.abrirModalAbonoRapido = (cliente, deuda) => {
-            abonoRapidoClienteActual = cliente;
+            abonoRapidoClienteActual = cliente.toUpperCase(); // Forzar mayúsculas
             abonoRapidoDeudaActual = deuda;
             
             document.getElementById('abono-rapido-cliente').textContent = cliente;
@@ -1479,12 +1512,13 @@
         // ==========================================
         window.calcularDashboard = async () => {
             try {
+                // Recuperar en memoria por Escalabilidad (Evita indices compuestos de Firebase)
                 const snap = await getDocs(collection(db, "ventas"));
                 
                 let totalVentasGlobal = 0;
                 let deudoresGlobal = {};
-                let saldosGlobales = { "Cris": 0, "JF": 0, "Bodega": 0, "Hades": 0, "General": 0 };
-                let domisTotales = { "JF": 0, "David": 0, "Mono": 0, "Cris": 0, "Valentino Rossi": 0, "Delivery App": 0 };
+                let saldosGlobales = { "CRIS": 0, "JHON": 0, "BODEGA": 0, "HADES": 0, "GENERAL": 0 };
+                let domisTotales = { "JF": 0, "CRIS": 0, "MONO": 0, "DAVID": 0, "HADES": 0, "VALENTINO ROSSI": 0, "DELIVERY APP": 0 };
 
                 let hadesVentas = 0;
                 let hadesCompras = 0;
@@ -1498,31 +1532,35 @@
                     const esDeHades = data.creadoPor === HADES_EMAIL;
                     const totalMonto = data.totalVenta || 0; 
                     const pagosArray = data.pagos || []; 
-                    const cliente = data.cliente || "Desconocido";
+                    // Ya está en mayúsculas gracias al guardado, pero por datos viejos:
+                    const cliente = (data.cliente || "Desconocido").toUpperCase();
 
                     if (tipo === 'Venta') {
                         totalVentasGlobal += totalMonto;
                         pagosArray.forEach(p => {
                             const montoPago = p.monto || 0;
+                            const cuentaM = p.cuenta ? p.cuenta.toUpperCase() : '';
                             if (p.metodo === 'Credito') deudoresGlobal[cliente] = (deudoresGlobal[cliente] || 0) + montoPago;
-                            else if (saldosGlobales[p.cuenta] !== undefined) saldosGlobales[p.cuenta] += montoPago;
+                            else if (saldosGlobales[cuentaM] !== undefined) saldosGlobales[cuentaM] += montoPago;
                         });
                     } else if (tipo === 'Abono') {
                         deudoresGlobal[cliente] = (deudoresGlobal[cliente] || 0) - totalMonto;
                         pagosArray.forEach(p => {
                             const montoPago = p.monto || 0;
-                            if (saldosGlobales[p.cuenta] !== undefined) saldosGlobales[p.cuenta] += montoPago; 
+                            const cuentaM = p.cuenta ? p.cuenta.toUpperCase() : '';
+                            if (saldosGlobales[cuentaM] !== undefined) saldosGlobales[cuentaM] += montoPago; 
                         });
                     } else if (tipo === 'Compra' || tipo === 'Gasto') {
                         pagosArray.forEach(p => {
                             const montoPago = p.monto || 0;
-                            if (saldosGlobales[p.cuenta] !== undefined) saldosGlobales[p.cuenta] -= montoPago; 
+                            const cuentaM = p.cuenta ? p.cuenta.toUpperCase() : '';
+                            if (saldosGlobales[cuentaM] !== undefined) saldosGlobales[cuentaM] -= montoPago; 
                         });
                     }
 
                     // Sumar Totales de Domicilios Global (Admin Dashboard)
                     const costoEnvio = (data.entrega && data.entrega.costo) ? parseFloat(data.entrega.costo) : 0;
-                    const encargado = data.entrega && data.entrega.encargado ? data.entrega.encargado : '';
+                    const encargado = data.entrega && data.entrega.encargado ? data.entrega.encargado.toUpperCase() : '';
                     if (costoEnvio > 0 && encargado && domisTotales[encargado] !== undefined) {
                         domisTotales[encargado] += costoEnvio;
                     }
@@ -1541,7 +1579,7 @@
 
                         // Deuda de Hades: Solo suma si NO es Delivery App y es posterior al corte
                         const timestampRegistro = data.timestamp || 0; 
-                        if (costoEnvio > 0 && encargado !== 'Delivery App' && timestampRegistro >= fechaCorteDomisHades) {
+                        if (costoEnvio > 0 && encargado !== 'DELIVERY APP' && timestampRegistro >= fechaCorteDomisHades) {
                             hadesDeudaDomis += costoEnvio;
                         }
                     }
@@ -1579,9 +1617,10 @@
                     document.getElementById('dash-creditos').textContent = formatoMoneda.format(totalCarteraGlobalActiva);
                     document.getElementById('dash-admin-domis-hades').textContent = formatoMoneda.format(hadesDeudaDomis);
                     
-                    ['Cris', 'JF', 'Bodega', 'Hades'].forEach(cuenta => {
+                    ['CRIS', 'JHON', 'BODEGA', 'HADES'].forEach(cuenta => {
                         const val = saldosGlobales[cuenta] || 0;
-                        const el = document.getElementById(`dash-${cuenta.toLowerCase()}`);
+                        const idHtml = `dash-${cuenta.toLowerCase()}`;
+                        const el = document.getElementById(idHtml);
                         if(el) {
                             el.textContent = formatoMoneda.format(val);
                             el.className = `font-mono text-sm font-bold ${val < 0 ? 'text-brand-error' : 'text-brand-text'}`;
@@ -1592,7 +1631,7 @@
                     const divDomisGlobal = document.getElementById('div-costos-domis-global');
                     divDomisGlobal.innerHTML = '';
                     for (const [encargado, total] of Object.entries(domisTotales)) {
-                        const esApp = encargado === 'Delivery App';
+                        const esApp = encargado === 'DELIVERY APP';
                         const colorClass = esApp ? 'text-brand-accent' : 'text-brand-text';
                         const bgClass = esApp ? 'bg-brand-accent/5 border border-brand-accent/20' : 'bg-brand-card border border-brand-border';
                         divDomisGlobal.insertAdjacentHTML('beforeend', `
@@ -1630,11 +1669,24 @@
         window.cerrarModalCreditos = () => { document.getElementById('modal-creditos').style.display = 'none'; };
 
         // ==========================================
-        // REPORTE DIARIO Y DETALLES DE REGISTRO
+        // REPORTE DIARIO, DETALLES DE REGISTRO Y BUSCADOR
         // ==========================================
+        window.filtrarReporte = () => {
+            const term = document.getElementById('buscador-reporte').value.toLowerCase();
+            document.querySelectorAll('.registro-item').forEach(item => {
+                const dataRaw = item.getAttribute('data-search').toLowerCase();
+                if(dataRaw.includes(term)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        };
+
         window.abrirModalReporte = async () => {
             const modal = document.getElementById('modal-reporte');
             const contenedor = document.getElementById('contenedor-reporte-dias');
+            document.getElementById('buscador-reporte').value = ''; // Limpiar buscador
             modal.style.display = 'flex';
             contenedor.innerHTML = '<div class="flex justify-center py-12"><i data-lucide="loader-2" class="w-8 h-8 animate-spin text-brand-primary"></i></div>';
             lucide.createIcons();
@@ -1642,6 +1694,7 @@
             window.movimientosCache = []; 
 
             try {
+                // Recuperar en memoria por Escalabilidad
                 const snap = await getDocs(collection(db, "ventas"));
                 const dias = {}; 
 
@@ -1663,13 +1716,13 @@
                     else if (tipo === 'Compra' || tipo === 'Gasto') dias[fecha].egresos += monto;
                 });
 
+                const fechasOrdenadas = Object.keys(dias).sort((a, b) => new Date(b) - new Date(a));
+                
                 fechasOrdenadas.forEach(f => {
                     dias[f].movimientos.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
                 });
 
                 contenedor.innerHTML = '';
-                
-                const fechasOrdenadas = Object.keys(dias).sort((a, b) => new Date(b) - new Date(a));
 
                 if(fechasOrdenadas.length === 0) {
                     contenedor.innerHTML = '<p class="text-center font-mono text-[10px] text-brand-textSec mt-10 tracking-widest uppercase">NO_DATA</p>';
@@ -1694,9 +1747,13 @@
                         const clienteNom = mov.cliente || "Desconocido";
                         const creador = (mov.creadoPor || "SYS").split('@')[0];
                         const montoF = mov.totalVenta || 0;
+                        const notasBusqueda = mov.notas || "";
                         
+                        // Etiqueta de búsqueda invisible
+                        const searchTags = `${clienteNom} ${tipo} ${creador} ${montoF} ${notasBusqueda}`;
+
                         filasHTML += `
-                            <div onclick="abrirDetalleRegistro('${mov.id}')" class="flex justify-between items-center py-4 border-b border-brand-border last:border-0 cursor-pointer hover:bg-brand-card px-3 rounded-lg transition-colors group">
+                            <div onclick="abrirDetalleRegistro('${mov.id}')" data-search="${searchTags}" class="registro-item flex justify-between items-center py-4 border-b border-brand-border last:border-0 cursor-pointer hover:bg-brand-card px-3 rounded-lg transition-colors group">
                                 <div class="flex items-center gap-4">
                                     <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded uppercase tracking-widest border ${colorBadge} w-16 text-center shadow-sm">${tipo}</span>
                                     <div>
@@ -1844,6 +1901,110 @@
 
         window.cerrarModalDetalle = () => { document.getElementById('modal-detalle-registro').style.display = 'none'; };
 
+        // IMPRIMIR RECIBO (NUEVO)
+        window.imprimirRecibo = () => {
+            const id = ventaEditandoId;
+            const mov = window.movimientosCache.find(m => m.id === id);
+            if(!mov) return;
+            
+            // Calculo de subtotal de productos
+            let subtotal = 0;
+            let itemsHtml = '';
+            (mov.productos || []).forEach(p => {
+                subtotal += (p.total || 0);
+                itemsHtml += `
+                    <tr>
+                        <td style="padding: 4px 0; border-bottom: 1px dashed #ccc;">${p.cantidad}</td>
+                        <td style="padding: 4px 0; border-bottom: 1px dashed #ccc;">${p.concepto}</td>
+                        <td style="padding: 4px 0; border-bottom: 1px dashed #ccc; text-align: right;">${formatoMoneda.format(p.total || 0)}</td>
+                    </tr>
+                `;
+            });
+
+            let logisticaHtml = '';
+            let fee = 0;
+            if (mov.entrega && mov.entrega.medio === 'Domi') {
+                fee = parseFloat(mov.entrega.costo) || 0;
+                logisticaHtml = `
+                    <tr>
+                        <td style="padding: 4px 0;" colspan="2">Envío (${mov.entrega.encargado})</td>
+                        <td style="padding: 4px 0; text-align: right;">${formatoMoneda.format(fee)}</td>
+                    </tr>
+                `;
+            }
+
+            const total = subtotal + fee;
+
+            // Formato Ticket de 80mm
+            const printWindow = window.open('', 'PRINT', 'height=600,width=400');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Recibo - ${mov.cliente}</title>
+                    <style>
+                        body { font-family: monospace; font-size: 14px; width: 300px; margin: 0 auto; color: #000; }
+                        .header { text-align: center; margin-bottom: 20px; }
+                        .header h2 { margin: 0 0 5px 0; font-size: 20px; font-weight: bold; }
+                        .header p { margin: 2px 0; font-size: 12px; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+                        th { border-bottom: 1px solid #000; text-align: left; font-size: 12px; padding-bottom: 4px; }
+                        .totals { border-top: 1px solid #000; padding-top: 10px; margin-bottom: 20px; }
+                        .totals-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-weight: bold; }
+                        .footer { text-align: center; font-size: 12px; margin-top: 20px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h2>FERCO FARMA</h2>
+                        <p>Documento de Operación</p>
+                        <p>ID: ${mov.id.substring(0,8).toUpperCase()}</p>
+                        <br>
+                        <p style="text-align: left;"><strong>Fecha:</strong> ${mov.fecha}</p>
+                        <p style="text-align: left;"><strong>Cliente:</strong> ${mov.cliente.toUpperCase()}</p>
+                        <p style="text-align: left;"><strong>Tipo:</strong> ${mov.tipoMovimiento.toUpperCase()}</p>
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 15%">CANT</th>
+                                <th style="width: 50%">DESCRIPCIÓN</th>
+                                <th style="width: 35%; text-align: right;">VALOR</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsHtml}
+                            ${logisticaHtml}
+                        </tbody>
+                    </table>
+
+                    <div class="totals">
+                        <div class="totals-row" style="font-size: 18px;">
+                            <span>TOTAL</span>
+                            <span>${formatoMoneda.format(total)}</span>
+                        </div>
+                    </div>
+
+                    <p style="font-size: 12px;"><strong>Atendido por:</strong> ${mov.creadoPor.split('@')[0]}</p>
+                    ${mov.notas ? `<p style="font-size: 12px; border: 1px dashed #ccc; padding: 5px;"><strong>Nota:</strong> ${mov.notas}</p>` : ''}
+                    
+                    <div class="footer">
+                        <p>--- FIN DE DOCUMENTO ---</p>
+                        <p>Generado por Sistema ERP Ferco</p>
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.focus();
+            
+            // Timeout para asegurar que el navegador cargó el HTML antes de imprimir
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 500);
+        };
+
 
         // EXPORTACIÓN A EXCEL
         window.exportarCSV = async () => {
@@ -1905,7 +2066,7 @@
                 link.setAttribute("href", URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })));
                 link.setAttribute("download", `Dataset_FercoFarma_${fIn}_a_${fFin}.csv`);
                 document.body.appendChild(link); link.click(); document.body.removeChild(link);
-            } catch (e) { alert("SYS_ERR: EXPORT_FAILED."); } finally { btn.innerHTML = textOrig; lucide.createIcons(); }
+            } catch (e) { alert("SYS_ERR: EXPORT_FAILED."); console.error(e); } finally { btn.innerHTML = textOrig; lucide.createIcons(); }
         };
     </script>
 </body>
