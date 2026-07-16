@@ -1,60 +1,107 @@
 <!DOCTYPE html>
-<html lang="es" class="light">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ERP Web - Ferco Farma</title>
     
+    <!-- Fuentes de Google: Inter, Space Grotesk, JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class',
-            theme: { extend: {} }
+            theme: { 
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['"Space Grotesk"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            bg: '#050816',
+                            panel: '#0B1120',
+                            card: '#111827',
+                            cardHover: '#172554',
+                            border: 'rgba(0, 245, 255, 0.15)',
+                            text: '#F8FAFC',
+                            textSec: '#94A3B8',
+                            primary: '#00F5FF',
+                            primaryHover: '#5EF9FF',
+                            secondary: '#8B5CF6',
+                            accent: '#FF00E5',
+                            success: '#00FF9D',
+                            warning: '#FFD500',
+                            error: '#FF3B5C'
+                        }
+                    }
+                } 
+            }
         }
     </script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
-        body { transition: background-color 0.3s, color 0.3s; }
+        body { background-color: #050816; color: #F8FAFC; transition: background-color 0.3s, color 0.3s; }
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        ::-webkit-scrollbar-track { background: #050816; }
+        ::-webkit-scrollbar-thumb { background: #172554; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #8B5CF6; }
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        .glass-modal { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-        .dark .glass-modal { background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(10px); }
-        .card-dash { transition: transform 0.2s; }
+        .glass-modal { background: rgba(11, 17, 32, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(0, 245, 255, 0.2); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        .card-dash { transition: transform 0.2s, background-color 0.2s; }
         .card-dash:hover { transform: translateY(-3px); }
+        
+        /* Estilos base para Inputs y Selects */
+        input[type="text"], input[type="number"], input[type="email"], input[type="password"], input[type="date"], select, textarea {
+            background-color: #050816 !important;
+            border-color: rgba(0, 245, 255, 0.15) !important;
+            color: #F8FAFC !important;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: #00F5FF !important;
+            box-shadow: 0 0 0 1px #00F5FF !important;
+            outline: none;
+        }
+        
+        /* Modificación para el ícono de calendario en input date (hacerlo visible en fondo oscuro) */
+        ::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
     </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 antialiased min-h-screen">
+<body class="font-sans antialiased min-h-screen selection:bg-brand-primary selection:text-brand-bg">
 
     <!-- ==================== PANTALLA DE LOGIN ==================== -->
-    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-100 dark:bg-slate-900 transition-colors">
-        <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-200 dark:border-slate-700">
-            <div class="text-center mb-8">
-                <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                    <i data-lucide="shield-alert" class="w-8 h-8 text-white"></i>
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-brand-bg transition-colors">
+        <div class="bg-brand-panel p-8 rounded-2xl shadow-2xl w-full max-w-md border border-brand-border relative overflow-hidden">
+            <!-- Deco Glow -->
+            <div class="absolute -top-20 -right-20 w-40 h-40 bg-brand-primary rounded-full blur-[80px] opacity-20"></div>
+            
+            <div class="text-center mb-8 relative z-10">
+                <div class="w-16 h-16 bg-brand-card border border-brand-primary/30 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-[0_0_15px_rgba(0,245,255,0.2)]">
+                    <i data-lucide="shield-alert" class="w-8 h-8 text-brand-primary"></i>
                 </div>
-                <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Ferco Farma</h1>
-                <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">Acceso Restringido</p>
-                <p class="text-[10px] text-red-500 mt-1 font-semibold">* La sesión se cerrará al recargar la página</p>
+                <h1 class="text-2xl font-display font-bold text-brand-text tracking-wide">Ferco Farma</h1>
+                <p class="text-sm font-mono text-brand-textSec mt-2 tracking-widest uppercase">Acceso Restringido</p>
+                <p class="text-[10px] text-brand-error mt-2 font-mono">* La sesión expira al recargar</p>
             </div>
             
-            <form id="login-form" onsubmit="iniciarSesion(event)" class="space-y-5">
+            <form id="login-form" onsubmit="iniciarSesion(event)" class="space-y-5 relative z-10">
                 <div>
-                    <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Correo Electrónico</label>
-                    <input type="email" id="login-email" required class="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white">
+                    <label class="block text-xs font-mono mb-1 text-brand-textSec uppercase">Correo Electrónico</label>
+                    <input type="email" id="login-email" required class="w-full p-3 rounded-lg transition-all">
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Contraseña</label>
-                    <input type="password" id="login-pass" required class="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white">
+                    <label class="block text-xs font-mono mb-1 text-brand-textSec uppercase">Contraseña</label>
+                    <input type="password" id="login-pass" required class="w-full p-3 rounded-lg transition-all">
                 </div>
-                <div id="login-error" class="text-red-500 text-sm hidden text-center font-semibold animate-pulse">Credenciales incorrectas.</div>
-                <button type="submit" id="btn-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-all shadow-md flex justify-center items-center gap-2">
+                <div id="login-error" class="text-brand-error font-mono text-xs hidden text-center animate-pulse">Credenciales incorrectas.</div>
+                <button type="submit" id="btn-login" class="w-full bg-brand-primary hover:bg-brand-primaryHover text-brand-bg font-bold py-3 rounded-lg transition-all shadow-[0_0_15px_rgba(0,245,255,0.3)] hover:shadow-[0_0_25px_rgba(0,245,255,0.5)] flex justify-center items-center gap-2">
                     Ingresar al Sistema <i data-lucide="log-in" class="w-5 h-5"></i>
                 </button>
             </form>
@@ -65,24 +112,23 @@
     <div id="app-screen" class="hidden p-4 md:p-8">
         
         <!-- HEADER -->
-        <header class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+        <header class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-brand-panel p-4 rounded-xl shadow-lg border border-brand-border">
             <div class="flex items-center gap-3 w-full md:w-auto">
-                <i data-lucide="bar-chart-2" class="w-8 h-8 text-blue-600 dark:text-blue-400"></i>
+                <i data-lucide="activity" class="w-8 h-8 text-brand-primary"></i>
                 <div>
-                    <h1 class="text-xl font-bold dark:text-white">ERP Ferco Farma</h1>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Usuario Global: <span id="current-user-email" class="font-semibold text-blue-600 dark:text-blue-400"></span></p>
+                    <h1 class="text-xl font-display font-bold text-brand-text tracking-wide">ERP Ferco Farma</h1>
+                    <p class="text-xs font-mono text-brand-textSec">ID Sesión: <span id="current-user-email" class="text-brand-primary"></span></p>
                 </div>
             </div>
             <div class="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
-                <span id="timer-indicator" class="hidden md:inline-block text-[10px] text-emerald-500 font-mono bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded border border-emerald-200 dark:border-emerald-800 mr-2">Sesión Activa</span>
-                <button onclick="abrirDiccionario()" class="flex-shrink-0 flex items-center gap-2 px-3 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors text-sm font-semibold">
-                    <i data-lucide="book-open" class="w-4 h-4"></i> Glosario
+                <span id="timer-indicator" class="hidden md:inline-block text-[10px] text-brand-success font-mono bg-brand-success/10 px-2 py-1 rounded border border-brand-success/30 mr-2 flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-brand-success animate-pulse"></span> SYS_ACTIVE
+                </span>
+                <button onclick="abrirDiccionario()" class="flex-shrink-0 flex items-center gap-2 px-3 py-2 bg-brand-secondary/10 text-brand-secondary border border-brand-secondary/30 rounded-lg hover:bg-brand-secondary/20 transition-colors text-sm font-semibold">
+                    <i data-lucide="database" class="w-4 h-4"></i> Glosario
                 </button>
-                <button onclick="toggleTheme()" class="flex-shrink-0 p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors text-slate-600 dark:text-slate-300">
-                    <i data-lucide="moon" id="theme-icon" class="w-5 h-5"></i>
-                </button>
-                <button onclick="cerrarSesionUsuario()" class="flex-shrink-0 flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors text-sm font-bold">
-                    <i data-lucide="log-out" class="w-4 h-4"></i> Salir
+                <button onclick="cerrarSesionUsuario()" class="flex-shrink-0 flex items-center gap-2 px-4 py-2 bg-brand-error/10 text-brand-error border border-brand-error/30 rounded-lg hover:bg-brand-error/20 transition-colors text-sm font-bold">
+                    <i data-lucide="power" class="w-4 h-4"></i> Terminar
                 </button>
             </div>
         </header>
@@ -92,45 +138,38 @@
             <!-- COLUMNA IZQUIERDA: FORMULARIO -->
             <div class="xl:col-span-2 space-y-6">
                 
-                <div id="form-container-main" class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 transition-all duration-300">
+                <div id="form-container-main" class="bg-brand-panel p-6 rounded-xl shadow-lg border border-brand-border transition-all duration-300 relative overflow-hidden">
                     
-                    <div class="flex justify-between items-center mb-6 border-b dark:border-slate-700 pb-4">
-                        <h2 id="form-title" class="text-xl font-bold flex items-center gap-2">
-                            <i data-lucide="file-plus" class="w-6 h-6 text-blue-600 dark:text-blue-400"></i>
-                            Nuevo Movimiento Contable
+                    <div class="flex justify-between items-center mb-6 border-b border-brand-border pb-4">
+                        <h2 id="form-title" class="text-xl font-display font-bold flex items-center gap-2 text-brand-text">
+                            <i data-lucide="plus-square" class="w-5 h-5 text-brand-primary"></i>
+                            Nuevo Registro Contable
                         </h2>
-                        <button id="btn-cancelar-edicion" onclick="cancelarEdicion()" class="hidden text-sm text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300 font-bold flex items-center gap-1 bg-orange-100 dark:bg-orange-900/30 px-3 py-1.5 rounded-lg transition-colors">
-                            <i data-lucide="x-circle" class="w-4 h-4"></i> Cancelar Edición
+                        <button id="btn-cancelar-edicion" onclick="cancelarEdicion()" class="hidden text-sm text-brand-error hover:text-brand-error/80 font-mono flex items-center gap-1 bg-brand-error/10 px-3 py-1.5 rounded-lg transition-colors border border-brand-error/30">
+                            <i data-lucide="x-circle" class="w-4 h-4"></i> ABORTAR
                         </button>
                     </div>
 
-                    <!-- 0. TIPO DE MOVIMIENTO (Diseño Premium con Peer) -->
-                    <div class="mb-6 bg-slate-50 dark:bg-slate-750 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                        <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">Clasificación de la Operación</label>
+                    <!-- 0. TIPO DE MOVIMIENTO -->
+                    <div class="mb-6 bg-brand-bg/50 p-4 rounded-xl border border-brand-border">
+                        <label class="block text-xs font-mono text-brand-textSec mb-3 uppercase tracking-wider">Clasificación de Operación</label>
                         <div class="grid grid-cols-3 gap-3">
                             <label class="cursor-pointer">
                                 <input type="radio" name="tipoMovimiento" value="Venta" class="peer sr-only" checked onchange="manejarCambioTipo()">
-                                <div class="rounded-lg border-2 border-slate-200 dark:border-slate-600 p-3 text-center text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 peer-checked:border-blue-600 peer-checked:bg-blue-600 peer-checked:text-white transition-all font-bold shadow-sm">
+                                <div class="rounded-lg border border-brand-border bg-brand-card p-3 text-center text-brand-textSec hover:bg-brand-cardHover peer-checked:border-brand-primary peer-checked:bg-brand-primary/10 peer-checked:text-brand-primary transition-all font-bold shadow-sm font-display tracking-wide">
                                     Venta
                                 </div>
                             </label>
                             <label class="cursor-pointer">
                                 <input type="radio" name="tipoMovimiento" value="Compra" class="peer sr-only" onchange="manejarCambioTipo()">
-                                <div class="rounded-lg border-2 border-slate-200 dark:border-slate-600 p-3 text-center text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 peer-checked:border-orange-500 peer-checked:bg-orange-500 peer-checked:text-white transition-all font-bold shadow-sm">
+                                <div class="rounded-lg border border-brand-border bg-brand-card p-3 text-center text-brand-textSec hover:bg-brand-cardHover peer-checked:border-brand-warning peer-checked:bg-brand-warning/10 peer-checked:text-brand-warning transition-all font-bold shadow-sm font-display tracking-wide">
                                     Compra
                                 </div>
                             </label>
                             <label class="cursor-pointer">
                                 <input type="radio" name="tipoMovimiento" value="Gasto" class="peer sr-only" onchange="manejarCambioTipo()">
-                                <div class="rounded-lg border-2 border-slate-200 dark:border-slate-600 p-3 text-center text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 peer-checked:border-rose-600 peer-checked:bg-rose-600 peer-checked:text-white transition-all font-bold shadow-sm">
+                                <div class="rounded-lg border border-brand-border bg-brand-card p-3 text-center text-brand-textSec hover:bg-brand-cardHover peer-checked:border-brand-error peer-checked:bg-brand-error/10 peer-checked:text-brand-error transition-all font-bold shadow-sm font-display tracking-wide">
                                     Gasto
-                                </div>
-                            </label>
-                            <!-- Abono oculto en UI estándar, se activa por JS -->
-                            <label id="label-tipo-abono" class="hidden cursor-pointer">
-                                <input type="radio" name="tipoMovimiento" value="Abono" class="peer sr-only" onchange="manejarCambioTipo()">
-                                <div class="rounded-lg border-2 border-slate-200 dark:border-slate-600 p-3 text-center text-slate-500 dark:text-slate-400 peer-checked:border-purple-600 peer-checked:bg-purple-600 peer-checked:text-white transition-all font-bold shadow-sm">
-                                    Abono a Cartera
                                 </div>
                             </label>
                         </div>
@@ -139,102 +178,100 @@
                     <!-- 1. Datos Generales -->
                     <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label id="lbl-cliente" class="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Cliente / Proveedor</label>
-                            <input type="text" id="cliente" class="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-transparent focus:ring-2 focus:ring-blue-500 outline-none dark:text-white" placeholder="Nombre de la persona o entidad">
+                            <label id="lbl-cliente" class="block text-xs font-mono text-brand-textSec mb-1 uppercase tracking-wider">Cliente / Proveedor</label>
+                            <input type="text" id="cliente" class="w-full p-2.5 rounded-lg transition-colors" placeholder="Nombre / Entidad">
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">Fecha del Registro</label>
-                            <input type="date" id="fecha" class="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-transparent focus:ring-2 focus:ring-blue-500 outline-none dark:text-white cursor-pointer">
+                            <label class="block text-xs font-mono text-brand-textSec mb-1 uppercase tracking-wider">Fecha Operación</label>
+                            <input type="date" id="fecha" class="w-full p-2.5 rounded-lg transition-colors font-mono">
                         </div>
                     </div>
 
                     <!-- 2. Productos / Conceptos -->
                     <div class="mb-6">
-                        <h3 id="lbl-productos" class="text-md font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                            <i data-lucide="package" class="w-5 h-5 text-blue-500" id="icon-productos"></i> 1. Productos / Conceptos
+                        <h3 id="lbl-productos" class="text-sm font-display font-bold text-brand-text mb-3 flex items-center gap-2 uppercase tracking-wide">
+                            <i data-lucide="package" class="w-4 h-4 text-brand-primary" id="icon-productos"></i> Conceptos
                         </h3>
                         <div id="productos-container" class="space-y-3">
                             <!-- Inyectado por JS -->
                         </div>
-                        <button onclick="agregarFilaProducto()" class="mt-4 w-full md:w-auto bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-colors border border-slate-300 dark:border-slate-600">
-                            <i data-lucide="plus" class="w-4 h-4"></i> Añadir Concepto
+                        <button onclick="agregarFilaProducto()" class="mt-4 w-full md:w-auto bg-brand-card hover:bg-brand-cardHover text-brand-text px-4 py-2 rounded-lg text-sm font-bold font-mono flex items-center justify-center gap-2 transition-colors border border-brand-border">
+                            <i data-lucide="plus" class="w-4 h-4 text-brand-primary"></i> Agregar
                         </button>
                     </div>
 
                     <!-- 3. Logística -->
-                    <div id="seccion-logistica" class="mb-6 bg-slate-50 dark:bg-slate-750/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700 transition-all duration-300">
-                        <h3 class="text-md font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                            <i data-lucide="truck" class="w-5 h-5 text-indigo-500"></i> Logística de Entrega
+                    <div id="seccion-logistica" class="mb-6 bg-brand-card p-4 rounded-xl border border-brand-border transition-all duration-300">
+                        <h3 class="text-sm font-display font-bold text-brand-text mb-3 flex items-center gap-2 uppercase tracking-wide">
+                            <i data-lucide="map-pin" class="w-4 h-4 text-brand-accent"></i> Logística
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                                <label class="block text-sm text-slate-600 dark:text-slate-400 mb-1">Medio</label>
-                                <select id="medio-entrega" onchange="manejarCambioEntrega()" class="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none dark:text-white">
+                                <label class="block text-xs font-mono text-brand-textSec mb-1 uppercase tracking-wider">Medio</label>
+                                <select id="medio-entrega" onchange="manejarCambioEntrega()" class="w-full p-2.5 rounded-lg transition-colors">
                                     <option value="">Seleccionar...</option>
                                     <option value="Recoge">Recoge en Punto</option>
-                                    <option value="Domi">Domicilio (Domi)</option>
+                                    <option value="Domi">Domicilio</option>
                                 </select>
                             </div>
                             <div id="div-encargado" class="hidden">
-                                <label class="block text-sm text-slate-600 dark:text-slate-400 mb-1">Encargado</label>
-                                <select id="encargado-domi" class="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none dark:text-white">
+                                <label class="block text-xs font-mono text-brand-textSec mb-1 uppercase tracking-wider">Encargado</label>
+                                <select id="encargado-domi" class="w-full p-2.5 rounded-lg transition-colors">
                                     <option value="">Seleccionar...</option>
                                     <option value="JF">JF</option>
-                                    <option value="David">David</option>
-                                    <option value="Mono">Mono</option>
-                                    <option value="Cris">Cris</option>
-                                    <option value="Valentino Rossi">Valentino Rossi</option>
-                                    <option value="Delivery App">Delivery App</option>
                                 </select>
                             </div>
                             <div id="div-costo-envio" class="hidden">
-                                <label class="block text-sm text-slate-600 dark:text-slate-400 mb-1">Costo Envío ($)</label>
-                                <input type="number" id="costo-envio" oninput="calcularTotales()" value="0" class="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 outline-none dark:text-white">
+                                <label class="block text-xs font-mono text-brand-textSec mb-1 uppercase tracking-wider">Costo Envío</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-2.5 font-mono text-brand-textSec">$</span>
+                                    <input type="number" id="costo-envio" oninput="calcularTotales()" value="0" class="w-full p-2.5 pl-8 rounded-lg transition-colors font-mono">
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 4. Pagos / Salidas de dinero -->
+                    <!-- 4. Pagos -->
                     <div class="mb-6">
-                        <h3 id="lbl-pagos" class="text-md font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-                            <i data-lucide="wallet" class="w-5 h-5 text-emerald-500" id="icon-pagos"></i> 
-                            <span id="txt-lbl-pagos">2. Medios de Pago</span>
+                        <h3 id="lbl-pagos" class="text-sm font-display font-bold text-brand-text mb-3 flex items-center gap-2 uppercase tracking-wide">
+                            <i data-lucide="wallet" class="w-4 h-4 text-brand-success" id="icon-pagos"></i> 
+                            <span id="txt-lbl-pagos">Estructura de Pago</span>
                         </h3>
                         <div id="pagos-container" class="space-y-3">
                             <!-- Inyectado por JS -->
                         </div>
-                        <button onclick="agregarFilaPago()" class="mt-4 w-full md:w-auto bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-colors border border-slate-300 dark:border-slate-600">
-                            <i data-lucide="plus" class="w-4 h-4"></i> Añadir Método
+                        <button onclick="agregarFilaPago()" class="mt-4 w-full md:w-auto bg-brand-card hover:bg-brand-cardHover text-brand-text px-4 py-2 rounded-lg text-sm font-bold font-mono flex items-center justify-center gap-2 transition-colors border border-brand-border">
+                            <i data-lucide="plus" class="w-4 h-4 text-brand-success"></i> Agregar Pago
                         </button>
                     </div>
 
-                    <!-- 5. NOTAS (Nuevo) -->
+                    <!-- 5. NOTAS -->
                     <div class="mb-6">
-                        <label class="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-2">
-                            <i data-lucide="message-square" class="w-4 h-4"></i> Notas / Observaciones (Opcional)
+                        <label class="block text-xs font-mono text-brand-textSec mb-1 flex items-center gap-2 uppercase tracking-wider">
+                            <i data-lucide="terminal-square" class="w-3 h-3 text-brand-textSec"></i> Notas Adicionales
                         </label>
-                        <textarea id="notas" rows="2" class="w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-transparent focus:ring-2 focus:ring-blue-500 outline-none dark:text-white text-sm" placeholder="Añade detalles, comentarios o recordatorios sobre este registro..."></textarea>
+                        <textarea id="notas" rows="2" class="w-full p-2.5 rounded-lg transition-colors font-mono text-sm placeholder-brand-textSec/50" placeholder="> Ingresar observaciones..."></textarea>
                     </div>
 
                     <!-- 6. Totales -->
-                    <div id="box-totales" class="bg-slate-800 dark:bg-slate-950 text-white p-5 rounded-xl flex flex-col md:flex-row justify-between items-center gap-6 shadow-inner border border-slate-700 transition-colors duration-300">
+                    <div id="box-totales" class="bg-brand-card border border-brand-border p-5 rounded-xl flex flex-col md:flex-row justify-between items-center gap-6 shadow-[0_0_20px_rgba(0,245,255,0.05)] transition-colors duration-300">
                         <div class="flex gap-8 w-full md:w-auto justify-between md:justify-start">
                             <div>
-                                <span id="lbl-total-calc" class="block text-slate-400 text-xs uppercase tracking-wider mb-1">Total a Cobrar</span>
-                                <span id="txt-total-cobrar" class="text-2xl font-bold text-yellow-400">$ 0</span>
+                                <span id="lbl-total-calc" class="block font-mono text-brand-textSec text-[10px] uppercase tracking-widest mb-1">Total Calculado</span>
+                                <span id="txt-total-cobrar" class="font-mono text-2xl font-bold text-brand-primary drop-shadow-[0_0_8px_rgba(0,245,255,0.5)]">$ 0</span>
                             </div>
                             <div>
-                                <span id="lbl-total-pagado" class="block text-slate-400 text-xs uppercase tracking-wider mb-1">Total Recibido</span>
-                                <span id="txt-total-pagado" class="text-2xl font-bold text-emerald-400">$ 0</span>
+                                <span id="lbl-total-pagado" class="block font-mono text-brand-textSec text-[10px] uppercase tracking-widest mb-1">Total Ingresado</span>
+                                <span id="txt-total-pagado" class="font-mono text-2xl font-bold text-brand-success drop-shadow-[0_0_8px_rgba(0,255,157,0.5)]">$ 0</span>
                             </div>
                         </div>
                         
                         <div class="flex flex-col items-end w-full md:w-auto gap-2">
-                            <div id="alerta-descuadre" class="text-red-400 text-sm font-semibold hidden animate-pulse bg-red-900/30 px-3 py-1 rounded-full border border-red-800">
-                                Descuadre: <span id="txt-descuadre">$0</span>
+                            <div id="alerta-descuadre" class="text-brand-error font-mono text-xs hidden animate-pulse bg-brand-error/10 px-3 py-1.5 rounded border border-brand-error/30 tracking-widest uppercase flex items-center gap-2">
+                                <i data-lucide="alert-triangle" class="w-3 h-3"></i> Descuadre: <span id="txt-descuadre">$0</span>
                             </div>
-                            <button id="btn-guardar" onclick="guardarMovimiento()" disabled class="w-full md:w-auto bg-blue-600 hover:bg-blue-500 disabled:bg-slate-600 disabled:text-slate-400 disabled:cursor-not-allowed text-white px-8 py-3 rounded-lg font-bold transition-all shadow-lg flex items-center justify-center gap-2 text-lg">
-                                <i data-lucide="save" class="w-5 h-5"></i> <span id="txt-btn-guardar">Registrar Movimiento</span>
+                            <button id="btn-guardar" onclick="guardarMovimiento()" disabled class="w-full md:w-auto bg-brand-primary hover:bg-brand-primaryHover disabled:bg-brand-card disabled:text-brand-textSec disabled:border-brand-border disabled:shadow-none disabled:cursor-not-allowed text-brand-bg border border-transparent px-8 py-3 rounded-lg font-display font-bold transition-all shadow-[0_0_15px_rgba(0,245,255,0.3)] hover:shadow-[0_0_25px_rgba(0,245,255,0.5)] flex items-center justify-center gap-2 tracking-wide uppercase text-sm">
+                                <i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">Ejecutar</span>
                             </button>
                         </div>
                     </div>
@@ -245,154 +282,154 @@
             <div class="space-y-6">
                 
                 <!-- PANEL FINANCIERO (Admin y Supervisor JF) -->
-                <div id="panel-financiero" class="hidden bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 fade-in">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-md font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                            <i data-lucide="pie-chart" class="w-5 h-5 text-indigo-500"></i> Resumen Financiero Global
+                <div id="panel-financiero" class="hidden bg-brand-panel p-6 rounded-xl shadow-lg border border-brand-border fade-in">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-sm font-display font-bold text-brand-text flex items-center gap-2 uppercase tracking-widest">
+                            <i data-lucide="bar-chart-3" class="w-4 h-4 text-brand-primary"></i> Métrica Global
                         </h2>
-                        <button onclick="calcularDashboard()" class="text-xs bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 p-1.5 rounded transition-colors" title="Actualizar Saldos">
-                            <i data-lucide="refresh-cw" class="w-4 h-4 text-slate-600 dark:text-slate-300"></i>
+                        <button onclick="calcularDashboard()" class="text-xs bg-brand-card hover:bg-brand-cardHover border border-brand-border p-1.5 rounded transition-colors text-brand-textSec">
+                            <i data-lucide="refresh-cw" class="w-3 h-3"></i>
                         </button>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3 mb-4">
-                        <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800 card-dash">
-                            <p class="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400">Total Ventas</p>
-                            <p id="dash-ventas" class="text-lg font-bold text-slate-800 dark:text-white">$ 0</p>
+                    <div class="grid grid-cols-2 gap-3 mb-6">
+                        <div class="bg-brand-bg/50 p-4 rounded-xl border border-brand-border card-dash">
+                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-primary mb-1">Volumen Ventas</p>
+                            <p id="dash-ventas" class="font-mono text-xl font-bold text-brand-text drop-shadow-[0_0_5px_rgba(0,245,255,0.3)]">$ 0</p>
                         </div>
-                        <div onclick="abrirModalCreditos()" class="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg border border-purple-100 dark:border-purple-800 card-dash cursor-pointer hover:shadow-md transition-shadow">
-                            <p class="text-[10px] uppercase font-bold text-purple-600 dark:text-purple-400 flex items-center justify-between">Cartera (Créditos) <i data-lucide="external-link" class="w-3 h-3"></i></p>
-                            <p id="dash-creditos" class="text-lg font-bold text-slate-800 dark:text-white">$ 0</p>
+                        <div onclick="abrirModalCreditos()" class="bg-brand-secondary/5 border border-brand-secondary/20 p-4 rounded-xl card-dash cursor-pointer hover:bg-brand-secondary/10 hover:border-brand-secondary/50 transition-all">
+                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-secondary mb-1 flex items-center justify-between">
+                                Cartera CxC <i data-lucide="external-link" class="w-3 h-3 opacity-50"></i>
+                            </p>
+                            <p id="dash-creditos" class="font-mono text-xl font-bold text-brand-secondary drop-shadow-[0_0_5px_rgba(139,92,246,0.3)]">$ 0</p>
                         </div>
                     </div>
 
-                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 border-b dark:border-slate-700 pb-1">Saldos por Cuenta (Ingresos - Egresos)</p>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div class="bg-emerald-50 dark:bg-emerald-900/10 p-2 rounded border border-emerald-100 dark:border-emerald-800/30">
-                            <p class="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">Cuenta Cris</p>
-                            <p id="dash-cris" class="text-sm font-bold text-slate-700 dark:text-slate-200">$ 0</p>
+                    <p class="font-mono text-[10px] text-brand-textSec uppercase tracking-widest mb-3 border-b border-brand-border pb-2">Distribución de Cajas (Ingresos-Egresos)</p>
+                    <div class="grid grid-cols-2 gap-2 mb-6">
+                        <div class="bg-brand-success/5 p-2.5 rounded border border-brand-success/20">
+                            <p class="font-mono text-[9px] text-brand-success uppercase tracking-widest mb-0.5 opacity-80">Cuenta Cris</p>
+                            <p id="dash-cris" class="font-mono text-sm font-bold text-brand-text">$ 0</p>
                         </div>
-                        <div class="bg-emerald-50 dark:bg-emerald-900/10 p-2 rounded border border-emerald-100 dark:border-emerald-800/30">
-                            <p class="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">Cuenta JF</p>
-                            <p id="dash-jf" class="text-sm font-bold text-slate-700 dark:text-slate-200">$ 0</p>
+                        <div class="bg-brand-success/5 p-2.5 rounded border border-brand-success/20">
+                            <p class="font-mono text-[9px] text-brand-success uppercase tracking-widest mb-0.5 opacity-80">Cuenta JF</p>
+                            <p id="dash-jf" class="font-mono text-sm font-bold text-brand-text">$ 0</p>
                         </div>
-                        <div class="bg-emerald-50 dark:bg-emerald-900/10 p-2 rounded border border-emerald-100 dark:border-emerald-800/30">
-                            <p class="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">Caja Bodega</p>
-                            <p id="dash-bodega" class="text-sm font-bold text-slate-700 dark:text-slate-200">$ 0</p>
+                        <div class="bg-brand-success/5 p-2.5 rounded border border-brand-success/20">
+                            <p class="font-mono text-[9px] text-brand-success uppercase tracking-widest mb-0.5 opacity-80">Caja Bodega</p>
+                            <p id="dash-bodega" class="font-mono text-sm font-bold text-brand-text">$ 0</p>
                         </div>
-                        <div class="bg-emerald-50 dark:bg-emerald-900/10 p-2 rounded border border-emerald-100 dark:border-emerald-800/30">
-                            <p class="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">Cuenta Hades</p>
-                            <p id="dash-hades" class="text-sm font-bold text-slate-700 dark:text-slate-200">$ 0</p>
+                        <div class="bg-brand-success/5 p-2.5 rounded border border-brand-success/20">
+                            <p class="font-mono text-[9px] text-brand-success uppercase tracking-widest mb-0.5 opacity-80">Cuenta Hades</p>
+                            <p id="dash-hades" class="font-mono text-sm font-bold text-brand-text">$ 0</p>
                         </div>
                     </div>
 
                     <!-- SECCIÓN DE DOMICILIARIOS GLOBAL -->
-                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 border-b dark:border-slate-700 pb-1 mt-4">Costos de Domicilios Generados</p>
-                    <div id="div-costos-domis-global" class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
+                    <p class="font-mono text-[10px] text-brand-textSec uppercase tracking-widest mb-3 border-b border-brand-border pb-2">Costos Logísticos Generados</p>
+                    <div id="div-costos-domis-global" class="grid grid-cols-2 gap-2 mb-6">
                         <!-- JS Inyecta las tarjetas aquí -->
                     </div>
 
                     <!-- SECCIÓN DE COBRO HADES (DOMICILIOS) -->
-                    <div class="pt-4 border-t dark:border-slate-700">
-                        <div class="flex justify-between items-center bg-orange-50 dark:bg-orange-900/10 p-3 rounded-lg border border-orange-100 dark:border-orange-800/30">
+                    <div class="bg-brand-warning/5 border border-brand-warning/20 p-4 rounded-xl">
+                        <div class="flex justify-between items-center">
                             <div>
-                                <p class="text-[10px] text-orange-700 dark:text-orange-400 font-bold uppercase tracking-wider">Deuda Domicilios (Hades)</p>
-                                <p id="dash-admin-domis-hades" class="text-lg font-bold text-slate-800 dark:text-slate-200">$ 0</p>
+                                <p class="font-mono text-[9px] text-brand-warning font-bold uppercase tracking-widest opacity-80 mb-1">CtaxCobrar Domis (Hades)</p>
+                                <p id="dash-admin-domis-hades" class="font-mono text-lg font-bold text-brand-warning drop-shadow-[0_0_5px_rgba(255,213,0,0.3)]">$ 0</p>
                             </div>
                             <!-- Oculto para JF -->
-                            <button id="btn-liquidar-hades" onclick="liquidarDomisHades()" class="bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg text-xs font-bold shadow-sm transition-colors flex items-center gap-1">
-                                <i data-lucide="check-circle" class="w-4 h-4"></i> Liquidar
+                            <button id="btn-liquidar-hades" onclick="liquidarDomisHades()" class="bg-brand-warning/10 hover:bg-brand-warning border border-brand-warning hover:text-brand-bg text-brand-warning px-3 py-2 rounded-lg font-mono text-[10px] uppercase font-bold transition-all shadow-[0_0_10px_rgba(255,213,0,0.1)] flex items-center gap-1">
+                                <i data-lucide="check-square" class="w-3 h-3"></i> CUT
                             </button>
                         </div>
                     </div>
 
-                    <button onclick="abrirModalReporte()" class="mt-4 w-full bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md transition-colors flex items-center justify-center gap-2">
-                        <i data-lucide="calendar" class="w-4 h-4"></i> Ver Reporte Diario Completo
+                    <button onclick="abrirModalReporte()" class="mt-6 w-full bg-brand-card hover:bg-brand-cardHover border border-brand-border text-brand-text px-4 py-3 rounded-lg font-display font-bold uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="terminal" class="w-4 h-4 text-brand-primary"></i> Analítica Global
                     </button>
                 </div>
 
                 <!-- PANEL DISTRIBUIDOR (Solo Hades) -->
-                <div id="panel-hades" class="hidden bg-slate-800 dark:bg-slate-950 p-6 rounded-xl shadow-md border border-slate-700 fade-in">
-                    <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
-                        <h2 class="text-md font-bold text-white flex items-center gap-2">
-                            <i data-lucide="layout-dashboard" class="w-5 h-5 text-purple-400"></i> Mi Rendimiento
+                <div id="panel-hades" class="hidden bg-brand-panel p-6 rounded-xl shadow-lg border border-brand-border fade-in">
+                    <div class="flex justify-between items-center mb-6 border-b border-brand-border pb-4">
+                        <h2 class="text-sm font-display font-bold text-brand-text flex items-center gap-2 uppercase tracking-widest">
+                            <i data-lucide="rocket" class="w-4 h-4 text-brand-accent"></i> Mi Dashboard
                         </h2>
-                        <button onclick="calcularDashboard()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white p-1.5 rounded transition-colors" title="Actualizar">
-                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        <button onclick="calcularDashboard()" class="text-xs bg-brand-card hover:bg-brand-cardHover border border-brand-border p-1.5 rounded transition-colors text-brand-textSec">
+                            <i data-lucide="refresh-cw" class="w-3 h-3"></i>
                         </button>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3 mb-4">
-                        <div class="bg-blue-900/40 p-3 rounded-lg border border-blue-800">
-                            <p class="text-[10px] uppercase font-bold text-blue-300">Mis Ventas</p>
-                            <p id="dash-hades-ventas" class="text-lg font-bold text-white">$ 0</p>
+                        <div class="bg-brand-primary/5 p-3 rounded-lg border border-brand-primary/20">
+                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-primary opacity-80 mb-1">Mis Ventas</p>
+                            <p id="dash-hades-ventas" class="font-mono text-lg font-bold text-brand-primary">$ 0</p>
                         </div>
-                        <div onclick="abrirModalCreditos()" class="bg-purple-900/40 p-3 rounded-lg border border-purple-800 cursor-pointer hover:bg-purple-800/60 transition-colors">
-                            <p class="text-[10px] uppercase font-bold text-purple-300 flex items-center justify-between">Mis Créditos <i data-lucide="external-link" class="w-3 h-3"></i></p>
-                            <p id="dash-hades-creditos" class="text-lg font-bold text-white">$ 0</p>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3 mb-4">
-                        <div class="bg-orange-900/40 p-3 rounded-lg border border-orange-800">
-                            <p class="text-[10px] uppercase font-bold text-orange-300">Mis Compras</p>
-                            <p id="dash-hades-compras" class="text-md font-bold text-white">$ 0</p>
-                        </div>
-                        <div class="bg-red-900/40 p-3 rounded-lg border border-red-800">
-                            <p class="text-[10px] uppercase font-bold text-red-300">Mis Gastos</p>
-                            <p id="dash-hades-gastos" class="text-md font-bold text-white">$ 0</p>
+                        <div onclick="abrirModalCreditos()" class="bg-brand-secondary/5 border border-brand-secondary/20 p-3 rounded-lg cursor-pointer hover:bg-brand-secondary/20 transition-colors">
+                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-secondary opacity-80 mb-1 flex items-center justify-between">CxC Clientes <i data-lucide="external-link" class="w-3 h-3"></i></p>
+                            <p id="dash-hades-creditos" class="font-mono text-lg font-bold text-brand-secondary">$ 0</p>
                         </div>
                     </div>
 
-                    <div class="bg-slate-900 p-4 rounded-lg border border-slate-700 flex justify-between items-center mt-4">
+                    <div class="grid grid-cols-2 gap-3 mb-6">
+                        <div class="bg-brand-warning/5 p-3 rounded-lg border border-brand-warning/20">
+                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-warning opacity-80 mb-1">Compras Propias</p>
+                            <p id="dash-hades-compras" class="font-mono text-sm font-bold text-brand-warning">$ 0</p>
+                        </div>
+                        <div class="bg-brand-error/5 p-3 rounded-lg border border-brand-error/20">
+                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-error opacity-80 mb-1">Mis Gastos</p>
+                            <p id="dash-hades-gastos" class="font-mono text-sm font-bold text-brand-error">$ 0</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-brand-bg/50 p-4 rounded-xl border border-brand-border flex justify-between items-center mt-2">
                         <div>
-                            <p class="text-[10px] uppercase font-bold text-slate-400">Deuda con Ferco Farma (Domis)</p>
-                            <p id="dash-hades-domis" class="text-xl font-bold text-orange-400">$ 0</p>
+                            <p class="font-mono text-[9px] text-brand-textSec uppercase tracking-widest mb-1">Deuda a Ferco (Domis)</p>
+                            <p id="dash-hades-domis" class="font-mono text-xl font-bold text-brand-warning drop-shadow-[0_0_5px_rgba(255,213,0,0.3)]">$ 0</p>
                         </div>
-                        <i data-lucide="bike" class="w-8 h-8 text-slate-600"></i>
+                        <i data-lucide="bike" class="w-6 h-6 text-brand-textSec opacity-50"></i>
                     </div>
 
-                    <button onclick="abrirModalReporte()" class="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-lg text-sm font-bold shadow-md transition-colors flex items-center justify-center gap-2">
-                        <i data-lucide="calendar" class="w-4 h-4"></i> Ver Mi Reporte Diario
+                    <button onclick="abrirModalReporte()" class="mt-6 w-full bg-brand-primary/10 hover:bg-brand-primary hover:text-brand-bg border border-brand-primary text-brand-primary px-4 py-3 rounded-lg font-display font-bold uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="terminal" class="w-4 h-4"></i> Mi Analítica
                     </button>
                 </div>
 
-                <!-- LÍNEA DE TIEMPO (Solo Lectura) -->
-                <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-md font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                            <i data-lucide="history" class="w-5 h-5 text-slate-500"></i> Últimos Movimientos
+                <!-- LÍNEA DE TIEMPO (Solo Lectura, 5 items) -->
+                <div class="bg-brand-panel p-6 rounded-xl shadow-lg border border-brand-border">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-sm font-display font-bold text-brand-text flex items-center gap-2 uppercase tracking-widest">
+                            <i data-lucide="clock" class="w-4 h-4 text-brand-accent"></i> Timeline
                         </h2>
                     </div>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 border-b dark:border-slate-700 pb-2">Visualización rápida de los últimos 5 registros ingresados. Para ver detalles o editar, usa el <b>Reporte Diario</b>.</p>
                     
-                    <div id="lista-ventas" class="space-y-3">
+                    <div id="lista-ventas" class="space-y-4">
                         <div class="flex justify-center items-center py-8">
-                            <i data-lucide="loader-2" class="w-6 h-6 animate-spin text-blue-500"></i>
+                            <i data-lucide="loader-2" class="w-6 h-6 animate-spin text-brand-primary"></i>
                         </div>
                     </div>
                 </div>
 
-                <!-- AUDITORÍA Y EXPORTACIÓN -->
-                <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mt-6">
+                <!-- EXPORTACIÓN -->
+                <div class="bg-brand-panel p-6 rounded-xl shadow-lg border border-brand-border mt-6">
                     <div class="mb-2">
-                        <h3 class="text-md font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-2">
-                            <i data-lucide="file-spreadsheet" class="w-5 h-5 text-green-600"></i> Exportar Auditoría
+                        <h3 class="text-sm font-display font-bold text-brand-text mb-4 flex items-center gap-2 uppercase tracking-widest">
+                            <i data-lucide="download-cloud" class="w-4 h-4 text-brand-success"></i> Export Datasets
                         </h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Descarga registros aplanados para Excel.</p>
                         
-                        <div class="grid grid-cols-2 gap-2 mb-3">
+                        <div class="grid grid-cols-2 gap-3 mb-4">
                             <div>
-                                <label class="text-[10px] uppercase font-bold text-slate-500">Desde</label>
-                                <input type="date" id="filtro-inicio" class="w-full p-2 border border-slate-300 dark:border-slate-600 rounded bg-transparent text-sm outline-none dark:text-white">
+                                <label class="font-mono text-[9px] uppercase tracking-widest text-brand-textSec mb-1 block">Desde</label>
+                                <input type="date" id="filtro-inicio" class="w-full p-2 border border-brand-border rounded bg-brand-bg font-mono text-xs">
                             </div>
                             <div>
-                                <label class="text-[10px] uppercase font-bold text-slate-500">Hasta</label>
-                                <input type="date" id="filtro-fin" class="w-full p-2 border border-slate-300 dark:border-slate-600 rounded bg-transparent text-sm outline-none dark:text-white">
+                                <label class="font-mono text-[9px] uppercase tracking-widest text-brand-textSec mb-1 block">Hasta</label>
+                                <input type="date" id="filtro-fin" class="w-full p-2 border border-brand-border rounded bg-brand-bg font-mono text-xs">
                             </div>
                         </div>
-                        <button onclick="exportarCSV()" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-lg font-bold transition-all shadow-md flex items-center justify-center gap-2">
-                            <i data-lucide="download" class="w-4 h-4"></i> Descargar CSV
+                        <button onclick="exportarCSV()" class="w-full bg-brand-success/10 hover:bg-brand-success border border-brand-success hover:text-brand-bg text-brand-success px-4 py-2.5 rounded-lg font-mono font-bold uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="database" class="w-3 h-3"></i> Generar CSV
                         </button>
                     </div>
                 </div>
@@ -401,154 +438,207 @@
     </div>
 
     <!-- MODAL: DICCIONARIO DE SIGLAS -->
-    <div id="modal-diccionario" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm transition-opacity">
-        <div class="glass-modal w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 m-4">
-            <div class="p-6 border-b dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 rounded-t-2xl">
-                <h2 class="text-xl font-bold flex items-center gap-2 dark:text-white">
-                    <i data-lucide="book-open" class="text-indigo-500"></i> Glosario de Productos
+    <div id="modal-diccionario" class="fixed inset-0 z-50 hidden items-center justify-center bg-brand-bg/80 backdrop-blur-md transition-opacity">
+        <div class="glass-modal w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl m-4">
+            <div class="p-6 border-b border-brand-border flex justify-between items-center bg-brand-panel rounded-t-2xl">
+                <h2 class="text-lg font-display font-bold uppercase tracking-widest flex items-center gap-2 text-brand-text">
+                    <i data-lucide="book-open" class="text-brand-primary w-5 h-5"></i> Master Data: Productos
                 </h2>
-                <button onclick="cerrarDiccionario()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">
-                    <i data-lucide="x" class="w-5 h-5 dark:text-white"></i>
+                <button onclick="cerrarDiccionario()" class="p-2 hover:bg-brand-card rounded-lg transition-colors border border-transparent hover:border-brand-border text-brand-textSec hover:text-brand-text">
+                    <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
             
-            <div class="p-6 bg-slate-100 dark:bg-slate-800 border-b dark:border-slate-700">
-                <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Agregar Nueva Sigla</h3>
+            <div class="p-6 bg-brand-card border-b border-brand-border">
+                <h3 class="text-xs font-mono font-bold text-brand-textSec uppercase tracking-widest mb-3">Registrar Variable</h3>
                 <div class="flex gap-2">
-                    <input type="text" id="nueva-sigla-id" placeholder="Ej: PRD" class="w-1/3 p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 outline-none uppercase font-bold dark:text-white">
-                    <input type="text" id="nueva-sigla-val" placeholder="Nombre completo del producto" class="w-2/3 p-2 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 outline-none dark:text-white">
-                    <button onclick="agregarNuevaSigla()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-bold shadow-md whitespace-nowrap">Añadir</button>
+                    <input type="text" id="nueva-sigla-id" placeholder="ID (Ej: PRD)" class="w-1/3 p-2 border border-brand-border rounded-lg bg-brand-bg font-mono uppercase text-sm">
+                    <input type="text" id="nueva-sigla-val" placeholder="Valor (Nombre)" class="w-2/3 p-2 border border-brand-border rounded-lg bg-brand-bg font-mono text-sm">
+                    <button onclick="agregarNuevaSigla()" class="bg-brand-primary hover:bg-brand-primaryHover text-brand-bg px-4 py-2 rounded-lg font-bold shadow-[0_0_10px_rgba(0,245,255,0.2)] font-mono text-xs uppercase tracking-widest">Add</button>
                 </div>
             </div>
 
-            <div class="p-6 overflow-y-auto flex-1 bg-slate-50 dark:bg-slate-900">
-                <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Modifica los nombres existentes o elimínalos del menú desplegable.</p>
-                <div id="grid-diccionario" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-6 overflow-y-auto flex-1 bg-brand-bg">
+                <div id="grid-diccionario" class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <!-- JS Inyecta las siglas dinámicas aquí -->
                 </div>
             </div>
 
-            <div class="p-6 border-t dark:border-slate-700 bg-white dark:bg-slate-800 rounded-b-2xl flex justify-end">
-                <button onclick="guardarDiccionario()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-bold shadow-md flex items-center gap-2">
-                    <i data-lucide="save" class="w-4 h-4"></i> Guardar Todo
+            <div class="p-6 border-t border-brand-border bg-brand-panel rounded-b-2xl flex justify-end">
+                <button onclick="guardarDiccionario()" class="bg-brand-primary hover:bg-brand-primaryHover text-brand-bg px-6 py-2 rounded-lg font-bold shadow-[0_0_15px_rgba(0,245,255,0.3)] flex items-center gap-2 font-mono text-xs uppercase tracking-widest">
+                    <i data-lucide="save" class="w-4 h-4"></i> Guardar State
                 </button>
             </div>
         </div>
     </div>
 
     <!-- MODAL: CARTERA DE CRÉDITOS -->
-    <div id="modal-creditos" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm transition-opacity">
-        <div class="glass-modal w-full max-w-md max-h-[80vh] flex flex-col rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 m-4">
-            <div class="p-6 border-b dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800 rounded-t-2xl">
-                <h2 class="text-xl font-bold flex items-center gap-2 dark:text-white">
-                    <i data-lucide="users" class="text-purple-500"></i> Detalle de Cartera
+    <div id="modal-creditos" class="fixed inset-0 z-50 hidden items-center justify-center bg-brand-bg/80 backdrop-blur-md transition-opacity">
+        <div class="glass-modal w-full max-w-md max-h-[80vh] flex flex-col rounded-2xl m-4">
+            <div class="p-6 border-b border-brand-border flex justify-between items-center bg-brand-panel rounded-t-2xl">
+                <h2 class="text-lg font-display font-bold uppercase tracking-widest flex items-center gap-2 text-brand-text">
+                    <i data-lucide="users" class="text-brand-secondary w-5 h-5"></i> Cuentas por Cobrar
                 </h2>
-                <button onclick="cerrarModalCreditos()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">
-                    <i data-lucide="x" class="w-5 h-5 dark:text-white"></i>
+                <button onclick="cerrarModalCreditos()" class="p-2 hover:bg-brand-card rounded-lg transition-colors border border-transparent hover:border-brand-border text-brand-textSec hover:text-brand-text">
+                    <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
             
-            <div class="p-6 overflow-y-auto flex-1 bg-slate-50 dark:bg-slate-900">
-                <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Saldos pendientes. Usa el botón "Abonar" para descontar deuda.</p>
-                <div id="lista-deudores" class="space-y-2">
+            <div class="p-6 overflow-y-auto flex-1 bg-brand-bg">
+                <div id="lista-deudores" class="space-y-3">
                     <!-- JS Inyecta cartera aquí -->
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL: REPORTE DIARIO GLOBAL -->
-    <div id="modal-reporte" class="fixed inset-0 z-[50] hidden items-center justify-center bg-slate-900/80 backdrop-blur-sm transition-opacity">
-        <div class="glass-modal w-full max-w-4xl h-[90vh] flex flex-col rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 m-4 relative">
-            <div class="p-6 border-b dark:border-slate-700 flex justify-between items-center bg-slate-900 rounded-t-2xl">
-                <h2 class="text-xl font-bold flex items-center gap-2 text-white">
-                    <i data-lucide="calendar-days" class="text-blue-400"></i> Reporte Global por Fechas
+    <!-- MODAL: ABONO RÁPIDO (NUEVO) -->
+    <div id="modal-abono-rapido" class="fixed inset-0 z-[70] hidden items-center justify-center bg-brand-bg/90 backdrop-blur-sm transition-opacity">
+        <div class="glass-modal w-full max-w-sm flex flex-col rounded-2xl m-4 shadow-[0_0_50px_rgba(139,92,246,0.15)] border-brand-secondary/50">
+            <div class="p-5 border-b border-brand-border flex justify-between items-center bg-brand-panel rounded-t-2xl">
+                <h2 class="text-md font-display font-bold uppercase tracking-widest flex items-center gap-2 text-brand-secondary">
+                    <i data-lucide="hand-coins" class="w-4 h-4"></i> Liquidar Abono
                 </h2>
-                <button onclick="cerrarModalReporte()" class="p-2 hover:bg-slate-800 rounded-full transition-colors text-white">
-                    <i data-lucide="x" class="w-5 h-5"></i>
+                <button onclick="cerrarModalAbonoRapido()" class="p-2 hover:bg-brand-card rounded-lg transition-colors text-brand-textSec">
+                    <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
-            <div class="p-6 overflow-y-auto flex-1 bg-slate-50 dark:bg-slate-900" id="contenedor-reporte-dias">
+            <div class="p-6 bg-brand-bg rounded-b-2xl space-y-5">
+                <div class="text-center mb-2">
+                    <p class="text-[10px] font-mono uppercase text-brand-textSec mb-1">Cliente</p>
+                    <p id="abono-rapido-cliente" class="text-lg font-bold text-brand-text capitalize"></p>
+                    <p class="text-[10px] font-mono uppercase text-brand-textSec mt-2 mb-1">Saldo Pendiente</p>
+                    <p id="abono-rapido-deuda" class="text-2xl font-mono font-bold text-brand-error drop-shadow-[0_0_8px_rgba(255,59,92,0.4)]"></p>
+                </div>
+                
+                <div>
+                    <label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase tracking-widest">Monto a Ingresar ($)</label>
+                    <input type="number" id="abono-rapido-monto" class="w-full p-3 font-mono text-center text-lg text-brand-success bg-brand-card border border-brand-success/30 rounded-lg focus:border-brand-success focus:ring-1 focus:ring-brand-success outline-none" placeholder="0">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase tracking-widest">Medio</label>
+                        <select id="abono-rapido-metodo" class="w-full p-2.5 font-mono text-xs bg-brand-card border border-brand-border rounded-lg outline-none">
+                            <option value="">Medio...</option>
+                            <option value="Transferencia">Transferencia</option>
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Cruce">Cruce</option>
+                            <option value="Bold">Bold</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase tracking-widest">Destino</label>
+                        <select id="abono-rapido-cuenta" class="w-full p-2.5 font-mono text-xs bg-brand-card border border-brand-border rounded-lg outline-none">
+                            <option value="">Caja...</option>
+                            <option value="Cris">Cris</option>
+                            <option value="JF">JF</option>
+                            <option value="Bodega">Bodega</option>
+                            <option value="Hades">Hades</option>
+                            <option value="General">General</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button id="btn-procesar-abono" onclick="procesarAbonoRapido()" class="w-full mt-2 bg-brand-secondary hover:bg-brand-secondary/80 text-brand-text px-4 py-3 rounded-lg font-mono font-bold uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(139,92,246,0.4)]">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i> Confirmar Transacción
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: REPORTE DIARIO GLOBAL -->
+    <div id="modal-reporte" class="fixed inset-0 z-[50] hidden items-center justify-center bg-brand-bg/90 backdrop-blur-md transition-opacity">
+        <div class="glass-modal w-full max-w-4xl h-[90vh] flex flex-col rounded-2xl m-4 relative overflow-hidden">
+            <div class="p-5 border-b border-brand-border flex justify-between items-center bg-brand-panel rounded-t-2xl">
+                <h2 class="text-md font-display font-bold uppercase tracking-widest flex items-center gap-2 text-brand-text">
+                    <i data-lucide="terminal" class="text-brand-primary w-4 h-4"></i> Data Viewer: Reportes
+                </h2>
+                <button onclick="cerrarModalReporte()" class="p-2 hover:bg-brand-card border border-transparent hover:border-brand-border rounded-lg transition-colors text-brand-textSec">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 bg-brand-bg" id="contenedor-reporte-dias">
                 <div class="flex justify-center items-center py-12">
-                    <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-blue-500"></i>
+                    <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-brand-primary"></i>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- MODAL: DETALLES DE REGISTRO (CON EDITAR/BORRAR) -->
-    <div id="modal-detalle-registro" class="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-900/80 backdrop-blur-md transition-opacity">
-        <div class="glass-modal w-full max-w-xl max-h-[90vh] flex flex-col rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 m-4">
+    <div id="modal-detalle-registro" class="fixed inset-0 z-[60] hidden items-center justify-center bg-brand-bg/90 backdrop-blur-md transition-opacity">
+        <div class="glass-modal w-full max-w-xl max-h-[90vh] flex flex-col rounded-2xl m-4 border-brand-primary/40 shadow-[0_0_30px_rgba(0,245,255,0.1)]">
             
-            <div class="p-5 border-b dark:border-slate-700 flex justify-between items-start bg-white dark:bg-slate-800 rounded-t-2xl">
+            <div class="p-5 border-b border-brand-border flex justify-between items-start bg-brand-panel rounded-t-2xl">
                 <div>
-                    <h2 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-1">
-                        <i data-lucide="file-text" class="text-blue-500"></i> Detalles del Movimiento
+                    <h2 class="text-md font-display font-bold text-brand-text uppercase tracking-widest flex items-center gap-2 mb-2">
+                        <i data-lucide="file-code" class="text-brand-primary w-4 h-4"></i> Inspector de Bloque
                     </h2>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-mono" id="detalle-fecha-creador">Fecha | Creador</p>
+                    <p class="text-[10px] text-brand-textSec font-mono tracking-widest" id="detalle-fecha-creador">FECHA | CREADOR</p>
                 </div>
-                <button onclick="cerrarModalDetalle()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">
-                    <i data-lucide="x" class="w-5 h-5 dark:text-white"></i>
+                <button onclick="cerrarModalDetalle()" class="p-2 hover:bg-brand-card rounded-lg transition-colors border border-transparent hover:border-brand-border text-brand-textSec">
+                    <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
             
-            <div class="p-6 overflow-y-auto flex-1 bg-slate-50 dark:bg-slate-900 space-y-6">
+            <div class="p-6 overflow-y-auto flex-1 bg-brand-bg space-y-6">
                 <!-- Info principal -->
-                <div class="flex justify-between items-center bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                <div class="flex justify-between items-center bg-brand-panel p-5 rounded-xl border border-brand-border">
                     <div>
-                        <p class="text-[10px] uppercase font-bold text-slate-500">Cliente / Entidad</p>
-                        <p class="text-lg font-bold text-slate-800 dark:text-white" id="detalle-cliente">Nombre</p>
-                        <span id="detalle-tipo-badge" class="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded uppercase bg-slate-200 text-slate-700">TIPO</span>
+                        <p class="text-[9px] uppercase tracking-widest font-mono text-brand-textSec mb-1">Entidad</p>
+                        <p class="text-lg font-display font-bold text-brand-text tracking-wide" id="detalle-cliente">Nombre</p>
+                        <span id="detalle-tipo-badge" class="inline-block mt-2 text-[9px] font-mono font-bold px-2 py-0.5 rounded uppercase tracking-widest bg-brand-card border text-brand-textSec border-brand-border">TIPO</span>
                     </div>
                     <div class="text-right">
-                        <p class="text-[10px] uppercase font-bold text-slate-500">Valor Total</p>
-                        <p class="text-2xl font-bold text-slate-800 dark:text-white" id="detalle-total">$0</p>
+                        <p class="text-[9px] uppercase tracking-widest font-mono text-brand-textSec mb-1">Monto Absoluto</p>
+                        <p class="text-2xl font-mono font-bold text-brand-primary drop-shadow-[0_0_8px_rgba(0,245,255,0.4)]" id="detalle-total">$0</p>
                     </div>
                 </div>
 
                 <!-- Productos / Logistica -->
-                <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-                    <h3 class="bg-slate-100 dark:bg-slate-750 p-3 text-sm font-bold text-slate-700 dark:text-slate-300 border-b dark:border-slate-700 flex items-center gap-2">
-                        <i data-lucide="package" class="w-4 h-4 text-orange-500"></i> Conceptos y Entrega
+                <div class="bg-brand-panel rounded-xl border border-brand-border overflow-hidden">
+                    <h3 class="bg-brand-card p-3 text-[10px] font-mono font-bold text-brand-textSec uppercase tracking-widest border-b border-brand-border flex items-center gap-2">
+                        <i data-lucide="box" class="w-3 h-3 text-brand-primary"></i> Data: Items & Logística
                     </h3>
                     <div class="p-4">
-                        <ul id="detalle-lista-productos" class="space-y-2 text-sm text-slate-600 dark:text-slate-300 mb-4">
+                        <ul id="detalle-lista-productos" class="space-y-3 font-mono text-xs text-brand-textSec mb-4">
                             <!-- JS inyecta prods -->
                         </ul>
-                        <div id="detalle-logistica" class="hidden pt-3 border-t dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                        <div id="detalle-logistica" class="hidden pt-4 border-t border-brand-border font-mono text-[10px] text-brand-textSec uppercase tracking-wider">
                             <!-- JS inyecta logistica -->
                         </div>
                     </div>
                 </div>
 
                 <!-- Pagos -->
-                <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-                    <h3 class="bg-slate-100 dark:bg-slate-750 p-3 text-sm font-bold text-slate-700 dark:text-slate-300 border-b dark:border-slate-700 flex items-center gap-2">
-                        <i data-lucide="wallet" class="w-4 h-4 text-emerald-500"></i> Medios de Pago
+                <div class="bg-brand-panel rounded-xl border border-brand-border overflow-hidden">
+                    <h3 class="bg-brand-card p-3 text-[10px] font-mono font-bold text-brand-textSec uppercase tracking-widest border-b border-brand-border flex items-center gap-2">
+                        <i data-lucide="network" class="w-3 h-3 text-brand-success"></i> Data: Transacciones
                     </h3>
                     <div class="p-4">
-                        <ul id="detalle-lista-pagos" class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+                        <ul id="detalle-lista-pagos" class="space-y-3 font-mono text-xs text-brand-textSec">
                             <!-- JS inyecta pagos -->
                         </ul>
                     </div>
                 </div>
 
                 <!-- Notas -->
-                <div id="detalle-box-notas" class="hidden bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-200 dark:border-amber-800/30 p-4">
-                    <p class="text-[10px] uppercase font-bold text-amber-700 dark:text-amber-500 mb-1 flex items-center gap-1"><i data-lucide="message-square" class="w-3 h-3"></i> Notas Adicionales</p>
-                    <p id="detalle-texto-notas" class="text-sm text-slate-700 dark:text-slate-300 italic"></p>
+                <div id="detalle-box-notas" class="hidden bg-brand-accent/5 rounded-xl border border-brand-accent/20 p-4 relative overflow-hidden">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-brand-accent"></div>
+                    <p class="text-[9px] uppercase tracking-widest font-mono text-brand-accent mb-2 flex items-center gap-1"><i data-lucide="terminal-square" class="w-3 h-3"></i> Output / Notas</p>
+                    <p id="detalle-texto-notas" class="text-xs font-mono text-brand-textSec"></p>
                 </div>
             </div>
 
-            <!-- Botones de Acción (Condicionales según Rol) -->
-            <div id="detalle-acciones" class="p-5 border-t dark:border-slate-700 bg-white dark:bg-slate-800 rounded-b-2xl flex justify-between items-center gap-4">
-                <p class="text-xs text-slate-500" id="detalle-aviso-permisos">Acciones de administrador</p>
+            <!-- Botones de Acción -->
+            <div id="detalle-acciones" class="p-5 border-t border-brand-border bg-brand-panel rounded-b-2xl flex justify-between items-center gap-4">
+                <p class="text-[9px] font-mono uppercase tracking-widest text-brand-textSec" id="detalle-aviso-permisos">SYS_PERMISSIONS</p>
                 <div class="flex gap-2">
-                    <button id="btn-detalle-editar" class="bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-1">
-                        <i data-lucide="edit-3" class="w-4 h-4"></i> Editar Registro
+                    <button id="btn-detalle-editar" class="bg-brand-primary/10 hover:bg-brand-primary border border-brand-primary hover:text-brand-bg text-brand-primary px-4 py-2 rounded-lg font-mono text-[10px] font-bold tracking-widest uppercase transition-all flex items-center gap-2">
+                        <i data-lucide="edit-3" class="w-3 h-3"></i> Modificar
                     </button>
-                    <button id="btn-detalle-borrar" class="bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center gap-1">
-                        <i data-lucide="trash-2" class="w-4 h-4"></i> Eliminar
+                    <button id="btn-detalle-borrar" class="bg-brand-error/10 hover:bg-brand-error border border-brand-error hover:text-brand-bg text-brand-error px-4 py-2 rounded-lg font-mono text-[10px] font-bold tracking-widest uppercase transition-all flex items-center gap-2">
+                        <i data-lucide="trash-2" class="w-3 h-3"></i> Delete
                     </button>
                 </div>
             </div>
@@ -593,7 +683,7 @@
         let timerInactividad;
         let fechaCorteDomisHades = 0; 
         
-        window.movimientosCache = []; // Caché para el modal de detalles
+        window.movimientosCache = []; 
         
         const formatoMoneda = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
         let diccionarioProductos = {}; 
@@ -613,7 +703,7 @@
 
                 if (!USUARIOS_PERMITIDOS.includes(correoIngresado)) {
                     signOut(auth); 
-                    errorTxt.textContent = "Acceso denegado: Usuario no autorizado por la gerencia.";
+                    errorTxt.textContent = "AUTH_FAIL: ACCESS_DENIED";
                     errorTxt.classList.remove('hidden');
                     return; 
                 }
@@ -627,7 +717,6 @@
                     panelFinanciero.classList.remove('hidden');
                     panelHades.classList.add('hidden');
                     
-                    // Solo admin puede liquidar deuda
                     if(correoIngresado === SUPERVISOR_EMAIL) {
                         document.getElementById('btn-liquidar-hades').classList.add('hidden');
                     } else {
@@ -659,24 +748,24 @@
             const btn = document.getElementById('btn-login');
             const errorTxt = document.getElementById('login-error');
             
-            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Conectando...';
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Auth...';
             errorTxt.classList.add('hidden');
 
             signInWithEmailAndPassword(auth, email, pass).catch((error) => {
-                errorTxt.textContent = "Credenciales incorrectas.";
+                errorTxt.textContent = "AUTH_FAIL: INVALID_CREDS";
                 errorTxt.classList.remove('hidden');
                 btn.innerHTML = 'Ingresar al Sistema <i data-lucide="log-in" class="w-5 h-5"></i>';
                 lucide.createIcons();
             });
         };
 
-        window.cerrarSesionUsuario = () => { if(confirm("¿Seguro que deseas salir del sistema?")) signOut(auth); };
+        window.cerrarSesionUsuario = () => { if(confirm("SYS_WARN: Terminar Sesión?")) signOut(auth); };
 
         function reiniciarTimer() {
             if(currentUser) {
                 clearTimeout(timerInactividad);
                 timerInactividad = setTimeout(() => {
-                    alert("⚠️ Sesión cerrada automáticamente por inactividad de 30 minutos.");
+                    alert("SYS_WARN: TIMEOUT_REACHED (30m). Session aborted.");
                     signOut(auth);
                 }, 1800000); 
             }
@@ -709,22 +798,22 @@
         }
 
         window.liquidarDomisHades = async () => {
-            if (confirm("¿Estás seguro de liquidar la deuda de domicilios de Hades? Esto reiniciará su contador a $0 a partir de este momento.")) {
+            if (confirm("ACTION_REQ: ¿Generar corte para reinicio de domis a $0?")) {
                 try {
                     const btn = document.querySelector('button[onclick="liquidarDomisHades()"]');
-                    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>...';
+                    btn.innerHTML = '<i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i>...';
                     
                     const nuevaFechaCorte = Date.now();
                     await setDoc(doc(db, "configuracion", "hades_domis"), { ultimaLiquidacion: nuevaFechaCorte });
                     fechaCorteDomisHades = nuevaFechaCorte;
                     
-                    alert("✅ Liquidación de domicilios registrada correctamente.");
+                    alert("SYS_MSG: Corte generado. Buffer reseteado.");
                     calcularDashboard();
                     
-                    btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> Liquidar';
+                    btn.innerHTML = '<i data-lucide="check-square" class="w-3 h-3"></i> CUT';
                     lucide.createIcons();
                 } catch (e) {
-                    alert("Error: No tienes permisos para realizar la liquidación.");
+                    alert("SYS_ERR: PERMISSION_DENIED");
                 }
             }
         };
@@ -752,10 +841,10 @@
             container.innerHTML = '';
             Object.keys(diccionarioProductos).sort().forEach(sigla => {
                 container.insertAdjacentHTML('beforeend', `
-                    <div class="flex items-center gap-2 bg-white dark:bg-slate-800 p-2 rounded border border-slate-200 dark:border-slate-700">
-                        <span class="font-bold text-indigo-600 dark:text-indigo-400 w-16 text-center">${sigla}</span>
-                        <input type="text" id="dict-${sigla}" value="${diccionarioProductos[sigla]}" class="w-full p-1.5 border border-slate-300 dark:border-slate-600 rounded bg-slate-50 dark:bg-slate-700 outline-none text-xs dark:text-white">
-                        <button onclick="eliminarSiglaTemporal('${sigla}')" class="text-red-500 hover:bg-red-100 p-1.5 rounded"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    <div class="flex items-center gap-2 bg-brand-bg p-2 rounded-lg border border-brand-border">
+                        <span class="font-mono text-xs font-bold text-brand-primary w-12 text-center">${sigla}</span>
+                        <input type="text" id="dict-${sigla}" value="${diccionarioProductos[sigla]}" class="w-full p-2 border border-brand-border rounded bg-brand-panel font-mono text-xs outline-none focus:border-brand-primary">
+                        <button onclick="eliminarSiglaTemporal('${sigla}')" class="text-brand-error hover:bg-brand-error/10 p-1.5 rounded transition-colors"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
                     </div>
                 `);
             });
@@ -772,10 +861,10 @@
                 diccionarioProductos[sigla] = val;
                 idInput.value = ''; valInput.value = '';
                 pintarGridDiccionario();
-            } else alert("Completa ambos campos.");
+            } else alert("DATA_ERR: Required fields empty.");
         };
 
-        window.eliminarSiglaTemporal = (sigla) => { if(confirm(`¿Quitar ${sigla}?`)) { delete diccionarioProductos[sigla]; pintarGridDiccionario(); } };
+        window.eliminarSiglaTemporal = (sigla) => { if(confirm(`DEL_CONFIRM: ${sigla}?`)) { delete diccionarioProductos[sigla]; pintarGridDiccionario(); } };
 
         window.guardarDiccionario = async () => {
             Object.keys(diccionarioProductos).forEach(sigla => {
@@ -784,17 +873,17 @@
             });
             try {
                 await setDoc(doc(db, "configuracion", "diccionario_productos"), diccionarioProductos);
-                alert("✅ Glosario actualizado.");
+                alert("SYS_MSG: Master Data Updated.");
                 document.querySelectorAll('.input-prod-select').forEach(select => {
                     const valorAnterior = select.value;
-                    let opcionesHTML = `<option value="">Seleccionar Producto...</option>`;
+                    let opcionesHTML = `<option value="">Select Item...</option>`;
                     Object.keys(diccionarioProductos).sort().forEach(p => { opcionesHTML += `<option value="${p}">${p} - ${diccionarioProductos[p]}</option>`; });
-                    opcionesHTML += `<option value="OTRO" class="font-bold text-blue-600">➕ OTRO (Manual)</option>`;
+                    opcionesHTML += `<option value="OTRO" class="font-bold text-brand-primary">>> MANUAL INPUT <<</option>`;
                     select.innerHTML = opcionesHTML;
                     select.value = valorAnterior; 
                 });
                 cerrarDiccionario();
-            } catch (error) { alert("Error guardando el diccionario."); }
+            } catch (error) { alert("SYS_ERR: SAVE_FAILED"); }
         };
 
         // ==========================================
@@ -814,49 +903,51 @@
             
             agregarFilaProducto(); agregarFilaPago();
             cargarVentasFirebase();
-            verificarTemaInicial();
             manejarCambioTipo(); 
             if (currentUser) calcularDashboard();
         }
 
         window.manejarCambioTipo = () => {
-            // El checked de los radio ocultos cambiará visualmente gracias a las clases 'peer-checked' de Tailwind
             const tipo = document.querySelector('input[name="tipoMovimiento"]:checked').value;
-            const boxTotales = document.getElementById('box-totales');
             const seccionLogistica = document.getElementById('seccion-logistica');
             const iconProds = document.getElementById('icon-productos');
+            const txtTotCalc = document.getElementById('txt-total-cobrar');
+            const lblTotCalc = document.getElementById('lbl-total-calc');
+            const txtTotPag = document.getElementById('txt-total-pagado');
+            const lblTotPag = document.getElementById('lbl-total-pagado');
             
             if (tipo === 'Venta') {
                 document.getElementById('lbl-cliente').textContent = "Cliente";
-                document.getElementById('lbl-productos').innerHTML = '<i data-lucide="package" class="w-5 h-5 text-blue-500"></i> 1. Productos Vendidos';
-                document.getElementById('txt-lbl-pagos').textContent = "2. Medios de Pago (Ingreso a Cuenta)";
-                document.getElementById('icon-pagos').className = "w-5 h-5 text-emerald-500";
-                document.getElementById('lbl-total-calc').textContent = "Total a Cobrar";
-                document.getElementById('lbl-total-pagado').textContent = "Total Recibido";
-                boxTotales.className = "bg-slate-800 dark:bg-slate-950 text-white p-5 rounded-xl flex flex-col md:flex-row justify-between items-center gap-6 shadow-inner border border-slate-700 transition-colors duration-300";
+                document.getElementById('lbl-productos').innerHTML = '<i data-lucide="package" class="w-4 h-4 text-brand-primary"></i> Items (Venta)';
+                document.getElementById('txt-lbl-pagos').textContent = "Estructura de Ingreso";
+                document.getElementById('icon-pagos').className = "w-4 h-4 text-brand-success";
+                lblTotCalc.textContent = "Total a Cobrar";
+                lblTotPag.textContent = "Total Recibido";
+                txtTotCalc.className = "font-mono text-2xl font-bold text-brand-primary drop-shadow-[0_0_8px_rgba(0,245,255,0.5)]";
                 seccionLogistica.classList.remove('hidden');
-                document.getElementById('label-tipo-abono').classList.add('hidden'); // Ocultar abono visual
+                document.getElementById('label-tipo-abono').classList.add('hidden'); 
             } else if (tipo === 'Compra' || tipo === 'Gasto') {
-                document.getElementById('lbl-cliente').textContent = tipo === 'Compra' ? "Proveedor" : "Beneficiario o Descripción";
-                document.getElementById('lbl-productos').innerHTML = `<i data-lucide="${tipo==='Compra'?'package':'file-text'}" class="w-5 h-5 text-${tipo==='Compra'?'orange':'rose'}-500"></i> 1. Conceptos del ${tipo}`;
-                document.getElementById('txt-lbl-pagos').textContent = "2. Cuenta de Origen del Dinero (De dónde salió)";
-                document.getElementById('icon-pagos').className = "w-5 h-5 text-red-400";
-                document.getElementById('lbl-total-calc').textContent = `Total del ${tipo}`;
-                document.getElementById('lbl-total-pagado').textContent = "Total Egresado";
-                boxTotales.className = "bg-red-950 text-white p-5 rounded-xl flex flex-col md:flex-row justify-between items-center gap-6 shadow-inner border border-red-800 transition-colors duration-300";
+                const color = tipo === 'Compra' ? 'text-brand-warning' : 'text-brand-error';
+                document.getElementById('lbl-cliente').textContent = tipo === 'Compra' ? "Proveedor" : "Beneficiario / Concepto";
+                document.getElementById('lbl-productos').innerHTML = `<i data-lucide="${tipo==='Compra'?'package':'file-text'}" class="w-4 h-4 ${color}"></i> Conceptos (${tipo})`;
+                document.getElementById('txt-lbl-pagos').textContent = "Origen de Fondos (Egreso)";
+                document.getElementById('icon-pagos').className = "w-4 h-4 text-brand-error";
+                lblTotCalc.textContent = `Total (${tipo})`;
+                lblTotPag.textContent = "Total Egresado";
+                txtTotCalc.className = `font-mono text-2xl font-bold ${color}`;
                 
                 if(tipo === 'Gasto') seccionLogistica.classList.add('hidden');
                 else seccionLogistica.classList.remove('hidden');
                 document.getElementById('label-tipo-abono').classList.add('hidden');
             } else if (tipo === 'Abono') {
-                document.getElementById('label-tipo-abono').classList.remove('hidden'); // Mostrar solo si se forzó el click
-                document.getElementById('lbl-cliente').textContent = "Cliente que realiza el abono";
-                document.getElementById('lbl-productos').innerHTML = '<i data-lucide="check-circle" class="w-5 h-5 text-purple-500"></i> 1. Detalle del Abono';
-                document.getElementById('txt-lbl-pagos').textContent = "2. Cuenta Destino (A dónde ingresa el abono)";
-                document.getElementById('icon-pagos').className = "w-5 h-5 text-emerald-500";
-                document.getElementById('lbl-total-calc').textContent = "Total a Descontar de Cartera";
-                document.getElementById('lbl-total-pagado').textContent = "Dinero Ingresado";
-                boxTotales.className = "bg-purple-950 text-white p-5 rounded-xl flex flex-col md:flex-row justify-between items-center gap-6 shadow-inner border border-purple-800 transition-colors duration-300";
+                document.getElementById('label-tipo-abono').classList.remove('hidden'); 
+                document.getElementById('lbl-cliente').textContent = "Cliente (Deudor)";
+                document.getElementById('lbl-productos').innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 text-brand-secondary"></i> Abono a Cartera';
+                document.getElementById('txt-lbl-pagos').textContent = "Destino de Fondos";
+                document.getElementById('icon-pagos').className = "w-4 h-4 text-brand-success";
+                lblTotCalc.textContent = "Amortización CXC";
+                lblTotPag.textContent = "Capital Ingresado";
+                txtTotCalc.className = "font-mono text-2xl font-bold text-brand-secondary drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]";
                 seccionLogistica.classList.add('hidden');
             }
             lucide.createIcons();
@@ -871,11 +962,11 @@
             let esOtro = false;
             if (conceptoData && !Object.keys(diccionarioProductos).includes(conceptoData)) esOtro = true;
 
-            let opcionesHTML = `<option value="">Seleccionar Producto...</option>`;
+            let opcionesHTML = `<option value="">Select Item...</option>`;
             Object.keys(diccionarioProductos).sort().forEach(p => {
                 opcionesHTML += `<option value="${p}" ${conceptoData === p ? 'selected' : ''}>${p} - ${diccionarioProductos[p]}</option>`;
             });
-            opcionesHTML += `<option value="OTRO" class="font-bold text-blue-600" ${esOtro ? 'selected' : ''}>➕ OTRO (Escribir Manualmente)</option>`;
+            opcionesHTML += `<option value="OTRO" class="font-bold text-brand-primary" ${esOtro ? 'selected' : ''}>>> MANUAL INPUT <<</option>`;
 
             const cantidadVal = data ? data.cantidad : 1;
             const valorUnitarioVal = data ? data.valorUnitario : '';
@@ -884,9 +975,9 @@
             const esHades = currentUser && currentUser.email === HADES_EMAIL;
             const htmlOrigen = esHades ? `
                 <div class="w-full md:w-3/12">
-                    <label class="md:hidden text-xs font-bold text-slate-500 mb-1 block">Origen</label>
-                    <select class="input-origen w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded bg-slate-50 dark:bg-slate-700 outline-none text-sm dark:text-white">
-                        <option value="Ferco Farma" ${origenData === 'Ferco Farma' ? 'selected' : ''}>Ferco Farma</option>
+                    <label class="md:hidden text-[9px] font-mono text-brand-textSec mb-1 block uppercase tracking-widest">Origen</label>
+                    <select class="input-origen w-full p-2 border border-brand-border rounded-lg bg-brand-bg font-mono text-xs outline-none">
+                        <option value="Ferco Farma" ${origenData === 'Ferco Farma' ? 'selected' : ''}>Ferco</option>
                         <option value="Propio" ${origenData === 'Propio' ? 'selected' : ''}>Propio</option>
                     </select>
                 </div>
@@ -896,36 +987,36 @@
             const anchoCant = esHades ? 'md:w-2/12' : 'md:w-3/12';
 
             document.getElementById('productos-container').insertAdjacentHTML('beforeend', `
-                <div id="prod-${id}" class="flex flex-col md:flex-row gap-3 items-start md:items-center fade-in bg-white dark:bg-slate-800 p-4 md:p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm relative">
-                    ${id > 1 ? `<button onclick="eliminarFila('prod-${id}')" class="md:hidden absolute top-2 right-2 text-red-500 bg-red-50 dark:bg-red-900/30 p-2 rounded-full"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+                <div id="prod-${id}" class="flex flex-col md:flex-row gap-3 items-start md:items-center fade-in bg-brand-bg p-4 md:p-3 rounded-xl border border-brand-border relative">
+                    ${id > 1 ? `<button onclick="eliminarFila('prod-${id}')" class="md:hidden absolute top-2 right-2 text-brand-error bg-brand-error/10 p-2 rounded-lg border border-brand-error/30"><i data-lucide="trash-2" class="w-3 h-3"></i></button>` : ''}
                     
                     <div class="w-full ${anchoConcepto}">
-                        <label class="md:hidden text-xs font-bold text-slate-500 mb-1 block">Concepto</label>
-                        <select class="input-prod-select w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded bg-slate-50 dark:bg-slate-700 outline-none text-sm dark:text-white" onchange="verificarOtroProducto(this, ${id})">
+                        <label class="md:hidden text-[9px] font-mono text-brand-textSec mb-1 block uppercase tracking-widest">Concepto</label>
+                        <select class="input-prod-select w-full p-2.5 border border-brand-border rounded-lg bg-brand-panel font-mono text-xs outline-none" onchange="verificarOtroProducto(this, ${id})">
                             ${opcionesHTML}
                         </select>
-                        <input type="text" id="prod-manual-${id}" class="input-prod-manual ${esOtro ? '' : 'hidden'} w-full mt-2 p-2.5 border border-indigo-300 dark:border-indigo-600 rounded bg-indigo-50 dark:bg-indigo-900/30 outline-none text-sm dark:text-white" placeholder="Descripción..." value="${esOtro ? conceptoData : ''}" oninput="calcularTotales()">
+                        <input type="text" id="prod-manual-${id}" class="input-prod-manual ${esOtro ? '' : 'hidden'} w-full mt-2 p-2.5 border border-brand-primary/50 rounded-lg bg-brand-primary/5 font-mono text-xs outline-none placeholder-brand-textSec/50" placeholder="> str_desc..." value="${esOtro ? conceptoData : ''}" oninput="calcularTotales()">
                     </div>
                     
                     ${htmlOrigen}
 
                     <div class="w-full ${anchoCant} flex gap-3 md:block">
                         <div class="w-1/2 md:w-full">
-                            <label class="md:hidden text-xs font-bold text-slate-500 mb-1 block">Cant.</label>
-                            <input type="number" class="input-cant w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded bg-transparent outline-none text-sm text-center dark:text-white" value="${cantidadVal}" min="1" oninput="calcularTotales()">
+                            <label class="md:hidden text-[9px] font-mono text-brand-textSec mb-1 block uppercase tracking-widest">QTY</label>
+                            <input type="number" class="input-cant w-full p-2.5 border border-brand-border rounded-lg bg-brand-panel font-mono text-sm text-center outline-none" value="${cantidadVal}" min="1" oninput="calcularTotales()">
                         </div>
                     </div>
 
                     <div class="w-full md:w-3/12">
-                        <label class="md:hidden text-xs font-bold text-slate-500 mb-1 block">Valor Unit.</label>
+                        <label class="md:hidden text-[9px] font-mono text-brand-textSec mb-1 block uppercase tracking-widest">Unit. Price</label>
                         <div class="relative">
-                            <span class="absolute left-3 top-2.5 text-slate-400">$</span>
-                            <input type="number" class="input-val w-full p-2.5 pl-8 border border-slate-300 dark:border-slate-600 rounded bg-transparent outline-none text-sm dark:text-white" placeholder="0" value="${valorUnitarioVal}" oninput="calcularTotales()">
+                            <span class="absolute left-3 top-2.5 font-mono text-brand-textSec">$</span>
+                            <input type="number" class="input-val w-full p-2.5 pl-8 border border-brand-border rounded-lg bg-brand-panel font-mono text-sm outline-none" placeholder="0" value="${valorUnitarioVal}" oninput="calcularTotales()">
                         </div>
                     </div>
 
-                    <div class="hidden md:block w-1/12 text-center">
-                        ${id > 1 ? `<button onclick="eliminarFila('prod-${id}')" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>` : '<div class="w-9 h-9"></div>'}
+                    <div class="hidden md:flex w-1/12 justify-center">
+                        ${id > 1 ? `<button onclick="eliminarFila('prod-${id}')" class="text-brand-error hover:bg-brand-error/10 border border-transparent hover:border-brand-error/30 p-2 rounded-lg transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : '<div class="w-9 h-9"></div>'}
                     </div>
                 </div>
             `);
@@ -936,7 +1027,7 @@
                 const sel = document.querySelector(`#prod-${id} .input-prod-select`);
                 sel.value = 'OTRO';
                 verificarOtroProducto(sel, id);
-                if (tipo === 'Abono') document.getElementById(`prod-manual-${id}`).value = "Abono a Cartera";
+                if (tipo === 'Abono') document.getElementById(`prod-manual-${id}`).value = "Abono Cartera";
             }
         };
 
@@ -959,40 +1050,40 @@
             const montoVal = data?.monto !== undefined ? data.monto : '';
 
             document.getElementById('pagos-container').insertAdjacentHTML('beforeend', `
-                <div id="pago-${id}" class="flex flex-col md:flex-row gap-3 items-start md:items-center fade-in bg-white dark:bg-slate-800 p-4 md:p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm relative">
-                    ${id > 1 ? `<button onclick="eliminarFila('pago-${id}')" class="md:hidden absolute top-2 right-2 text-red-500 bg-red-50 dark:bg-red-900/30 p-2 rounded-full"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+                <div id="pago-${id}" class="flex flex-col md:flex-row gap-3 items-start md:items-center fade-in bg-brand-bg p-4 md:p-3 rounded-xl border border-brand-border relative">
+                    ${id > 1 ? `<button onclick="eliminarFila('pago-${id}')" class="md:hidden absolute top-2 right-2 text-brand-error bg-brand-error/10 p-2 rounded-lg border border-brand-error/30"><i data-lucide="trash-2" class="w-3 h-3"></i></button>` : ''}
                     <div class="w-full md:w-4/12">
-                        <label class="md:hidden text-xs font-bold text-slate-500 mb-1 block">Medio</label>
-                        <select class="input-metodo w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded bg-slate-50 dark:bg-slate-700 outline-none text-sm dark:text-white">
-                            <option value="">Medio...</option>
+                        <label class="md:hidden text-[9px] font-mono text-brand-textSec mb-1 block uppercase tracking-widest">Protocol</label>
+                        <select class="input-metodo w-full p-2.5 border border-brand-border rounded-lg bg-brand-panel font-mono text-xs outline-none">
+                            <option value="">Metodo...</option>
                             <option value="Transferencia" ${metodoVal === 'Transferencia' ? 'selected' : ''}>Transferencia</option>
                             <option value="Efectivo" ${metodoVal === 'Efectivo' ? 'selected' : ''}>Efectivo</option>
-                            <option value="Credito" ${metodoVal === 'Credito' ? 'selected' : ''}>Crédito</option>
+                            <option value="Credito" ${metodoVal === 'Credito' ? 'selected' : ''}>Crédito (CxC)</option>
                             <option value="Cruce" ${metodoVal === 'Cruce' ? 'selected' : ''}>Cruce</option>
                             <option value="Bold" ${metodoVal === 'Bold' ? 'selected' : ''}>Bold</option>
                         </select>
                     </div>
                     <div class="w-full md:w-4/12">
-                        <label class="md:hidden text-xs font-bold text-slate-500 mb-1 block">Cuenta/Caja</label>
-                        <select class="input-cuenta w-full p-2.5 border border-slate-300 dark:border-slate-600 rounded bg-slate-50 dark:bg-slate-700 outline-none text-sm dark:text-white">
-                            <option value="">Cuenta...</option>
+                        <label class="md:hidden text-[9px] font-mono text-brand-textSec mb-1 block uppercase tracking-widest">Target</label>
+                        <select class="input-cuenta w-full p-2.5 border border-brand-border rounded-lg bg-brand-panel font-mono text-xs outline-none">
+                            <option value="">Caja/Cta...</option>
                             <option value="Cris" ${cuentaVal === 'Cris' ? 'selected' : ''}>Cris</option>
                             <option value="JF" ${cuentaVal === 'JF' ? 'selected' : ''}>JF</option>
                             <option value="Jhon" ${cuentaVal === 'Jhon' ? 'selected' : ''}>Jhon</option>
                             <option value="Bodega" ${cuentaVal === 'Bodega' ? 'selected' : ''}>Bodega</option>
                             <option value="Hades" ${cuentaVal === 'Hades' ? 'selected' : ''}>Hades</option>
-                            <option value="General" ${cuentaVal === 'General' ? 'selected' : ''}>Caja General</option>
+                            <option value="General" ${cuentaVal === 'General' ? 'selected' : ''}>General</option>
                         </select>
                     </div>
                     <div class="w-full md:w-3/12">
-                        <label class="md:hidden text-xs font-bold text-slate-500 mb-1 block">Monto</label>
+                        <label class="md:hidden text-[9px] font-mono text-brand-textSec mb-1 block uppercase tracking-widest">Amount</label>
                         <div class="relative">
-                            <span class="absolute left-3 top-2.5 text-slate-400">$</span>
-                            <input type="number" class="input-monto w-full p-2.5 pl-8 border border-slate-300 dark:border-slate-600 rounded bg-transparent outline-none text-sm dark:text-white" placeholder="0" value="${montoVal}" oninput="calcularTotales()">
+                            <span class="absolute left-3 top-2.5 font-mono text-brand-textSec">$</span>
+                            <input type="number" class="input-monto w-full p-2.5 pl-8 border border-brand-border rounded-lg bg-brand-panel font-mono text-sm outline-none text-brand-success" placeholder="0" value="${montoVal}" oninput="calcularTotales()">
                         </div>
                     </div>
-                    <div class="hidden md:block w-1/12 text-center">
-                        ${id > 1 ? `<button onclick="eliminarFila('pago-${id}')" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></button>` : '<div class="w-9 h-9"></div>'}
+                    <div class="hidden md:flex w-1/12 justify-center">
+                        ${id > 1 ? `<button onclick="eliminarFila('pago-${id}')" class="text-brand-error hover:bg-brand-error/10 border border-transparent hover:border-brand-error/30 p-2 rounded-lg transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : '<div class="w-9 h-9"></div>'}
                     </div>
                 </div>
             `);
@@ -1060,7 +1151,7 @@
             const notas = document.getElementById('notas').value.trim();
             const tipoMovimiento = document.querySelector('input[name="tipoMovimiento"]:checked').value;
             
-            if (!cliente) return alert("Ingresa Cliente, Proveedor o Beneficiario.");
+            if (!cliente) return alert("DATA_ERR: Required FIELD_CLIENT is empty.");
 
             const productos = [];
             document.querySelectorAll('#productos-container > div').forEach(fila => {
@@ -1101,7 +1192,7 @@
                 if (metodo && cuenta && monto >= 0) { pagos.push({ metodo, cuenta, monto }); totalVenta += monto; }
             });
 
-            if (pagos.length === 0 || productos.length === 0) return alert("Completa conceptos y montos de caja.");
+            if (pagos.length === 0 || productos.length === 0) return alert("DATA_ERR: Items or Payout config missing.");
 
             const docData = {
                 tipoMovimiento,
@@ -1111,11 +1202,11 @@
 
             try {
                 const btn = document.getElementById('btn-guardar');
-                btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Procesando...';
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> PUSHING...';
                 
                 if (ventaEditandoId) {
                     await updateDoc(doc(db, "ventas", ventaEditandoId), { ...docData, modificadoPor: currentUser.email, fechaModificacion: Date.now() });
-                    alert("✅ Actualizado correctamente.");
+                    alert("SYS_MSG: Block Updated.");
                     cancelarEdicion();
                 } else {
                     await addDoc(collection(db, "ventas"), docData);
@@ -1128,19 +1219,18 @@
                     agregarFilaProducto(); agregarFilaPago();
                     calcularTotales();
                 }
-                btn.innerHTML = '<i data-lucide="save" class="w-5 h-5"></i> Registrar Movimiento';
+                btn.innerHTML = '<i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">Ejecutar</span>';
                 lucide.createIcons();
                 
                 if (currentUser) calcularDashboard();
 
-            } catch (e) { alert("Error de Permisos al guardar en la base de datos."); }
+            } catch (e) { alert("SYS_ERR: DB_WRITE_DENIED"); }
         };
 
         // ==========================================
-        // LÍNEA DE TIEMPO (SOLO LECTURA, 5 ITEMS, CON COLORES POR USUARIO)
+        // LÍNEA DE TIEMPO (Solo 5 items, Colores Cyberpunk)
         // ==========================================
         function cargarVentasFirebase() {
-            // Traemos los últimos 20 por si hay filtros de Hades que salten registros, aseguramos 5 visuales.
             const q = query(collection(db, "ventas"), orderBy("timestamp", "desc"), limit(20));
             onSnapshot(q, (snapshot) => {
                 const cont = document.getElementById('lista-ventas');
@@ -1158,55 +1248,56 @@
                     const tipo = v.tipoMovimiento || 'Venta';
                     const creadorUser = (v.creadoPor || "App").toLowerCase();
                     
-                    // Colores por Usuario
-                    let userBorder = 'border-slate-200 dark:border-slate-700';
-                    let userBg = 'bg-white dark:bg-slate-800';
+                    // Colores por Usuario (Cyberpunk Palette)
+                    let userBorder = 'border-brand-border';
+                    let userBg = 'bg-brand-bg';
                     
                     if (creadorUser === ADMIN_EMAIL) {
-                        userBorder = 'border-blue-300 dark:border-blue-800/50';
-                        userBg = 'bg-blue-50/30 dark:bg-blue-900/10';
+                        userBorder = 'border-brand-primary/40';
+                        userBg = 'bg-brand-primary/5';
                     } else if (creadorUser === SUPERVISOR_EMAIL) {
-                        userBorder = 'border-emerald-300 dark:border-emerald-800/50';
-                        userBg = 'bg-emerald-50/30 dark:bg-emerald-900/10';
+                        userBorder = 'border-brand-success/40';
+                        userBg = 'bg-brand-success/5';
                     } else if (creadorUser === HADES_EMAIL) {
-                        userBorder = 'border-purple-300 dark:border-purple-800/50';
-                        userBg = 'bg-purple-50/30 dark:bg-purple-900/10';
+                        userBorder = 'border-brand-secondary/40';
+                        userBg = 'bg-brand-secondary/5';
                     }
                     
                     // Badge del tipo
-                    let tagClass = "bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300";
-                    if (tipo === 'Venta') tagClass = "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300";
-                    else if (tipo === 'Compra') tagClass = "bg-orange-200 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300";
-                    else if (tipo === 'Gasto') tagClass = "bg-rose-200 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300";
-                    else if (tipo === 'Abono') tagClass = "bg-purple-200 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300";
+                    let tagClass = "bg-brand-card text-brand-textSec border border-brand-border";
+                    let sign = "";
+                    if (tipo === 'Venta') { tagClass = "bg-brand-primary/10 text-brand-primary border border-brand-primary/30"; }
+                    else if (tipo === 'Compra') { tagClass = "bg-brand-warning/10 text-brand-warning border border-brand-warning/30"; sign = "-"; }
+                    else if (tipo === 'Gasto') { tagClass = "bg-brand-error/10 text-brand-error border border-brand-error/30"; sign = "-"; }
+                    else if (tipo === 'Abono') { tagClass = "bg-brand-secondary/10 text-brand-secondary border border-brand-secondary/30"; }
 
                     // Lista de Productos (Cantidad x Nombre)
-                    let prodsHtml = '<ul class="text-[11px] text-slate-500 dark:text-slate-400 mt-2 list-disc list-inside leading-tight">';
+                    let prodsHtml = '<ul class="text-[10px] font-mono text-brand-textSec mt-3 space-y-1">';
                     (v.productos || []).forEach(p => {
-                        prodsHtml += `<li><b>${p.cantidad}</b> x ${p.concepto}</li>`;
+                        prodsHtml += `<li class="flex items-center gap-2"><div class="w-1 h-1 rounded-full bg-brand-border"></div><b>${p.cantidad}</b> x ${p.concepto}</li>`;
                     });
                     prodsHtml += '</ul>';
 
                     cont.insertAdjacentHTML('beforeend', `
-                        <div class="${userBg} p-4 rounded-xl border ${userBorder} flex flex-col gap-1 transition-colors">
+                        <div class="${userBg} p-5 rounded-xl border ${userBorder} flex flex-col gap-1 transition-colors shadow-sm">
                             <div class="flex justify-between items-start">
                                 <div>
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${tagClass}">${tipo}</span>
-                                        <p class="text-[10px] text-slate-400 dark:text-slate-500 font-mono flex items-center gap-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded uppercase tracking-widest ${tagClass}">${tipo}</span>
+                                        <p class="text-[9px] text-brand-textSec opacity-70 font-mono flex items-center gap-1 uppercase tracking-widest">
                                             <i data-lucide="user" class="w-3 h-3"></i> ${creadorUser.split('@')[0]}
                                         </p>
                                     </div>
-                                    <p class="font-bold text-slate-800 dark:text-slate-200 text-sm line-clamp-1">${v.cliente || 'Sin Nombre'}</p>
+                                    <p class="font-display font-bold text-brand-text text-sm line-clamp-1 tracking-wide uppercase">${v.cliente || 'Desconocido'}</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="font-bold text-slate-700 dark:text-slate-300 text-md">${(tipo === 'Gasto' || tipo === 'Compra') ? '-' : ''}${formatoMoneda.format(v.totalVenta || 0)}</p>
+                                    <p class="font-mono font-bold text-brand-text text-md">${sign}${formatoMoneda.format(v.totalVenta || 0)}</p>
                                 </div>
                             </div>
                             ${prodsHtml}
                         </div>`);
                 });
-                if (docCount === 0) cont.innerHTML = '<p class="text-sm text-slate-500 text-center py-4">No hay movimientos recientes.</p>';
+                if (docCount === 0) cont.innerHTML = '<p class="text-xs font-mono text-brand-textSec text-center py-4 uppercase tracking-widest">NO_DATA</p>';
                 lucide.createIcons();
             });
         }
@@ -1218,13 +1309,13 @@
             const id = ventaEditandoId; 
             const mov = window.movimientosCache.find(m => m.id === id);
             
-            if (!mov) return alert("❌ Error: No se encontraron los datos para editar.");
+            if (!mov) return alert("SYS_ERR: BLOCK_NOT_FOUND.");
 
             const clienteActual = document.getElementById('cliente').value.trim();
             const totalActual = document.getElementById('txt-total-cobrar').textContent;
             
             if (clienteActual !== '' || totalActual !== '$ 0') {
-                if(!confirm("⚠️ Tienes un registro en progreso en el formulario. ¿Descartarlo para editar este movimiento antiguo?")) {
+                if(!confirm("SYS_WARN: Unsaved changes in form. Overwrite?")) {
                     return; 
                 }
             }
@@ -1234,12 +1325,11 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
             const formContainer = document.getElementById('form-container-main');
-            formContainer.classList.add('ring-2', 'ring-orange-500', 'bg-orange-50/30', 'dark:bg-orange-900/10');
+            formContainer.classList.add('ring-1', 'ring-brand-warning', 'bg-brand-warning/5', 'shadow-[0_0_30px_rgba(255,213,0,0.1)]');
 
-            document.getElementById('form-title').innerHTML = '<i data-lucide="edit-3" class="w-6 h-6 text-orange-500"></i> Editando Movimiento';
-            document.getElementById('txt-btn-guardar').textContent = 'Actualizar Movimiento';
-            document.getElementById('btn-guardar').classList.replace('bg-blue-600', 'bg-orange-600');
-            document.getElementById('btn-guardar').classList.replace('hover:bg-blue-500', 'hover:bg-orange-500');
+            document.getElementById('form-title').innerHTML = '<i data-lucide="edit-3" class="w-5 h-5 text-brand-warning"></i> MODIFICANDO BLOQUE';
+            document.getElementById('txt-btn-guardar').textContent = 'UPDATE STATE';
+            document.getElementById('btn-guardar').className = "w-full md:w-auto bg-brand-warning hover:bg-brand-warning/80 text-brand-bg px-8 py-3 rounded-lg font-display font-bold transition-all shadow-[0_0_15px_rgba(255,213,0,0.3)] hover:shadow-[0_0_25px_rgba(255,213,0,0.5)] flex items-center justify-center gap-2 tracking-wide uppercase text-sm";
             document.getElementById('btn-cancelar-edicion').classList.remove('hidden');
 
             const tipo = mov.tipoMovimiento || 'Venta';
@@ -1278,16 +1368,15 @@
             ventaEditandoId = null;
             
             const formContainer = document.getElementById('form-container-main');
-            formContainer.classList.remove('ring-2', 'ring-orange-500', 'bg-orange-50/30', 'dark:bg-orange-900/10');
+            formContainer.classList.remove('ring-1', 'ring-brand-warning', 'bg-brand-warning/5', 'shadow-[0_0_30px_rgba(255,213,0,0.1)]');
 
             document.getElementById('label-tipo-abono').classList.add('hidden');
             document.querySelector('input[name="tipoMovimiento"][value="Venta"]').checked = true;
             manejarCambioTipo();
             
-            document.getElementById('form-title').innerHTML = '<i data-lucide="file-plus" class="w-6 h-6 text-blue-600 dark:text-blue-400"></i> Nuevo Movimiento Contable';
-            document.getElementById('txt-btn-guardar').textContent = 'Registrar Movimiento';
-            document.getElementById('btn-guardar').classList.replace('bg-orange-600', 'bg-blue-600');
-            document.getElementById('btn-guardar').classList.replace('hover:bg-orange-500', 'hover:bg-blue-500');
+            document.getElementById('form-title').innerHTML = '<i data-lucide="plus-square" class="w-5 h-5 text-brand-primary"></i> Nuevo Registro Contable';
+            document.getElementById('txt-btn-guardar').textContent = 'Ejecutar';
+            document.getElementById('btn-guardar').className = "w-full md:w-auto bg-brand-primary hover:bg-brand-primaryHover text-brand-bg px-8 py-3 rounded-lg font-display font-bold transition-all shadow-[0_0_15px_rgba(0,245,255,0.3)] hover:shadow-[0_0_25px_rgba(0,245,255,0.5)] flex items-center justify-center gap-2 tracking-wide uppercase text-sm";
             document.getElementById('btn-cancelar-edicion').classList.add('hidden');
             
             document.getElementById('cliente').value = '';
@@ -1302,31 +1391,91 @@
         };
 
         window.eliminarVenta = async () => {
-            if (confirm("⚠️ ¿Eliminar definitivamente este movimiento de la base de datos?")) {
+            if (confirm("CRITICAL_WARN: Permanently delete this block?")) {
                 try { 
                     await deleteDoc(doc(db, "ventas", ventaEditandoId)); 
                     cerrarModalDetalle();
-                    abrirModalReporte(); // Recargar reporte para ver el cambio
+                    abrirModalReporte(); 
                     if (currentUser) calcularDashboard(); 
-                } catch (e) { alert("Error de permisos. No puedes borrar este registro."); }
+                } catch (e) { alert("SYS_ERR: DELETE_DENIED."); }
             }
         };
 
-        window.prepararAbono = (clienteDeudor) => {
-            cerrarModalCreditos();
-            document.getElementById('label-tipo-abono').classList.remove('hidden');
-            document.querySelector('input[name="tipoMovimiento"][value="Abono"]').checked = true;
-            manejarCambioTipo();
-            document.getElementById('cliente').value = clienteDeudor;
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            setTimeout(() => {
-                const valInput = document.querySelector('.input-val');
-                if(valInput) valInput.focus();
-            }, 100);
+        // ==========================================
+        // LÓGICA DE ABONO RÁPIDO
+        // ==========================================
+        let abonoRapidoClienteActual = '';
+        let abonoRapidoDeudaActual = 0;
+
+        window.abrirModalAbonoRapido = (cliente, deuda) => {
+            abonoRapidoClienteActual = cliente;
+            abonoRapidoDeudaActual = deuda;
+            
+            document.getElementById('abono-rapido-cliente').textContent = cliente;
+            document.getElementById('abono-rapido-deuda').textContent = formatoMoneda.format(deuda);
+            document.getElementById('abono-rapido-monto').value = '';
+            document.getElementById('abono-rapido-metodo').value = '';
+            document.getElementById('abono-rapido-cuenta').value = '';
+            
+            document.getElementById('modal-abono-rapido').style.display = 'flex';
+        };
+
+        window.cerrarModalAbonoRapido = () => {
+            document.getElementById('modal-abono-rapido').style.display = 'none';
+        };
+
+        window.procesarAbonoRapido = async () => {
+            const monto = parseFloat(document.getElementById('abono-rapido-monto').value) || 0;
+            const metodo = document.getElementById('abono-rapido-metodo').value;
+            const cuenta = document.getElementById('abono-rapido-cuenta').value;
+            
+            if (monto <= 0) return alert("SYS_ERR: Amount must be > 0.");
+            if (monto > abonoRapidoDeudaActual) {
+                if(!confirm(`SYS_WARN: Input (${formatoMoneda.format(monto)}) exceeds Debt (${formatoMoneda.format(abonoRapidoDeudaActual)}). Proceed?`)) {
+                    return;
+                }
+            }
+            if (!metodo) return alert("SYS_ERR: Select Protocol.");
+            if (!cuenta) return alert("SYS_ERR: Select Target.");
+            
+            const docData = {
+                tipoMovimiento: "Abono",
+                fecha: new Date().toISOString().split('T')[0],
+                cliente: abonoRapidoClienteActual,
+                notas: "SYS_GEN: Amortización rápida CxC",
+                productos: [{ 
+                    concepto: "Abono a Cartera", 
+                    esDiccionario: false, 
+                    origen: "Ferco Farma",
+                    cantidad: 1, 
+                    valorUnitario: monto, 
+                    total: monto 
+                }],
+                entrega: { medio: "N/A", encargado: "N/A", costo: 0 },
+                pagos: [{ metodo, cuenta, monto }],
+                totalVenta: monto,
+                creadoPor: currentUser.email, 
+                timestamp: Date.now()
+            };
+
+            const btn = document.getElementById('btn-procesar-abono');
+            const textOrig = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> PUSHING...';
+            
+            try {
+                await addDoc(collection(db, "ventas"), docData);
+                cerrarModalAbonoRapido();
+                if (currentUser) calcularDashboard();
+            } catch (e) { 
+                alert("SYS_ERR: DB_WRITE_DENIED."); 
+            } finally {
+                btn.innerHTML = textOrig;
+                lucide.createIcons();
+            }
         };
 
         // ==========================================
-        // DASHBOARD MULTI-TENANT
+        // DASHBOARD MULTI-TENANT (BLINDADO Y CONDICIONAL)
         // ==========================================
         window.calcularDashboard = async () => {
             try {
@@ -1349,7 +1498,7 @@
                     const esDeHades = data.creadoPor === HADES_EMAIL;
                     const totalMonto = data.totalVenta || 0; 
                     const pagosArray = data.pagos || []; 
-                    const cliente = data.cliente || "Sin Nombre";
+                    const cliente = data.cliente || "Desconocido";
 
                     if (tipo === 'Venta') {
                         totalVentasGlobal += totalMonto;
@@ -1371,13 +1520,14 @@
                         });
                     }
 
-                    // Sumar Totales de Domicilios Global
+                    // Sumar Totales de Domicilios Global (Admin Dashboard)
                     const costoEnvio = (data.entrega && data.entrega.costo) ? parseFloat(data.entrega.costo) : 0;
                     const encargado = data.entrega && data.entrega.encargado ? data.entrega.encargado : '';
                     if (costoEnvio > 0 && encargado && domisTotales[encargado] !== undefined) {
                         domisTotales[encargado] += costoEnvio;
                     }
 
+                    // Métricas de Hades
                     if (esDeHades) {
                         if (tipo === 'Venta') {
                             hadesVentas += totalMonto;
@@ -1419,7 +1569,7 @@
                     document.getElementById('dash-hades-creditos').textContent = formatoMoneda.format(totalCarteraHadesActiva);
                     document.getElementById('dash-hades-domis').textContent = formatoMoneda.format(hadesDeudaDomis);
                     
-                    if(Object.keys(deudoresActivosHades).length === 0) listaDeudoresHTML.innerHTML = '<p class="text-sm text-slate-500">No tienes cartera pendiente. ¡Excelente!</p>';
+                    if(Object.keys(deudoresActivosHades).length === 0) listaDeudoresHTML.innerHTML = '<p class="text-[10px] font-mono uppercase tracking-widest text-brand-textSec">NO_DATA</p>';
                     for (const [cliente, deuda] of Object.entries(deudoresActivosHades)) {
                         listaDeudoresHTML.insertAdjacentHTML('beforeend', getDeudorCardHTML(cliente, deuda));
                     }
@@ -1434,42 +1584,42 @@
                         const el = document.getElementById(`dash-${cuenta.toLowerCase()}`);
                         if(el) {
                             el.textContent = formatoMoneda.format(val);
-                            el.className = `text-sm font-bold ${val < 0 ? 'text-red-500' : 'text-slate-700 dark:text-slate-200'}`;
+                            el.className = `font-mono text-sm font-bold ${val < 0 ? 'text-brand-error' : 'text-brand-text'}`;
                         }
                     });
 
-                    // Renderizar Tarjetas de Domiciliarios
+                    // Tarjetas de Domiciliarios (Admin/JF)
                     const divDomisGlobal = document.getElementById('div-costos-domis-global');
                     divDomisGlobal.innerHTML = '';
                     for (const [encargado, total] of Object.entries(domisTotales)) {
                         const esApp = encargado === 'Delivery App';
-                        const colorClass = esApp ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-200';
-                        const bgClass = esApp ? 'bg-indigo-50 dark:bg-indigo-900/10 border-indigo-100 dark:border-indigo-800/30' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700';
+                        const colorClass = esApp ? 'text-brand-accent' : 'text-brand-text';
+                        const bgClass = esApp ? 'bg-brand-accent/5 border border-brand-accent/20' : 'bg-brand-card border border-brand-border';
                         divDomisGlobal.insertAdjacentHTML('beforeend', `
-                            <div class="${bgClass} p-2 rounded border">
-                                <p class="text-[10px] text-slate-500 font-bold">${encargado}</p>
-                                <p class="text-sm font-bold ${colorClass}">${formatoMoneda.format(total)}</p>
+                            <div class="${bgClass} p-3 rounded-lg">
+                                <p class="font-mono text-[9px] uppercase tracking-widest text-brand-textSec mb-1">${encargado}</p>
+                                <p class="font-mono text-sm font-bold ${colorClass}">${formatoMoneda.format(total)}</p>
                             </div>
                         `);
                     }
 
-                    if(Object.keys(deudoresActivosGlobales).length === 0) listaDeudoresHTML.innerHTML = '<p class="text-sm text-slate-500">La empresa no tiene cartera pendiente.</p>';
+                    if(Object.keys(deudoresActivosGlobales).length === 0) listaDeudoresHTML.innerHTML = '<p class="text-[10px] font-mono uppercase tracking-widest text-brand-textSec">NO_DATA</p>';
                     for (const [cliente, deuda] of Object.entries(deudoresActivosGlobales)) {
                         listaDeudoresHTML.insertAdjacentHTML('beforeend', getDeudorCardHTML(cliente, deuda));
                     }
                 }
                 lucide.createIcons();
-            } catch (error) { console.error("Error cargando Dashboard:", error); }
+            } catch (error) { console.error(error); }
         };
 
         function getDeudorCardHTML(cliente, deuda) {
             return `
-                <div class="flex justify-between items-center p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm">
-                    <span class="font-bold text-slate-700 dark:text-slate-300 uppercase">${cliente}</span>
+                <div class="flex justify-between items-center p-3 bg-brand-card border border-brand-border rounded-lg shadow-sm">
+                    <span class="font-display font-bold text-brand-text uppercase text-sm tracking-wide">${cliente}</span>
                     <div class="flex items-center gap-4">
-                        <span class="font-bold text-purple-600 dark:text-purple-400">${formatoMoneda.format(deuda)}</span>
-                        <button onclick="abrirModalAbonoRapido('${cliente}', ${deuda})" class="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-3 py-1.5 rounded text-xs font-bold hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors flex items-center gap-1 shadow-sm">
-                            <i data-lucide="hand-coins" class="w-3 h-3"></i> Abonar
+                        <span class="font-mono font-bold text-brand-secondary">${formatoMoneda.format(deuda)}</span>
+                        <button onclick="abrirModalAbonoRapido('${cliente}', ${deuda})" class="bg-brand-secondary/10 border border-brand-secondary hover:bg-brand-secondary hover:text-brand-bg text-brand-secondary px-3 py-1.5 rounded font-mono text-[9px] uppercase font-bold tracking-widest transition-all flex items-center gap-1">
+                            <i data-lucide="hand-coins" class="w-3 h-3"></i> Pay
                         </button>
                     </div>
                 </div>
@@ -1480,89 +1630,13 @@
         window.cerrarModalCreditos = () => { document.getElementById('modal-creditos').style.display = 'none'; };
 
         // ==========================================
-        // LÓGICA DE ABONO RÁPIDO
-        // ==========================================
-        let abonoRapidoClienteActual = '';
-        let abonoRapidoDeudaActual = 0;
-
-        window.abrirModalAbonoRapido = (cliente, deuda) => {
-            abonoRapidoClienteActual = cliente;
-            abonoRapidoDeudaActual = deuda;
-            
-            document.getElementById('abono-rapido-cliente').textContent = cliente;
-            document.getElementById('abono-rapido-deuda').textContent = formatoMoneda.format(deuda);
-            document.getElementById('abono-rapido-monto').value = '';
-            document.getElementById('abono-rapido-metodo').value = '';
-            document.getElementById('abono-rapido-cuenta').value = '';
-            
-            document.getElementById('modal-abono-rapido').style.display = 'flex';
-        };
-
-        window.cerrarModalAbonoRapido = () => {
-            document.getElementById('modal-abono-rapido').style.display = 'none';
-        };
-
-        window.procesarAbonoRapido = async () => {
-            const monto = parseFloat(document.getElementById('abono-rapido-monto').value) || 0;
-            const metodo = document.getElementById('abono-rapido-metodo').value;
-            const cuenta = document.getElementById('abono-rapido-cuenta').value;
-            
-            if (monto <= 0) return alert("El monto debe ser mayor a 0.");
-            if (monto > abonoRapidoDeudaActual) {
-                if(!confirm(`El monto ingresado (${formatoMoneda.format(monto)}) es mayor a la deuda total del cliente (${formatoMoneda.format(abonoRapidoDeudaActual)}). ¿Deseas continuar de todos modos?`)) {
-                    return;
-                }
-            }
-            if (!metodo) return alert("Selecciona un medio de pago.");
-            if (!cuenta) return alert("Selecciona una cuenta destino.");
-            
-            const docData = {
-                tipoMovimiento: "Abono",
-                fecha: new Date().toISOString().split('T')[0],
-                cliente: abonoRapidoClienteActual,
-                notas: "Abono rápido registrado desde el Gestor de Cartera",
-                productos: [{ 
-                    concepto: "Abono a Cartera", 
-                    esDiccionario: false, 
-                    origen: "Ferco Farma",
-                    cantidad: 1, 
-                    valorUnitario: monto, 
-                    total: monto 
-                }],
-                entrega: { medio: "N/A", encargado: "N/A", costo: 0 },
-                pagos: [{ metodo, cuenta, monto }],
-                totalVenta: monto,
-                creadoPor: currentUser.email, 
-                timestamp: Date.now()
-            };
-
-            const btn = document.getElementById('btn-procesar-abono');
-            const textOrig = btn.innerHTML;
-            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Procesando...';
-            
-            try {
-                await addDoc(collection(db, "ventas"), docData);
-                cerrarModalAbonoRapido();
-                // Refresca todo automáticamente, si la deuda llega a 0, el cliente desaparecerá de la lista
-                if (currentUser) calcularDashboard();
-            } catch (e) { 
-                alert("Error de Permisos al guardar el abono."); 
-            } finally {
-                btn.innerHTML = textOrig;
-                lucide.createIcons();
-            }
-        };
-
-        // ==========================================
-        // REPORTE DIARIO GLOBAL (Solo Admin)
-        // ==========================================
         // REPORTE DIARIO Y DETALLES DE REGISTRO
         // ==========================================
         window.abrirModalReporte = async () => {
             const modal = document.getElementById('modal-reporte');
             const contenedor = document.getElementById('contenedor-reporte-dias');
             modal.style.display = 'flex';
-            contenedor.innerHTML = '<div class="flex justify-center py-12"><i data-lucide="loader-2" class="w-8 h-8 animate-spin text-blue-500"></i></div>';
+            contenedor.innerHTML = '<div class="flex justify-center py-12"><i data-lucide="loader-2" class="w-8 h-8 animate-spin text-brand-primary"></i></div>';
             lucide.createIcons();
             
             window.movimientosCache = []; 
@@ -1575,12 +1649,11 @@
                     const data = doc.data();
                     data.id = doc.id;
                     
-                    // Filtro de Roles para el Reporte
                     if (currentUser && currentUser.email === HADES_EMAIL && data.creadoPor !== HADES_EMAIL) return;
 
-                    window.movimientosCache.push(data); // Guardar en caché para abrir detalle rápido
+                    window.movimientosCache.push(data);
 
-                    const fecha = data.fecha || "Sin Fecha"; 
+                    const fecha = data.fecha || "UNTRACKED"; 
                     if (!dias[fecha]) dias[fecha] = { movimientos: [], ingresos: 0, egresos: 0 };
                     dias[fecha].movimientos.push(data);
                     
@@ -1590,77 +1663,77 @@
                     else if (tipo === 'Compra' || tipo === 'Gasto') dias[fecha].egresos += monto;
                 });
 
-                // Ordenar días y movimientos dentro de cada día (más reciente primero)
-                const fechasOrdenadas = Object.keys(dias).sort((a, b) => new Date(b) - new Date(a));
                 fechasOrdenadas.forEach(f => {
                     dias[f].movimientos.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
                 });
 
                 contenedor.innerHTML = '';
                 
+                const fechasOrdenadas = Object.keys(dias).sort((a, b) => new Date(b) - new Date(a));
+
                 if(fechasOrdenadas.length === 0) {
-                    contenedor.innerHTML = '<p class="text-center text-slate-500 mt-10">No hay movimientos registrados.</p>';
+                    contenedor.innerHTML = '<p class="text-center font-mono text-[10px] text-brand-textSec mt-10 tracking-widest uppercase">NO_DATA</p>';
                     return;
                 }
 
                 fechasOrdenadas.forEach(fechaStr => {
                     const diaData = dias[fechaStr];
                     const balance = diaData.ingresos - diaData.egresos;
-                    const colorBalance = balance >= 0 ? 'text-emerald-500' : 'text-rose-500';
+                    const colorBalance = balance >= 0 ? 'text-brand-success drop-shadow-[0_0_5px_rgba(0,255,157,0.5)]' : 'text-brand-error drop-shadow-[0_0_5px_rgba(255,59,92,0.5)]';
 
                     let filasHTML = '';
                     diaData.movimientos.forEach(mov => {
                         const tipo = mov.tipoMovimiento || 'Venta';
-                        let colorBadge = "bg-slate-200 text-slate-700";
-                        if (tipo === 'Venta') colorBadge = "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300";
-                        else if (tipo === 'Compra') colorBadge = "bg-orange-200 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300";
-                        else if (tipo === 'Gasto') colorBadge = "bg-rose-200 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300";
-                        else if (tipo === 'Abono') colorBadge = "bg-purple-200 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300";
+                        let colorBadge = "bg-brand-card text-brand-textSec border-brand-border";
+                        if (tipo === 'Venta') colorBadge = "bg-brand-primary/10 text-brand-primary border-brand-primary/30";
+                        else if (tipo === 'Compra') colorBadge = "bg-brand-warning/10 text-brand-warning border-brand-warning/30";
+                        else if (tipo === 'Gasto') colorBadge = "bg-brand-error/10 text-brand-error border-brand-error/30";
+                        else if (tipo === 'Abono') colorBadge = "bg-brand-secondary/10 text-brand-secondary border-brand-secondary/30";
 
                         const signo = tipo === 'Compra' || tipo === 'Gasto' ? '-' : '';
-                        const clienteNom = mov.cliente || "Sin Nombre";
-                        const creador = (mov.creadoPor || "App").split('@')[0];
+                        const clienteNom = mov.cliente || "Desconocido";
+                        const creador = (mov.creadoPor || "SYS").split('@')[0];
                         const montoF = mov.totalVenta || 0;
                         
                         filasHTML += `
-                            <div onclick="abrirDetalleRegistro('${mov.id}')" class="flex justify-between items-center py-3 border-b dark:border-slate-700/50 last:border-0 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/80 px-2 rounded transition-colors group">
-                                <div class="flex items-center gap-3">
-                                    <span class="text-[9px] font-bold px-2 py-0.5 rounded uppercase ${colorBadge} w-14 text-center">${tipo}</span>
+                            <div onclick="abrirDetalleRegistro('${mov.id}')" class="flex justify-between items-center py-4 border-b border-brand-border last:border-0 cursor-pointer hover:bg-brand-card px-3 rounded-lg transition-colors group">
+                                <div class="flex items-center gap-4">
+                                    <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded uppercase tracking-widest border ${colorBadge} w-16 text-center shadow-sm">${tipo}</span>
                                     <div>
-                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200 capitalize group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">${clienteNom}</p>
-                                        <p class="text-[10px] text-slate-400 flex items-center gap-1"><i data-lucide="user" class="w-3 h-3"></i> ${creador}</p>
+                                        <p class="font-display font-bold text-brand-text text-sm capitalize group-hover:text-brand-primary transition-colors tracking-wide">${clienteNom}</p>
+                                        <p class="text-[9px] font-mono text-brand-textSec opacity-70 flex items-center gap-1 uppercase tracking-widest"><i data-lucide="user" class="w-3 h-3"></i> ${creador}</p>
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-3">
-                                    <p class="text-sm font-bold text-slate-600 dark:text-slate-300">${signo}${formatoMoneda.format(montoF)}</p>
-                                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300 group-hover:text-blue-500 transition-colors"></i>
+                                    <p class="font-mono text-sm font-bold text-brand-text group-hover:text-brand-primary transition-colors">${signo}${formatoMoneda.format(montoF)}</p>
+                                    <i data-lucide="chevron-right" class="w-4 h-4 text-brand-textSec group-hover:text-brand-primary transition-colors"></i>
                                 </div>
                             </div>
                         `;
                     });
 
                     const tarjetaDia = `
-                        <div class="mb-6 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden fade-in">
-                            <div class="bg-slate-100 dark:bg-slate-750 p-4 border-b dark:border-slate-700 flex flex-col md:flex-row justify-between items-center gap-4">
-                                <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                    <i data-lucide="calendar" class="text-indigo-500 w-5 h-5"></i> ${fechaStr}
+                        <div class="mb-6 bg-brand-panel rounded-xl shadow-lg border border-brand-border overflow-hidden fade-in">
+                            <div class="bg-brand-card p-4 border-b border-brand-border flex flex-col md:flex-row justify-between items-center gap-4">
+                                <h3 class="text-md font-display font-bold text-brand-text flex items-center gap-2 tracking-widest uppercase">
+                                    <i data-lucide="calendar" class="text-brand-primary w-4 h-4"></i> ${fechaStr}
                                 </h3>
                                 <div class="flex gap-4">
                                     <div class="text-right hidden md:block">
-                                        <p class="text-[10px] uppercase text-slate-500 font-bold">Ingresos</p>
-                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-300">${formatoMoneda.format(diaData.ingresos)}</p>
+                                        <p class="font-mono text-[9px] uppercase tracking-widest text-brand-textSec opacity-80 mb-1">Inflow</p>
+                                        <p class="font-mono text-sm font-bold text-brand-text">${formatoMoneda.format(diaData.ingresos)}</p>
                                     </div>
                                     <div class="text-right hidden md:block">
-                                        <p class="text-[10px] uppercase text-slate-500 font-bold">Egresos</p>
-                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-300">${formatoMoneda.format(diaData.egresos)}</p>
+                                        <p class="font-mono text-[9px] uppercase tracking-widest text-brand-textSec opacity-80 mb-1">Outflow</p>
+                                        <p class="font-mono text-sm font-bold text-brand-text">${formatoMoneda.format(diaData.egresos)}</p>
                                     </div>
-                                    <div class="text-right bg-slate-200 dark:bg-slate-900 px-3 py-1 rounded">
-                                        <p class="text-[10px] uppercase text-slate-500 font-bold">Balance Diario</p>
-                                        <p class="text-md font-bold ${colorBalance}">${formatoMoneda.format(balance)}</p>
+                                    <div class="text-right bg-brand-bg px-4 py-2 rounded-lg border border-brand-border shadow-inner">
+                                        <p class="font-mono text-[9px] uppercase tracking-widest text-brand-textSec opacity-80 mb-1">Net Balance</p>
+                                        <p class="font-mono text-md font-bold ${colorBalance}">${formatoMoneda.format(balance)}</p>
                                     </div>
                                 </div>
                             </div>
-                            <div class="p-2 bg-slate-50 dark:bg-slate-800/30">
+                            <div class="p-2 bg-brand-bg/50">
                                 ${filasHTML}
                             </div>
                         </div>
@@ -1670,7 +1743,7 @@
                 lucide.createIcons();
 
             } catch (error) {
-                contenedor.innerHTML = `<div class="text-center py-10 text-red-500"><p class="font-bold">Error cargando el reporte. Revisa los permisos o tu conexión.</p></div>`;
+                contenedor.innerHTML = `<div class="text-center py-10 text-brand-error font-mono text-xs uppercase tracking-widest"><p>SYS_ERR: FETCH_FAILED.</p></div>`;
             }
         };
 
@@ -1681,18 +1754,18 @@
             const mov = window.movimientosCache.find(m => m.id === id);
             if (!mov) return;
 
-            ventaEditandoId = id; // Guardamos el ID global por si decide Editar/Borrar
+            ventaEditandoId = id; 
             
             const tipo = mov.tipoMovimiento || 'Venta';
-            let colorBadge = "bg-slate-200 text-slate-700";
-            if (tipo === 'Venta') colorBadge = "bg-blue-100 text-blue-700";
-            else if (tipo === 'Compra') colorBadge = "bg-orange-200 text-orange-800";
-            else if (tipo === 'Gasto') colorBadge = "bg-rose-200 text-rose-800";
-            else if (tipo === 'Abono') colorBadge = "bg-purple-200 text-purple-800";
+            let colorBadge = "bg-brand-card text-brand-textSec border-brand-border";
+            if (tipo === 'Venta') colorBadge = "bg-brand-primary/10 text-brand-primary border-brand-primary/30";
+            else if (tipo === 'Compra') colorBadge = "bg-brand-warning/10 text-brand-warning border-brand-warning/30";
+            else if (tipo === 'Gasto') colorBadge = "bg-brand-error/10 text-brand-error border-brand-error/30";
+            else if (tipo === 'Abono') colorBadge = "bg-brand-secondary/10 text-brand-secondary border-brand-secondary/30";
 
-            document.getElementById('detalle-cliente').textContent = mov.cliente || "Sin Nombre";
+            document.getElementById('detalle-cliente').textContent = mov.cliente || "Desconocido";
             document.getElementById('detalle-tipo-badge').textContent = tipo;
-            document.getElementById('detalle-tipo-badge').className = `inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded uppercase ${colorBadge}`;
+            document.getElementById('detalle-tipo-badge').className = `inline-block mt-2 text-[9px] font-mono font-bold px-2 py-0.5 rounded uppercase tracking-widest border ${colorBadge}`;
             document.getElementById('detalle-fecha-creador').innerHTML = `${mov.fecha} | <i data-lucide="user" class="inline w-3 h-3"></i> ${mov.creadoPor}`;
             document.getElementById('detalle-total').textContent = formatoMoneda.format(mov.totalVenta || 0);
 
@@ -1701,7 +1774,7 @@
             const txtNotas = document.getElementById('detalle-texto-notas');
             if (mov.notas && mov.notas.trim() !== '') {
                 boxNotas.classList.remove('hidden');
-                txtNotas.textContent = `"${mov.notas}"`;
+                txtNotas.textContent = `> ${mov.notas}`;
             } else {
                 boxNotas.classList.add('hidden');
             }
@@ -1710,11 +1783,11 @@
             const prodsUl = document.getElementById('detalle-lista-productos');
             prodsUl.innerHTML = '';
             (mov.productos || []).forEach(p => {
-                const origenTxt = p.origen === 'Propio' ? `<span class="text-[9px] bg-slate-200 dark:bg-slate-700 px-1 py-0.5 rounded ml-1 text-slate-500">Propio</span>` : '';
+                const origenTxt = p.origen === 'Propio' ? `<span class="text-[8px] bg-brand-primary/10 border border-brand-primary/30 px-1 py-0.5 rounded ml-2 text-brand-primary">PROPIO</span>` : '';
                 prodsUl.insertAdjacentHTML('beforeend', `
-                    <li class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700/50 pb-1 last:border-0">
-                        <span><b>${p.cantidad}</b> x ${p.concepto} ${origenTxt}</span>
-                        <span class="font-bold text-slate-800 dark:text-slate-200">${formatoMoneda.format(p.total || 0)}</span>
+                    <li class="flex justify-between items-center border-b border-brand-border pb-2 last:border-0 last:pb-0">
+                        <span class="flex items-center gap-2"><span class="text-brand-primary font-bold">${p.cantidad}</span> <span class="text-brand-textSec">x</span> <span class="text-brand-text">${p.concepto}</span> ${origenTxt}</span>
+                        <span class="font-bold text-brand-text">${formatoMoneda.format(p.total || 0)}</span>
                     </li>
                 `);
             });
@@ -1723,10 +1796,10 @@
             const logisDiv = document.getElementById('detalle-logistica');
             if (mov.entrega && mov.entrega.medio === 'Domi') {
                 logisDiv.classList.remove('hidden');
-                logisDiv.innerHTML = `Envío por: <b>${mov.entrega.encargado}</b> (Costo: ${formatoMoneda.format(mov.entrega.costo)})`;
+                logisDiv.innerHTML = `VÍA: <span class="text-brand-primary font-bold">${mov.entrega.encargado}</span> | FEE: <span class="text-brand-warning">${formatoMoneda.format(mov.entrega.costo)}</span>`;
             } else if (mov.entrega && mov.entrega.medio === 'Recoge') {
                 logisDiv.classList.remove('hidden');
-                logisDiv.innerHTML = `Método de entrega: <b>Recoge en Punto</b>`;
+                logisDiv.innerHTML = `VÍA: <span class="text-brand-success font-bold">RECOGE P.V.</span>`;
             } else {
                 logisDiv.classList.add('hidden');
             }
@@ -1736,9 +1809,9 @@
             pagosUl.innerHTML = '';
             (mov.pagos || []).forEach(p => {
                 pagosUl.insertAdjacentHTML('beforeend', `
-                    <li class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700/50 pb-1 last:border-0">
-                        <span>${p.metodo} <i data-lucide="arrow-right" class="inline w-3 h-3 mx-1 text-slate-400"></i> <b>${p.cuenta}</b></span>
-                        <span class="font-bold text-slate-800 dark:text-slate-200">${formatoMoneda.format(p.monto || 0)}</span>
+                    <li class="flex justify-between items-center border-b border-brand-border pb-2 last:border-0 last:pb-0">
+                        <span class="flex items-center text-brand-textSec">${p.metodo} <i data-lucide="arrow-right" class="w-3 h-3 mx-2 text-brand-border"></i> <span class="text-brand-success font-bold">${p.cuenta}</span></span>
+                        <span class="font-bold text-brand-text">${formatoMoneda.format(p.monto || 0)}</span>
                     </li>
                 `);
             });
@@ -1754,13 +1827,15 @@
             if (isAdmin || isOwner) {
                 btnEditar.style.display = 'flex';
                 btnBorrar.style.display = 'flex';
-                aviso.textContent = "Acciones permitidas";
+                aviso.textContent = "SYS_PERMISSIONS: GRANTED";
+                aviso.className = "text-[9px] font-mono uppercase tracking-widest text-brand-success";
                 btnEditar.onclick = () => cargarParaEditar();
                 btnBorrar.onclick = () => eliminarVenta();
             } else {
                 btnEditar.style.display = 'none';
                 btnBorrar.style.display = 'none';
-                aviso.textContent = "Solo visualización";
+                aviso.textContent = "SYS_PERMISSIONS: READ_ONLY";
+                aviso.className = "text-[9px] font-mono uppercase tracking-widest text-brand-error";
             }
 
             lucide.createIcons();
@@ -1774,11 +1849,11 @@
         window.exportarCSV = async () => {
             const fIn = document.getElementById('filtro-inicio').value;
             const fFin = document.getElementById('filtro-fin').value;
-            if(!fIn || !fFin) return alert("Rango inválido.");
+            if(!fIn || !fFin) return alert("SYS_ERR: Invalid Date Range.");
 
             const btn = event.currentTarget;
             const textOrig = btn.innerHTML;
-            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Generando...';
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> ...';
             
             try {
                 const snap = await getDocs(collection(db, "ventas"));
@@ -1788,12 +1863,12 @@
                     if(d.fecha >= fIn && d.fecha <= fFin) { d.id = doc.id; movs.push(d); }
                 });
 
-                if (movs.length === 0) { alert("Sin registros."); btn.innerHTML = textOrig; return; }
+                if (movs.length === 0) { alert("SYS_MSG: Array Empty."); btn.innerHTML = textOrig; return; }
 
                 let csv = "\uFEFFID_Movimiento,Fecha,Clasificacion,Cliente_Beneficiario,Notas,Tipo_Registro,Concepto_O_Cuenta,Nombre_Completo_Dict,Origen_Inventario,Encargado_Envio,Cantidad,Valor_Unitario,Total_Movimiento_Absoluto,Valor_Contable,Creado_Por\n";
 
                 movs.forEach(v => {
-                    const cli = v.cliente ? `"${v.cliente.replace(/"/g, '""')}"` : '"Sin Nombre"';
+                    const cli = v.cliente ? `"${v.cliente.replace(/"/g, '""')}"` : '"Desconocido"';
                     const notas = v.notas ? `"${v.notas.replace(/"/g, '""').replace(/\n/g, " ")}"` : '"N/A"';
                     const tipo = v.tipoMovimiento || 'Venta';
                     const clasificacion = (tipo === 'Venta' || tipo === 'Abono') ? 'INGRESO' : 'EGRESO';
@@ -1828,21 +1903,10 @@
 
                 const link = document.createElement("a");
                 link.setAttribute("href", URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })));
-                link.setAttribute("download", `Auditoria_FercoFarma_${fIn}_a_${fFin}.csv`);
+                link.setAttribute("download", `Dataset_FercoFarma_${fIn}_a_${fFin}.csv`);
                 document.body.appendChild(link); link.click(); document.body.removeChild(link);
-            } catch (e) { alert("Error exportando."); console.error(e); } finally { btn.innerHTML = textOrig; lucide.createIcons(); }
+            } catch (e) { alert("SYS_ERR: EXPORT_FAILED."); } finally { btn.innerHTML = textOrig; lucide.createIcons(); }
         };
-
-        // TEMA OSCURO
-        window.toggleTheme = () => {
-            const html = document.documentElement;
-            html.classList.toggle('dark');
-            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
-        };
-        function verificarTemaInicial() {
-            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
-            else document.documentElement.classList.remove('dark');
-        }
     </script>
 </body>
 </html>
