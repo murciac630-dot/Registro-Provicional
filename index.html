@@ -805,126 +805,126 @@
             measurementId: "G-KDFQN6DXC1"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
-        setPersistence(auth, inMemoryPersistence).catch(console.error);
-
-        // Roles y Accesos
-        const ADMIN_EMAIL = 'cris@fercofarma.com';
-        const SUPERVISOR_EMAIL = 'jf@fercofarma.com';
-        const HADES_EMAIL = 'hades@fercofarma.com';
-        const USUARIOS_PERMITIDOS = [ADMIN_EMAIL, SUPERVISOR_EMAIL, HADES_EMAIL];
-
-        // Variables Globales
-        let currentUser = null;
-        let ventaEditandoId = null;
-        let tipoMovimientoEditando = 'Venta'; // Guarda el tipo original al editar
-        let contadorProductos = 0;
-        let contadorPagos = 0;
-        let contadorProductosEdicion = 0;
-        let contadorPagosEdicion = 0;
-        let timerInactividad;
-        let fechaCorteDomisHades = 0; 
-        
-        window.movimientosCache = []; 
-        
-        const formatoMoneda = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
-        let diccionarioProductos = {}; 
+        window.cerrarModalDetalle = () => { document.getElementById('modal-detalle-registro').style.display = 'none'; };
 
         // ==========================================
-        // AUTENTICACIÓN Y ROLES
+        // IMPRESIÓN DE RECIBO TÉRMICO (RESTAURADA Y MEJORADA)
         // ==========================================
-        onAuthStateChanged(auth, async (user) => {
-            const loginScreen = document.getElementById('login-screen');
-            const appScreen = document.getElementById('app-screen');
-            const panelFinanciero = document.getElementById('panel-financiero');
-            const panelHades = document.getElementById('panel-hades');
-            const errorTxt = document.getElementById('login-error');
+        window.imprimirRecibo = () => {
+            const id = ventaEditandoId;
+            const mov = window.movimientosCache.find(m => m.id === id);
+            if(!mov) return alert("SYS_ERR: BLOCK_NOT_FOUND");
             
-            if (user) {
-                const correoIngresado = user.email.toLowerCase();
-
-                if (!USUARIOS_PERMITIDOS.includes(correoIngresado)) {
-                    signOut(auth); 
-                    errorTxt.textContent = "AUTH_FAIL: ACCESS_DENIED";
-                    errorTxt.classList.remove('hidden');
-                    return; 
-                }
-
-                currentUser = user;
-                document.getElementById('current-user-email').textContent = correoIngresado;
-                loginScreen.classList.add('hidden');
-                appScreen.classList.remove('hidden');
+            let subtotal = 0;
+            let itemsHtml = '';
+            
+            // Recorrer productos y traducir usando el Diccionario
+            (mov.productos || []).forEach(p => {
+                subtotal += (p.total || 0);
+                // Aquí el sistema lee el código y busca su nombre comercial
+                const nombreComercial = diccionarioProductos[p.concepto] || p.concepto;
                 
-                if (correoIngresado === ADMIN_EMAIL || correoIngresado === SUPERVISOR_EMAIL) {
-                    panelFinanciero.classList.remove('hidden');
-                    panelHades.classList.add('hidden');
-                    
-                    if(correoIngresado === SUPERVISOR_EMAIL) {
-                        document.getElementById('btn-liquidar-hades').classList.add('hidden');
-                    } else {
-                        document.getElementById('btn-liquidar-hades').classList.remove('hidden');
-                    }
-                } else if (correoIngresado === HADES_EMAIL) {
-                    panelFinanciero.classList.add('hidden');
-                    panelHades.classList.remove('hidden');
-                }
-
-                await cargarConfiguracionHades();
-                await cargarDiccionario(); 
-                inicializarApp();
-                iniciarTimerSeguridad();
-            } else {
-                currentUser = null;
-                loginScreen.classList.remove('hidden');
-                appScreen.classList.add('hidden');
-                panelFinanciero.classList.add('hidden');
-                panelHades.classList.add('hidden');
-                detenerTimerSeguridad();
-            }
-        });
-
-        window.iniciarSesion = (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value.trim().toLowerCase();
-            const pass = document.getElementById('login-pass').value;
-            const btn = document.getElementById('btn-login');
-            const errorTxt = document.getElementById('login-error');
-            
-            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Auth...';
-            errorTxt.classList.add('hidden');
-
-            signInWithEmailAndPassword(auth, email, pass).catch((error) => {
-                errorTxt.textContent = "AUTH_FAIL: INVALID_CREDS";
-                errorTxt.classList.remove('hidden');
-                btn.innerHTML = 'Ingresar al Sistema <i data-lucide="log-in" class="w-5 h-5"></i>';
-                lucide.createIcons();
+                itemsHtml += `
+                    <tr>
+                        <td style="padding: 4px 0; border-bottom: 1px dashed #ccc;">${p.cantidad}</td>
+                        <td style="padding: 4px 0; border-bottom: 1px dashed #ccc;">${nombreComercial}</td>
+                        <td style="padding: 4px 0; border-bottom: 1px dashed #ccc; text-align: right;">${formatoMoneda.format(p.total || 0)}</td>
+                    </tr>
+                `;
             });
+
+            let logisticaHtml = '';
+            let fee = 0;
+            if (mov.entrega && mov.entrega.medio === 'Domi') {
+                fee = parseFloat(mov.entrega.costo) || 0;
+                logisticaHtml = `
+                    <tr>
+                        <td style="padding: 4px 0;" colspan="2">Envío (${mov.entrega.encargado})</td>
+                        <td style="padding: 4px 0; text-align: right;">${formatoMoneda.format(fee)}</td>
+                    </tr>
+                `;
+            }
+
+            const total = subtotal + fee;
+
+            // Ventana emergente con tamaño de Tirilla 80mm
+            const printWindow = window.open('', 'PRINT', 'height=600,width=400');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Recibo - ${mov.cliente}</title>
+                    <style>
+                        body { font-family: monospace; font-size: 14px; width: 300px; margin: 0 auto; color: #000; }
+                        .header { text-align: center; margin-bottom: 15px; }
+                        /* Configuración del logo */
+                        .header img { max-width: 140px; margin-bottom: 10px; filter: grayscale(100%); }
+                        .header h2 { margin: 0 0 5px 0; font-size: 20px; font-weight: bold; }
+                        .header p { margin: 2px 0; font-size: 12px; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+                        th { border-bottom: 1px solid #000; text-align: left; font-size: 12px; padding-bottom: 4px; }
+                        .totals { border-top: 1px solid #000; padding-top: 10px; margin-bottom: 20px; }
+                        .totals-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-weight: bold; }
+                        .footer { text-align: center; font-size: 12px; margin-top: 20px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <!-- Carga del Logo (debe llamarse logo.jpg y estar en la misma carpeta) -->
+                        <img src="logo.jpg" alt="Logo Ferco Farma" onerror="this.style.display='none'">
+                        <h2>FERCO FARMA</h2>
+                        <p>Comprobante de Operación</p>
+                        <p>ID: ${mov.id.substring(0,8).toUpperCase()}</p>
+                        <br>
+                        <p style="text-align: left;"><strong>Fecha:</strong> ${mov.fecha}</p>
+                        <p style="text-align: left;"><strong>Cliente:</strong> ${mov.cliente.toUpperCase()}</p>
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 15%">CANT</th>
+                                <th style="width: 50%">CONCEPTO</th>
+                                <th style="width: 35%; text-align: right;">TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsHtml}
+                            ${logisticaHtml}
+                        </tbody>
+                    </table>
+
+                    <div class="totals">
+                        <div class="totals-row" style="font-size: 18px;">
+                            <span>TOTAL</span>
+                            <span>${formatoMoneda.format(total)}</span>
+                        </div>
+                    </div>
+
+                    <p style="font-size: 12px;"><strong>Atendido por:</strong> ${mov.creadoPor.split('@')[0]}</p>
+                    ${mov.notas ? `<p style="font-size: 12px; border: 1px dashed #ccc; padding: 5px;"><strong>Nota:</strong> ${mov.notas}</p>` : ''}
+                    
+                    <div class="footer">
+                        <p>--- GRACIAS POR SU COMPRA ---</p>
+                        <p>Sistema de Gestión Ferco Farma</p>
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.focus();
+            
+            // Retraso de 800ms para asegurar que el logo cargue en memoria antes de lanzar el diálogo de impresión
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 800);
         };
 
-        window.cerrarSesionUsuario = () => { if(confirm("SYS_WARN: Terminar Sesión?")) signOut(auth); };
 
-        function reiniciarTimer() {
-            if(currentUser) {
-                clearTimeout(timerInactividad);
-                timerInactividad = setTimeout(() => {
-                    alert("SYS_WARN: TIMEOUT_REACHED (30m). Session aborted.");
-                    signOut(auth);
-                }, 1800000); 
-            }
-        }
-        function iniciarTimerSeguridad() {
-            window.addEventListener('mousemove', reiniciarTimer);
-            window.addEventListener('keydown', reiniciarTimer);
-            window.addEventListener('touchstart', reiniciarTimer);
-            window.addEventListener('scroll', reiniciarTimer);
-            reiniciarTimer();
-        }
-        function detenerTimerSeguridad() {
-            clearTimeout(timerInactividad);
-            window.removeEventListener('mousemove', reiniciarTimer);
+        // ==========================================
+        // EXPORTACIÓN A EXCEL
+        // ==========================================
+        window.exportarCSV = async () => {
             window.removeEventListener('keydown', reiniciarTimer);
             window.removeEventListener('touchstart', reiniciarTimer);
             window.removeEventListener('scroll', reiniciarTimer);
