@@ -819,6 +819,7 @@
         // Variables Globales
         let currentUser = null;
         let ventaEditandoId = null;
+        let tipoMovimientoEditando = 'Venta'; // Variable declarada y crucial para la edición
         let contadorProductos = 0;
         let contadorPagos = 0;
         let contadorProductosEdicion = 0;
@@ -1017,6 +1018,8 @@
             try {
                 await setDoc(doc(db, "configuracion", "diccionario_productos"), diccionarioProductos);
                 alert("SYS_MSG: Master Data Updated.");
+                
+                // Actualiza selectores viejos
                 document.querySelectorAll('.input-prod-select, .input-prod-select-edicion').forEach(select => {
                     const valorAnterior = select.value;
                     let opcionesHTML = `<option value="">Select Item...</option>`;
@@ -1283,11 +1286,11 @@
         };
 
         // ==========================================
-        // GUARDAR MOVIMIENTO PRINCIPAL
+        // GUARDAR MOVIMIENTO Y BASE DE DATOS
         // ==========================================
         window.guardarMovimiento = async () => {
             const clienteRaw = document.getElementById('cliente').value.trim();
-            const cliente = clienteRaw.toUpperCase();
+            const cliente = clienteRaw.toUpperCase(); // Forzar mayúsculas
             
             const fecha = document.getElementById('fecha').value;
             const notas = document.getElementById('notas').value.trim();
@@ -1365,13 +1368,94 @@
         };
 
         // ==========================================
-        // LÓGICA DEL MODAL DE EDICIÓN EXCLUSIVA 
+        // LÍNEA DE TIEMPO (Solo 5 items)
+        // ==========================================
+        function cargarVentasFirebase() {
+            onSnapshot(collection(db, "ventas"), (snapshot) => {
+                const cont = document.getElementById('lista-ventas');
+                cont.innerHTML = '';
+                
+                let movs = [];
+                snapshot.forEach(doc => movs.push({id: doc.id, ...doc.data()}));
+                
+                movs.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
+                
+                if (currentUser && currentUser.email === HADES_EMAIL) {
+                    movs = movs.filter(m => m.creadoPor === HADES_EMAIL);
+                }
+
+                movs = movs.slice(0, 5);
+
+                if (movs.length === 0) {
+                    cont.innerHTML = '<p class="text-xs font-mono text-brand-textSec text-center py-4 uppercase tracking-widest">NO_DATA</p>';
+                    return;
+                }
+                
+                movs.forEach((v) => {
+                    const tipo = v.tipoMovimiento || 'Venta';
+                    const creadorUser = (v.creadoPor || "App").toLowerCase();
+                    
+                    let userBorder = 'border-brand-border';
+                    let userBg = 'bg-brand-bg';
+                    
+                    if (creadorUser === ADMIN_EMAIL) {
+                        userBorder = 'border-brand-primary/40';
+                        userBg = 'bg-brand-primary/5';
+                    } else if (creadorUser === SUPERVISOR_EMAIL) {
+                        userBorder = 'border-brand-success/40';
+                        userBg = 'bg-brand-success/5';
+                    } else if (creadorUser === HADES_EMAIL) {
+                        userBorder = 'border-brand-secondary/40';
+                        userBg = 'bg-brand-secondary/5';
+                    }
+                    
+                    let tagClass = "bg-brand-card text-brand-textSec border border-brand-border";
+                    let sign = "";
+                    if (tipo === 'Venta') { tagClass = "bg-brand-primary/10 text-brand-primary border border-brand-primary/30"; }
+                    else if (tipo === 'Compra') { tagClass = "bg-brand-warning/10 text-brand-warning border border-brand-warning/30"; sign = "-"; }
+                    else if (tipo === 'Gasto') { tagClass = "bg-brand-error/10 text-brand-error border border-brand-error/30"; sign = "-"; }
+                    else if (tipo === 'Abono') { tagClass = "bg-brand-secondary/10 text-brand-secondary border border-brand-secondary/30"; }
+
+                    let prodsHtml = '<ul class="text-[10px] font-mono text-brand-textSec mt-3 space-y-1">';
+                    (v.productos || []).forEach(p => {
+                        prodsHtml += `<li class="flex items-center gap-2"><div class="w-1 h-1 rounded-full bg-brand-border"></div><b>${p.cantidad}</b> x ${p.concepto}</li>`;
+                    });
+                    prodsHtml += '</ul>';
+
+                    cont.insertAdjacentHTML('beforeend', `
+                        <div class="${userBg} p-5 rounded-xl border ${userBorder} flex flex-col gap-1 transition-colors shadow-sm">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded uppercase tracking-widest ${tagClass}">${tipo}</span>
+                                        <p class="text-[9px] text-brand-textSec opacity-70 font-mono flex items-center gap-1 uppercase tracking-widest">
+                                            <i data-lucide="user" class="w-3 h-3"></i> ${creadorUser.split('@')[0]}
+                                        </p>
+                                    </div>
+                                    <p class="font-display font-bold text-brand-text text-sm line-clamp-1 tracking-wide uppercase">${v.cliente || 'Desconocido'}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-mono font-bold text-brand-text text-md">${sign}${formatoMoneda.format(v.totalVenta || 0)}</p>
+                                </div>
+                            </div>
+                            ${prodsHtml}
+                        </div>`);
+                });
+                lucide.createIcons();
+            });
+        }
+
+        // ==========================================
+        // EDICIÓN EXCLUSIVA DE REGISTRO
         // ==========================================
         window.abrirModalEdicion = () => {
             const id = ventaEditandoId; 
             const mov = window.movimientosCache.find(m => m.id === id);
             
             if (!mov) return alert("SYS_ERR: BLOCK_NOT_FOUND.");
+
+            // Ocultar Detalle para enfocar la edición pura
+            document.getElementById('modal-detalle-registro').style.display = 'none';
 
             // Poblar Datos
             tipoMovimientoEditando = mov.tipoMovimiento || 'Venta';
@@ -1385,7 +1469,7 @@
                 document.getElementById('medio-entrega-edicion').value = mov.entrega?.medio || "Recoge";
                 manejarCambioEntregaEdicion();
                 if(mov.entrega?.medio === 'Domi') {
-                    // Forzamos MAYÚSCULAS en el encargado por si era viejo
+                    // Fuerza mayúsculas en el encargado para evitar fallos con registros viejos
                     document.getElementById('encargado-domi-edicion').value = mov.entrega?.encargado ? mov.entrega.encargado.toUpperCase() : "";
                     document.getElementById('costo-envio-edicion').value = mov.entrega?.costo || 0;
                 }
@@ -1658,8 +1742,7 @@
                 await updateDoc(doc(db, "ventas", ventaEditandoId), docData);
                 
                 cerrarModalEdicion();
-                cerrarModalDetalle();
-                abrirModalReporte(); // Refresca el reporte con el nuevo dato
+                abrirModalReporte(); // Refresca el reporte con el nuevo dato automáticamente
                 if (currentUser) calcularDashboard(); 
                 
                 btn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Guardar Cambios';
@@ -1753,11 +1836,10 @@
         };
 
         // ==========================================
-        // DASHBOARD MULTI-TENANT (BLINDADO Y CONDICIONAL)
+        // DASHBOARD MULTI-TENANT
         // ==========================================
         window.calcularDashboard = async () => {
             try {
-                // Recuperar en memoria por Escalabilidad (Evita indices compuestos de Firebase)
                 const snap = await getDocs(collection(db, "ventas"));
                 
                 let totalVentasGlobal = 0;
@@ -1777,7 +1859,6 @@
                     const esDeHades = data.creadoPor === HADES_EMAIL;
                     const totalMonto = data.totalVenta || 0; 
                     const pagosArray = data.pagos || []; 
-                    // Ya está en mayúsculas gracias al guardado, pero por datos viejos:
                     const cliente = (data.cliente || "Desconocido").toUpperCase();
 
                     if (tipo === 'Venta') {
@@ -1803,7 +1884,7 @@
                         });
                     }
 
-                    // Sumar Totales de Domicilios Global (Admin Dashboard)
+                    // Sumar Totales de Domicilios
                     const costoEnvio = (data.entrega && data.entrega.costo) ? parseFloat(data.entrega.costo) : 0;
                     const encargado = data.entrega && data.entrega.encargado ? data.entrega.encargado.toUpperCase() : '';
                     if (costoEnvio > 0 && encargado && domisTotales[encargado] !== undefined) {
@@ -1822,7 +1903,6 @@
                         if (tipo === 'Gasto') hadesGastos += totalMonto;
                         if (tipo === 'Abono') deudoresHades[cliente] = (deudoresHades[cliente] || 0) - totalMonto;
 
-                        // Deuda de Hades: Solo suma si NO es Delivery App y es posterior al corte
                         const timestampRegistro = data.timestamp || 0; 
                         if (costoEnvio > 0 && encargado !== 'DELIVERY APP' && timestampRegistro >= fechaCorteDomisHades) {
                             hadesDeudaDomis += costoEnvio;
@@ -1872,7 +1952,6 @@
                         }
                     });
 
-                    // Tarjetas de Domiciliarios (Admin/JF)
                     const divDomisGlobal = document.getElementById('div-costos-domis-global');
                     divDomisGlobal.innerHTML = '';
                     for (const [encargado, total] of Object.entries(domisTotales)) {
@@ -1914,24 +1993,21 @@
         window.cerrarModalCreditos = () => { document.getElementById('modal-creditos').style.display = 'none'; };
 
         // ==========================================
-        // REPORTE DIARIO, DETALLES DE REGISTRO Y BUSCADOR
+        // REPORTE DIARIO Y DETALLES
         // ==========================================
         window.filtrarReporte = () => {
             const term = document.getElementById('buscador-reporte').value.toLowerCase();
             document.querySelectorAll('.registro-item').forEach(item => {
                 const dataRaw = item.getAttribute('data-search').toLowerCase();
-                if(dataRaw.includes(term)) {
-                    item.style.display = 'flex';
-                } else {
-                    item.style.display = 'none';
-                }
+                if(dataRaw.includes(term)) item.style.display = 'flex';
+                else item.style.display = 'none';
             });
         };
 
         window.abrirModalReporte = async () => {
             const modal = document.getElementById('modal-reporte');
             const contenedor = document.getElementById('contenedor-reporte-dias');
-            document.getElementById('buscador-reporte').value = ''; // Limpiar buscador
+            document.getElementById('buscador-reporte').value = ''; 
             modal.style.display = 'flex';
             contenedor.innerHTML = '<div class="flex justify-center py-12"><i data-lucide="loader-2" class="w-8 h-8 animate-spin text-brand-primary"></i></div>';
             lucide.createIcons();
@@ -1939,7 +2015,6 @@
             window.movimientosCache = []; 
 
             try {
-                // Recuperar en memoria por Escalabilidad
                 const snap = await getDocs(collection(db, "ventas"));
                 const dias = {}; 
 
@@ -1962,10 +2037,7 @@
                 });
 
                 const fechasOrdenadas = Object.keys(dias).sort((a, b) => new Date(b) - new Date(a));
-                
-                fechasOrdenadas.forEach(f => {
-                    dias[f].movimientos.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
-                });
+                fechasOrdenadas.forEach(f => { dias[f].movimientos.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0)); });
 
                 contenedor.innerHTML = '';
 
@@ -1994,7 +2066,6 @@
                         const montoF = mov.totalVenta || 0;
                         const notasBusqueda = mov.notas || "";
                         
-                        // Etiqueta de búsqueda invisible
                         const searchTags = `${clienteNom} ${tipo} ${creador} ${montoF} ${notasBusqueda}`;
 
                         filasHTML += `
@@ -2051,7 +2122,6 @@
 
         window.cerrarModalReporte = () => { document.getElementById('modal-reporte').style.display = 'none'; };
 
-        // MODAL DETALLE DE REGISTRO
         window.abrirDetalleRegistro = (id) => {
             const mov = window.movimientosCache.find(m => m.id === id);
             if (!mov) return;
@@ -2071,7 +2141,6 @@
             document.getElementById('detalle-fecha-creador').innerHTML = `${mov.fecha} | <i data-lucide="user" class="inline w-3 h-3"></i> ${mov.creadoPor}`;
             document.getElementById('detalle-total').textContent = formatoMoneda.format(mov.totalVenta || 0);
 
-            // Notas
             const boxNotas = document.getElementById('detalle-box-notas');
             const txtNotas = document.getElementById('detalle-texto-notas');
             if (mov.notas && mov.notas.trim() !== '') {
@@ -2081,7 +2150,6 @@
                 boxNotas.classList.add('hidden');
             }
 
-            // Lista de Productos
             const prodsUl = document.getElementById('detalle-lista-productos');
             prodsUl.innerHTML = '';
             (mov.productos || []).forEach(p => {
@@ -2094,7 +2162,6 @@
                 `);
             });
 
-            // Logística
             const logisDiv = document.getElementById('detalle-logistica');
             if (mov.entrega && mov.entrega.medio === 'Domi') {
                 logisDiv.classList.remove('hidden');
@@ -2106,7 +2173,6 @@
                 logisDiv.classList.add('hidden');
             }
 
-            // Pagos
             const pagosUl = document.getElementById('detalle-lista-pagos');
             pagosUl.innerHTML = '';
             (mov.pagos || []).forEach(p => {
@@ -2118,7 +2184,6 @@
                 `);
             });
 
-            // Permisos de Botones Editar/Borrar
             const btnEditar = document.getElementById('btn-detalle-editar');
             const btnBorrar = document.getElementById('btn-detalle-borrar');
             const aviso = document.getElementById('detalle-aviso-permisos');
@@ -2146,13 +2211,12 @@
 
         window.cerrarModalDetalle = () => { document.getElementById('modal-detalle-registro').style.display = 'none'; };
 
-        // IMPRIMIR RECIBO (TIRILLA 80MM)
+        // IMPRIMIR RECIBO (NUEVO)
         window.imprimirRecibo = () => {
             const id = ventaEditandoId;
             const mov = window.movimientosCache.find(m => m.id === id);
             if(!mov) return;
             
-            // Calculo de subtotal de productos y traducción
             let subtotal = 0;
             let itemsHtml = '';
             (mov.productos || []).forEach(p => {
@@ -2181,7 +2245,6 @@
 
             const total = subtotal + fee;
 
-            // Formato Ticket de 80mm
             const printWindow = window.open('', 'PRINT', 'height=600,width=400');
             printWindow.document.write(`
                 <html>
@@ -2246,7 +2309,6 @@
             printWindow.document.close();
             printWindow.focus();
             
-            // Timeout de 800ms para asegurar renderizado del logo antes de imprimir
             setTimeout(() => {
                 printWindow.print();
                 printWindow.close();
