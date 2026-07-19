@@ -1932,76 +1932,76 @@
                     document.getElementById('dash-hades-creditos').textContent = formatoMoneda.format(totalCarteraHadesActiva);
                     document.getElementById('dash-hades-domis').textContent = formatoMoneda.format(hadesDeudaDomis);
                     
-                    if(Object.keys(deudoresActivosHades).length === 0) listaDeudoresHTML.innerHTML = '<p class="text-[10px] font-mono uppercase tracking-widest text-brand-textSec">NO_DATA</p>';
-                    for (const [cliente, deuda] of Object.entries(deudoresActivosHades)) {
-                        listaDeudoresHTML.insertAdjacentHTML('beforeend', getDeudorCardHTML(cliente, deuda));
-                    }
-
-                } else if (currentUser.email === ADMIN_EMAIL || currentUser.email === SUPERVISOR_EMAIL) {
-                    document.getElementById('dash-ventas').textContent = formatoMoneda.format(totalVentasGlobal);
-                    document.getElementById('dash-creditos').textContent = formatoMoneda.format(totalCarteraGlobalActiva);
-                    document.getElementById('dash-admin-domis-hades').textContent = formatoMoneda.format(hadesDeudaDomis);
-                    
-                    ['CRIS', 'JHON', 'BODEGA', 'HADES'].forEach(cuenta => {
-                        const val = saldosGlobales[cuenta] || 0;
-                        const idHtml = `dash-${cuenta.toLowerCase()}`;
-                        const el = document.getElementById(idHtml);
-                        if(el) {
-                            el.textContent = formatoMoneda.format(val);
-                            el.className = `font-mono text-sm font-bold ${val < 0 ? 'text-brand-error' : 'text-brand-text'}`;
-                        }
-                    });
-
-                    const divDomisGlobal = document.getElementById('div-costos-domis-global');
-                    divDomisGlobal.innerHTML = '';
-                    for (const [encargado, total] of Object.entries(domisTotales)) {
-                        const esApp = encargado === 'DELIVERY APP';
-                        const colorClass = esApp ? 'text-brand-accent' : 'text-brand-text';
-                        const bgClass = esApp ? 'bg-brand-accent/5 border border-brand-accent/20' : 'bg-brand-card border border-brand-border';
-                        divDomisGlobal.insertAdjacentHTML('beforeend', `
-                            <div class="${bgClass} p-3 rounded-lg">
-                                <p class="font-mono text-[9px] uppercase tracking-widest text-brand-textSec mb-1">${encargado}</p>
-                                <p class="font-mono text-sm font-bold ${colorClass}">${formatoMoneda.format(total)}</p>
-                            </div>
-                        `);
-                    }
-
-                    if(Object.keys(deudoresActivosGlobales).length === 0) listaDeudoresHTML.innerHTML = '<p class="text-[10px] font-mono uppercase tracking-widest text-brand-textSec">NO_DATA</p>';
-                    for (const [cliente, deuda] of Object.entries(deudoresActivosGlobales)) {
-                        listaDeudoresHTML.insertAdjacentHTML('beforeend', getDeudorCardHTML(cliente, deuda));
-                    }
-                }
-                lucide.createIcons();
-            } catch (error) { console.error(error); }
+            if (filtroDecenasActivo) {
+                btnText.textContent = "Ver Todos";
+                btn.classList.replace('bg-brand-secondary/10', 'bg-brand-secondary');
+                btn.classList.replace('text-brand-secondary', 'text-brand-bg');
+            } else {
+                btnText.textContent = "Solo Decenas";
+                btn.classList.replace('bg-brand-secondary', 'bg-brand-secondary/10');
+                btn.classList.replace('text-brand-bg', 'text-brand-secondary');
+            }
+            window.filtrarReporte();
         };
 
-        function getDeudorCardHTML(cliente, deuda) {
-            return `
-                <div class="flex justify-between items-center p-3 bg-brand-card border border-brand-border rounded-lg shadow-sm">
-                    <span class="font-display font-bold text-brand-text uppercase text-sm tracking-wide">${cliente}</span>
-                    <div class="flex items-center gap-4">
-                        <span class="font-mono font-bold text-brand-secondary">${formatoMoneda.format(deuda)}</span>
-                        <button onclick="abrirModalAbonoRapido('${cliente}', ${deuda})" class="bg-brand-secondary/10 border border-brand-secondary hover:bg-brand-secondary hover:text-brand-bg text-brand-secondary px-3 py-1.5 rounded font-mono text-[9px] uppercase font-bold tracking-widest transition-all flex items-center gap-1">
-                            <i data-lucide="hand-coins" class="w-3 h-3"></i> Pay
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
+        // NUEVA FUNCIÓN: RECTIFICACIÓN MASIVA (x1000)
+        window.rectificarSeleccionados = async () => {
+            const checkboxes = document.querySelectorAll('.cb-rectificar:checked');
+            if (checkboxes.length === 0) return alert("SYS_MSG: No has seleccionado ninguna casilla.");
+            
+            if (!confirm(`SYS_WARN: ¿Estás seguro de multiplicar x1.000 los ${checkboxes.length} registros seleccionados?\n\nEsto actualizará automáticamente los precios, pagos y totales en la nube.`)) return;
 
-        window.abrirModalCreditos = () => { document.getElementById('modal-creditos').style.display = 'flex'; };
-        window.cerrarModalCreditos = () => { document.getElementById('modal-creditos').style.display = 'none'; };
+            const btn = document.getElementById('btn-rectificar-bulk');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> FIXING...';
 
-        // ==========================================
-        // REPORTE DIARIO Y DETALLES
-        // ==========================================
-        window.filtrarReporte = () => {
-            const term = document.getElementById('buscador-reporte').value.toLowerCase();
-            document.querySelectorAll('.registro-item').forEach(item => {
-                const dataRaw = item.getAttribute('data-search').toLowerCase();
-                if(dataRaw.includes(term)) item.style.display = 'flex';
-                else item.style.display = 'none';
-            });
+            try {
+                for (let cb of checkboxes) {
+                    const id = cb.value;
+                    const mov = window.movimientosCache.find(m => m.id === id);
+                    if (!mov) continue;
+
+                    // Multiplicamos por 1000 absolutamente todos los valores contables
+                    const nuevosProductos = (mov.productos || []).map(p => ({
+                        ...p,
+                        valorUnitario: (p.valorUnitario || 0) * 1000,
+                        total: (p.total || 0) * 1000
+                    }));
+
+                    const nuevosPagos = (mov.pagos || []).map(p => ({
+                        ...p,
+                        monto: (p.monto || 0) * 1000
+                    }));
+
+                    const nuevaEntrega = mov.entrega ? {
+                        ...mov.entrega,
+                        costo: (mov.entrega.costo || 0) * 1000
+                    } : { medio: "N/A", encargado: "N/A", costo: 0 };
+
+                    const nuevoTotalVenta = (mov.totalVenta || 0) * 1000;
+
+                    // Subimos el parche a Firebase
+                    await updateDoc(doc(db, "ventas", id), {
+                        productos: nuevosProductos,
+                        pagos: nuevosPagos,
+                        entrega: nuevaEntrega,
+                        totalVenta: nuevoTotalVenta,
+                        modificadoPor: currentUser.email + ' (BULK_FIX)',
+                        fechaModificacion: Date.now()
+                    });
+                }
+                
+                alert(`SYS_SUCCESS: ${checkboxes.length} registros rectificados a decenas de mil exitosamente.`);
+                abrirModalReporte(); // Recarga la lista para borrar las casillas
+                calcularDashboard(); // Arregla las sumatorias globales
+                
+            } catch(e) {
+                console.error(e);
+                alert("SYS_ERR: BULK_UPDATE_FAILED.");
+            } finally {
+                btn.innerHTML = originalText;
+                lucide.createIcons();
+            }
         };
 
         window.abrirModalReporte = async () => {
@@ -2066,10 +2066,11 @@
                         const montoF = mov.totalVenta || 0;
                         const notasBusqueda = mov.notas || "";
                         
+                        // Etiqueta de búsqueda invisible y etiqueta de valor total
                         const searchTags = `${clienteNom} ${tipo} ${creador} ${montoF} ${notasBusqueda}`;
 
                         filasHTML += `
-                            <div onclick="abrirDetalleRegistro('${mov.id}')" data-search="${searchTags}" class="registro-item flex justify-between items-center py-4 border-b border-brand-border last:border-0 cursor-pointer hover:bg-brand-card px-3 rounded-lg transition-colors group">
+                            <div onclick="abrirDetalleRegistro('${mov.id}')" data-search="${searchTags}" data-total="${montoF}" class="registro-item flex justify-between items-center py-4 border-b border-brand-border last:border-0 cursor-pointer hover:bg-brand-card px-3 rounded-lg transition-colors group">
                                 <div class="flex items-center gap-4">
                                     <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded uppercase tracking-widest border ${colorBadge} w-16 text-center shadow-sm">${tipo}</span>
                                     <div>
@@ -2245,6 +2246,34 @@
 
             const total = subtotal + fee;
 
+            // --- NUEVA LÓGICA: CALCULAR CRÉDITO Y ABONOS ---
+            let saldoCredito = 0;
+            let totalAbonado = 0;
+            (mov.pagos || []).forEach(p => {
+                if (p.metodo === 'Credito') {
+                    saldoCredito += parseFloat(p.monto || 0);
+                } else {
+                    totalAbonado += parseFloat(p.monto || 0);
+                }
+            });
+
+            let desgloseCreditoHtml = '';
+            if (saldoCredito > 0) {
+                desgloseCreditoHtml = `
+                    <div style="border-top: 1px dashed #000; margin-top: 5px; padding-top: 5px;">
+                        <div class="totals-row" style="font-size: 14px;">
+                            <span>Abonado:</span>
+                            <span>${formatoMoneda.format(totalAbonado)}</span>
+                        </div>
+                        <div class="totals-row" style="font-size: 16px;">
+                            <span>SALDO PENDIENTE:</span>
+                            <span>${formatoMoneda.format(saldoCredito)}</span>
+                        </div>
+                    </div>
+                `;
+            }
+            // ------------------------------------------------
+
             const printWindow = window.open('', 'PRINT', 'height=600,width=400');
             printWindow.document.write(`
                 <html>
@@ -2294,6 +2323,7 @@
                             <span>TOTAL</span>
                             <span>${formatoMoneda.format(total)}</span>
                         </div>
+                        ${desgloseCreditoHtml}
                     </div>
 
                     <p style="font-size: 12px;"><strong>Atendido por:</strong> ${mov.creadoPor.split('@')[0]}</p>
