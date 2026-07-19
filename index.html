@@ -58,7 +58,6 @@
         .card-dash { transition: transform 0.2s, background-color 0.2s; }
         .card-dash:hover { transform: translateY(-3px); }
         
-        /* Estilos base para Inputs y Selects */
         input[type="text"], input[type="number"], input[type="email"], input[type="password"], input[type="date"], select, textarea {
             background-color: #050816 !important;
             border-color: rgba(0, 245, 255, 0.15) !important;
@@ -76,7 +75,7 @@
 <body class="font-sans antialiased min-h-screen selection:bg-brand-primary selection:text-brand-bg">
 
     <!-- ==================== PANTALLA DE LOGIN ==================== -->
-    <div id="login-screen" class="fixed inset-0 z-[100] flex items-center justify-center bg-brand-bg transition-colors">
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-brand-bg transition-colors">
         <div class="bg-brand-panel p-8 rounded-2xl shadow-2xl w-full max-w-md border border-brand-border relative overflow-hidden">
             <div class="absolute -top-20 -right-20 w-40 h-40 bg-brand-primary rounded-full blur-[80px] opacity-20"></div>
             
@@ -89,7 +88,8 @@
                 <p class="text-[10px] text-brand-error mt-2 font-mono">* La sesión expira al recargar</p>
             </div>
             
-            <form id="login-form" onsubmit="iniciarSesion(event)" class="space-y-5 relative z-10">
+            <!-- Seguro anti-recarga en el HTML (event.preventDefault) -->
+            <form id="login-form" onsubmit="event.preventDefault(); if(window.iniciarSesion) window.iniciarSesion();" class="space-y-5 relative z-10">
                 <div>
                     <label class="block text-xs font-mono mb-1 text-brand-textSec uppercase">Correo Electrónico</label>
                     <input type="email" id="login-email" required class="w-full p-3 rounded-lg transition-all">
@@ -99,7 +99,7 @@
                     <input type="password" id="login-pass" required class="w-full p-3 rounded-lg transition-all">
                 </div>
                 <div id="login-error" class="text-brand-error font-mono text-xs hidden text-center animate-pulse">Credenciales incorrectas.</div>
-                <button type="submit" id="btn-login" class="w-full bg-brand-primary hover:bg-brand-primaryHover text-brand-bg font-bold py-3 rounded-lg transition-all shadow-[0_0_15px_rgba(0,245,255,0.3)] hover:shadow-[0_0_25px_rgba(0,245,255,0.5)] flex justify-center items-center gap-2">
+                <button type="submit" id="btn-login" class="w-full bg-brand-primary hover:bg-brand-primaryHover text-brand-bg font-bold py-3 rounded-lg transition-all shadow-[0_0_15px_rgba(0,245,255,0.3)] flex justify-center items-center gap-2">
                     Ingresar al Sistema <i data-lucide="log-in" class="w-5 h-5"></i>
                 </button>
             </form>
@@ -131,6 +131,7 @@
             </div>
         </header>
 
+        <!-- Cuadrícula Principal - Z-Index Removido -->
         <div class="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-3 gap-6 relative">
             
             <!-- COLUMNA IZQUIERDA: FORMULARIO PRINCIPAL -->
@@ -151,28 +152,20 @@
                         <div class="grid grid-cols-3 gap-3">
                             <label class="cursor-pointer">
                                 <input type="radio" name="tipoMovimiento" value="Venta" class="peer sr-only" checked onchange="manejarCambioTipo()">
-                                <div class="rounded-lg border border-brand-border bg-brand-card p-3 text-center text-brand-textSec hover:bg-brand-cardHover peer-checked:border-brand-primary peer-checked:bg-brand-primary/10 peer-checked:text-brand-primary transition-all font-bold shadow-sm font-display tracking-wide">
-                                    Venta
-                                </div>
+                                <div class="rounded-lg border border-brand-border bg-brand-card p-3 text-center text-brand-textSec hover:bg-brand-cardHover peer-checked:border-brand-primary peer-checked:bg-brand-primary/10 peer-checked:text-brand-primary transition-all font-bold shadow-sm font-display tracking-wide">Venta</div>
                             </label>
                             <label class="cursor-pointer">
                                 <input type="radio" name="tipoMovimiento" value="Compra" class="peer sr-only" onchange="manejarCambioTipo()">
-                                <div class="rounded-lg border border-brand-border bg-brand-card p-3 text-center text-brand-textSec hover:bg-brand-cardHover peer-checked:border-brand-warning peer-checked:bg-brand-warning/10 peer-checked:text-brand-warning transition-all font-bold shadow-sm font-display tracking-wide">
-                                    Compra
-                                </div>
+                                <div class="rounded-lg border border-brand-border bg-brand-card p-3 text-center text-brand-textSec hover:bg-brand-cardHover peer-checked:border-brand-warning peer-checked:bg-brand-warning/10 peer-checked:text-brand-warning transition-all font-bold shadow-sm font-display tracking-wide">Compra</div>
                             </label>
                             <label class="cursor-pointer">
                                 <input type="radio" name="tipoMovimiento" value="Gasto" class="peer sr-only" onchange="manejarCambioTipo()">
-                                <div class="rounded-lg border border-brand-border bg-brand-card p-3 text-center text-brand-textSec hover:bg-brand-cardHover peer-checked:border-brand-error peer-checked:bg-brand-error/10 peer-checked:text-brand-error transition-all font-bold shadow-sm font-display tracking-wide">
-                                    Gasto
-                                </div>
+                                <div class="rounded-lg border border-brand-border bg-brand-card p-3 text-center text-brand-textSec hover:bg-brand-cardHover peer-checked:border-brand-error peer-checked:bg-brand-error/10 peer-checked:text-brand-error transition-all font-bold shadow-sm font-display tracking-wide">Gasto</div>
                             </label>
                             <!-- Abono oculto en UI estándar -->
                             <label id="label-tipo-abono" class="hidden cursor-pointer">
                                 <input type="radio" name="tipoMovimiento" value="Abono" class="peer sr-only" onchange="manejarCambioTipo()">
-                                <div class="rounded-lg border border-brand-border bg-brand-card p-3 text-center text-brand-textSec peer-checked:border-brand-secondary peer-checked:bg-brand-secondary/10 peer-checked:text-brand-secondary transition-all font-bold shadow-sm font-display tracking-wide">
-                                    Abono a Cartera
-                                </div>
+                                <div class="rounded-lg border border-brand-border bg-brand-card p-3 text-center text-brand-textSec peer-checked:border-brand-secondary peer-checked:bg-brand-secondary/10 peer-checked:text-brand-secondary transition-all font-bold shadow-sm font-display tracking-wide">Abono a Cartera</div>
                             </label>
                         </div>
                     </div>
@@ -189,14 +182,12 @@
                         </div>
                     </div>
 
-                    <!-- 2. Productos / Conceptos -->
+                    <!-- 2. Productos -->
                     <div class="mb-6">
                         <h3 id="lbl-productos" class="text-sm font-display font-bold text-brand-text mb-3 flex items-center gap-2 uppercase tracking-wide">
                             <i data-lucide="package" class="w-4 h-4 text-brand-primary" id="icon-productos"></i> Conceptos
                         </h3>
-                        <div id="productos-container" class="space-y-3">
-                            <!-- Inyectado por JS -->
-                        </div>
+                        <div id="productos-container" class="space-y-3"></div>
                         <button onclick="agregarFilaProducto()" class="mt-4 w-full md:w-auto bg-brand-card hover:bg-brand-cardHover text-brand-text px-4 py-2 rounded-lg text-sm font-bold font-mono flex items-center justify-center gap-2 transition-colors border border-brand-border">
                             <i data-lucide="plus" class="w-4 h-4 text-brand-primary"></i> Agregar
                         </button>
@@ -245,9 +236,7 @@
                             <i data-lucide="wallet" class="w-4 h-4 text-brand-success" id="icon-pagos"></i> 
                             <span id="txt-lbl-pagos">Estructura de Pago</span>
                         </h3>
-                        <div id="pagos-container" class="space-y-3">
-                            <!-- Inyectado por JS -->
-                        </div>
+                        <div id="pagos-container" class="space-y-3"></div>
                         <button onclick="agregarFilaPago()" class="mt-4 w-full md:w-auto bg-brand-card hover:bg-brand-cardHover text-brand-text px-4 py-2 rounded-lg text-sm font-bold font-mono flex items-center justify-center gap-2 transition-colors border border-brand-border">
                             <i data-lucide="plus" class="w-4 h-4 text-brand-success"></i> Agregar Pago
                         </button>
@@ -262,7 +251,7 @@
                     </div>
 
                     <!-- 6. Totales -->
-                    <div id="box-totales" class="bg-brand-card border border-brand-border p-5 rounded-xl flex flex-col md:flex-row justify-between items-center gap-6 shadow-[0_0_20px_rgba(0,245,255,0.05)] transition-colors duration-300">
+                    <div class="bg-brand-card border border-brand-border p-5 rounded-xl flex flex-col md:flex-row justify-between items-center gap-6 shadow-[0_0_20px_rgba(0,245,255,0.05)] transition-colors duration-300">
                         <div class="flex gap-8 w-full md:w-auto justify-between md:justify-start">
                             <div>
                                 <span id="lbl-total-calc" class="block font-mono text-brand-textSec text-[10px] uppercase tracking-widest mb-1">Total Calculado</span>
@@ -288,8 +277,7 @@
 
             <!-- COLUMNA DERECHA: DASHBOARD & AUDITORÍA -->
             <div class="space-y-6">
-                
-                <!-- PANEL FINANCIERO (Admin y Supervisor JF) -->
+                <!-- PANEL FINANCIERO (Admin y Supervisor) -->
                 <div id="panel-financiero" class="hidden bg-brand-panel p-6 rounded-xl shadow-lg border border-brand-border fade-in">
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-sm font-display font-bold text-brand-text flex items-center gap-2 uppercase tracking-widest">
@@ -305,15 +293,13 @@
                             <p class="font-mono text-[9px] uppercase tracking-widest text-brand-primary mb-1">Volumen Ventas</p>
                             <p id="dash-ventas" class="font-mono text-xl font-bold text-brand-text drop-shadow-[0_0_5px_rgba(0,245,255,0.3)]">$ 0</p>
                         </div>
-                        <div onclick="abrirModalCreditos()" class="bg-brand-secondary/5 border border-brand-secondary/20 p-4 rounded-xl card-dash cursor-pointer hover:bg-brand-secondary/10 hover:border-brand-secondary/50 transition-all">
-                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-secondary mb-1 flex items-center justify-between">
-                                Cartera CxC <i data-lucide="external-link" class="w-3 h-3 opacity-50"></i>
-                            </p>
+                        <div onclick="abrirModalCreditos()" class="bg-brand-secondary/5 border border-brand-secondary/20 p-4 rounded-xl card-dash cursor-pointer hover:bg-brand-secondary/10 transition-all">
+                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-secondary mb-1 flex items-center justify-between">CxC <i data-lucide="external-link" class="w-3 h-3 opacity-50"></i></p>
                             <p id="dash-creditos" class="font-mono text-xl font-bold text-brand-secondary drop-shadow-[0_0_5px_rgba(139,92,246,0.3)]">$ 0</p>
                         </div>
                     </div>
 
-                    <p class="font-mono text-[10px] text-brand-textSec uppercase tracking-widest mb-3 border-b border-brand-border pb-2">Distribución de Cajas (Ingresos-Egresos)</p>
+                    <p class="font-mono text-[10px] text-brand-textSec uppercase tracking-widest mb-3 border-b border-brand-border pb-2">Distribución (Ingresos-Egresos)</p>
                     <div class="grid grid-cols-2 gap-2 mb-6">
                         <div class="bg-brand-success/5 p-2.5 rounded border border-brand-success/20">
                             <p class="font-mono text-[9px] text-brand-success uppercase tracking-widest mb-0.5 opacity-80">Cuenta Cris</p>
@@ -333,13 +319,9 @@
                         </div>
                     </div>
 
-                    <!-- SECCIÓN DE DOMICILIARIOS GLOBAL -->
                     <p class="font-mono text-[10px] text-brand-textSec uppercase tracking-widest mb-3 border-b border-brand-border pb-2">Costos Logísticos Generados</p>
-                    <div id="div-costos-domis-global" class="grid grid-cols-2 gap-2 mb-6">
-                        <!-- JS Inyecta las tarjetas aquí -->
-                    </div>
+                    <div id="div-costos-domis-global" class="grid grid-cols-2 gap-2 mb-6"></div>
 
-                    <!-- SECCIÓN DE COBRO HADES (DOMICILIOS) -->
                     <div class="bg-brand-warning/5 border border-brand-warning/20 p-4 rounded-xl">
                         <div class="flex justify-between items-center">
                             <div>
@@ -351,13 +333,12 @@
                             </button>
                         </div>
                     </div>
-
                     <button onclick="abrirModalReporte()" class="mt-6 w-full bg-brand-card hover:bg-brand-cardHover border border-brand-border text-brand-text px-4 py-3 rounded-lg font-display font-bold uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2">
                         <i data-lucide="terminal" class="w-4 h-4 text-brand-primary"></i> Analítica Global
                     </button>
                 </div>
 
-                <!-- PANEL DISTRIBUIDOR (Solo Hades) -->
+                <!-- PANEL HADES -->
                 <div id="panel-hades" class="hidden bg-brand-panel p-6 rounded-xl shadow-lg border border-brand-border fade-in">
                     <div class="flex justify-between items-center mb-6 border-b border-brand-border pb-4">
                         <h2 class="text-sm font-display font-bold text-brand-text flex items-center gap-2 uppercase tracking-widest">
@@ -367,7 +348,6 @@
                             <i data-lucide="refresh-cw" class="w-3 h-3"></i>
                         </button>
                     </div>
-
                     <div class="grid grid-cols-2 gap-3 mb-4">
                         <div class="bg-brand-primary/5 p-3 rounded-lg border border-brand-primary/20">
                             <p class="font-mono text-[9px] uppercase tracking-widest text-brand-primary opacity-80 mb-1">Mis Ventas</p>
@@ -378,18 +358,16 @@
                             <p id="dash-hades-creditos" class="font-mono text-lg font-bold text-brand-secondary">$ 0</p>
                         </div>
                     </div>
-
                     <div class="grid grid-cols-2 gap-3 mb-6">
                         <div class="bg-brand-warning/5 p-3 rounded-lg border border-brand-warning/20">
-                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-warning opacity-80 mb-1">Compras Propias</p>
+                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-warning opacity-80 mb-1">Compras</p>
                             <p id="dash-hades-compras" class="font-mono text-sm font-bold text-brand-warning">$ 0</p>
                         </div>
                         <div class="bg-brand-error/5 p-3 rounded-lg border border-brand-error/20">
-                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-error opacity-80 mb-1">Mis Gastos</p>
+                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-error opacity-80 mb-1">Gastos</p>
                             <p id="dash-hades-gastos" class="font-mono text-sm font-bold text-brand-error">$ 0</p>
                         </div>
                     </div>
-
                     <div class="bg-brand-bg/50 p-4 rounded-xl border border-brand-border flex justify-between items-center mt-2">
                         <div>
                             <p class="font-mono text-[9px] text-brand-textSec uppercase tracking-widest mb-1">Deuda a Ferco (Domis)</p>
@@ -397,7 +375,6 @@
                         </div>
                         <i data-lucide="bike" class="w-6 h-6 text-brand-textSec opacity-50"></i>
                     </div>
-
                     <button onclick="abrirModalReporte()" class="mt-6 w-full bg-brand-primary/10 hover:bg-brand-primary hover:text-brand-bg border border-brand-primary text-brand-primary px-4 py-3 rounded-lg font-display font-bold uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2">
                         <i data-lucide="terminal" class="w-4 h-4"></i> Mi Analítica
                     </button>
@@ -410,7 +387,6 @@
                             <i data-lucide="clock" class="w-4 h-4 text-brand-accent"></i> Timeline
                         </h2>
                     </div>
-                    
                     <div id="lista-ventas" class="space-y-4">
                         <div class="flex justify-center items-center py-8">
                             <i data-lucide="loader-2" class="w-6 h-6 animate-spin text-brand-primary"></i>
@@ -424,7 +400,6 @@
                         <h3 class="text-sm font-display font-bold text-brand-text mb-4 flex items-center gap-2 uppercase tracking-widest">
                             <i data-lucide="download-cloud" class="w-4 h-4 text-brand-success"></i> Export Datasets
                         </h3>
-                        
                         <div class="grid grid-cols-2 gap-3 mb-4">
                             <div>
                                 <label class="font-mono text-[9px] uppercase tracking-widest text-brand-textSec mb-1 block">Desde</label>
@@ -444,8 +419,8 @@
         </div>
     </div>
 
-    <!-- MODAL: DICCIONARIO DE SIGLAS -->
-    <div id="modal-diccionario" class="fixed inset-0 z-[100] hidden items-center justify-center bg-brand-bg/80 backdrop-blur-md transition-opacity">
+    <!-- MODAL: DICCIONARIO -->
+    <div id="modal-diccionario" class="fixed inset-0 z-50 hidden items-center justify-center bg-brand-bg/80 backdrop-blur-md transition-opacity">
         <div class="glass-modal w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl m-4">
             <div class="p-6 border-b border-brand-border flex justify-between items-center bg-brand-panel rounded-t-2xl">
                 <h2 class="text-lg font-display font-bold uppercase tracking-widest flex items-center gap-2 text-brand-text">
@@ -455,7 +430,6 @@
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            
             <div class="p-6 bg-brand-card border-b border-brand-border">
                 <h3 class="text-xs font-mono font-bold text-brand-textSec uppercase tracking-widest mb-3">Registrar Variable</h3>
                 <div class="flex gap-2">
@@ -464,13 +438,9 @@
                     <button onclick="agregarNuevaSigla()" class="bg-brand-primary hover:bg-brand-primaryHover text-brand-bg px-4 py-2 rounded-lg font-bold shadow-[0_0_10px_rgba(0,245,255,0.2)] font-mono text-xs uppercase tracking-widest">Add</button>
                 </div>
             </div>
-
             <div class="p-6 overflow-y-auto flex-1 bg-brand-bg">
-                <div id="grid-diccionario" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <!-- JS Inyecta las siglas dinámicas aquí -->
-                </div>
+                <div id="grid-diccionario" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
             </div>
-
             <div class="p-6 border-t border-brand-border bg-brand-panel rounded-b-2xl flex justify-end">
                 <button onclick="guardarDiccionario()" class="bg-brand-primary hover:bg-brand-primaryHover text-brand-bg px-6 py-2 rounded-lg font-bold shadow-[0_0_15px_rgba(0,245,255,0.3)] flex items-center gap-2 font-mono text-xs uppercase tracking-widest">
                     <i data-lucide="save" class="w-4 h-4"></i> Guardar State
@@ -479,8 +449,8 @@
         </div>
     </div>
 
-    <!-- MODAL: CARTERA DE CRÉDITOS -->
-    <div id="modal-creditos" class="fixed inset-0 z-[100] hidden items-center justify-center bg-brand-bg/80 backdrop-blur-md transition-opacity">
+    <!-- MODAL: CREDITOS -->
+    <div id="modal-creditos" class="fixed inset-0 z-50 hidden items-center justify-center bg-brand-bg/80 backdrop-blur-md transition-opacity">
         <div class="glass-modal w-full max-w-md max-h-[80vh] flex flex-col rounded-2xl m-4">
             <div class="p-6 border-b border-brand-border flex justify-between items-center bg-brand-panel rounded-t-2xl">
                 <h2 class="text-lg font-display font-bold uppercase tracking-widest flex items-center gap-2 text-brand-text">
@@ -490,18 +460,15 @@
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            
             <div class="p-6 overflow-y-auto flex-1 bg-brand-bg">
-                <div id="lista-deudores" class="space-y-3">
-                    <!-- JS Inyecta cartera aquí -->
-                </div>
+                <div id="lista-deudores" class="space-y-3"></div>
             </div>
         </div>
     </div>
 
     <!-- MODAL: ABONO RÁPIDO -->
-    <div id="modal-abono-rapido" class="fixed inset-0 z-[110] hidden items-center justify-center bg-brand-bg/90 backdrop-blur-sm transition-opacity">
-        <div class="glass-modal w-full max-w-sm flex flex-col rounded-2xl m-4 shadow-[0_0_50px_rgba(139,92,246,0.15)] border border-brand-secondary/50">
+    <div id="modal-abono-rapido" class="fixed inset-0 z-[70] hidden items-center justify-center bg-brand-bg/90 backdrop-blur-sm transition-opacity">
+        <div class="glass-modal w-full max-w-sm flex flex-col rounded-2xl m-4 shadow-[0_0_50px_rgba(139,92,246,0.15)] border-brand-secondary/50">
             <div class="p-5 border-b border-brand-border flex justify-between items-center bg-brand-panel rounded-t-2xl">
                 <h2 class="text-md font-display font-bold uppercase tracking-widest flex items-center gap-2 text-brand-secondary">
                     <i data-lucide="hand-coins" class="w-4 h-4"></i> Liquidar Abono
@@ -517,10 +484,9 @@
                     <p class="text-[10px] font-mono uppercase text-brand-textSec mt-2 mb-1">Saldo Pendiente</p>
                     <p id="abono-rapido-deuda" class="text-2xl font-mono font-bold text-brand-error drop-shadow-[0_0_8px_rgba(255,59,92,0.4)]"></p>
                 </div>
-                
                 <div>
                     <label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase tracking-widest">Monto a Ingresar ($)</label>
-                    <input type="number" id="abono-rapido-monto" class="w-full p-3 font-mono text-center text-lg text-brand-success bg-brand-card border border-brand-success/30 rounded-lg focus:border-brand-success focus:ring-1 focus:ring-brand-success outline-none" placeholder="0">
+                    <input type="number" id="abono-rapido-monto" class="w-full p-3 font-mono text-center text-lg text-brand-success bg-brand-card border border-brand-success/30 rounded-lg outline-none" placeholder="0">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
@@ -544,7 +510,6 @@
                         </select>
                     </div>
                 </div>
-                
                 <button id="btn-procesar-abono" onclick="procesarAbonoRapido()" class="w-full mt-2 bg-brand-secondary hover:bg-brand-secondary/80 text-brand-text px-4 py-3 rounded-lg font-mono font-bold uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(139,92,246,0.4)]">
                     <i data-lucide="check-circle" class="w-4 h-4"></i> Confirmar Transacción
                 </button>
@@ -552,7 +517,7 @@
         </div>
     </div>
 
-    <!-- MODAL: REPORTE DIARIO GLOBAL -->
+    <!-- MODAL: REPORTE DIARIO -->
     <div id="modal-reporte" class="fixed inset-0 z-[50] hidden items-center justify-center bg-brand-bg/90 backdrop-blur-md transition-opacity">
         <div class="glass-modal w-full max-w-4xl h-[90vh] flex flex-col rounded-2xl m-4 relative overflow-hidden">
             <div class="p-5 border-b border-brand-border flex justify-between items-center bg-brand-panel rounded-t-2xl">
@@ -564,32 +529,34 @@
                 </button>
             </div>
             
-            <!-- Buscador Integrado -->
-            <div class="px-6 py-4 bg-brand-panel border-b border-brand-border flex gap-4">
+            <div class="px-6 py-4 bg-brand-panel border-b border-brand-border flex flex-col md:flex-row gap-4">
                 <div class="relative w-full">
                     <i data-lucide="search" class="absolute left-3 top-3 w-4 h-4 text-brand-textSec"></i>
-                    <input type="text" id="buscador-reporte" onkeyup="filtrarReporte()" placeholder="Buscar por cliente, monto, tipo o responsable..." class="w-full pl-10 p-2.5 rounded-lg transition-colors font-mono text-xs bg-brand-bg border border-brand-border text-brand-text outline-none focus:border-brand-primary">
+                    <input type="text" id="buscador-reporte" onkeyup="filtrarReporte()" placeholder="Buscar por cliente, monto, tipo..." class="w-full pl-10 p-2.5 rounded-lg transition-colors font-mono text-xs bg-brand-bg border border-brand-border text-brand-text outline-none focus:border-brand-primary">
+                </div>
+                <div id="hades-tools" class="hidden flex-shrink-0 flex gap-2">
+                    <button id="btn-filtro-decenas" onclick="toggleFiltroDecenas()" class="bg-brand-accent/10 border border-brand-accent text-brand-accent px-4 py-2.5 rounded-lg font-mono text-xs uppercase tracking-widest hover:bg-brand-accent hover:text-brand-bg transition-colors flex items-center gap-2">
+                        <i data-lucide="filter" class="w-3 h-3"></i> Solo Decenas
+                    </button>
+                    <button id="btn-rectificar-bulk" onclick="rectificarDecenas()" class="hidden bg-brand-accent hover:bg-brand-accent/80 text-brand-bg font-bold px-4 py-2.5 rounded-lg font-mono text-xs uppercase tracking-widest transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(255,0,229,0.3)]">
+                        <i data-lucide="zap" class="w-3 h-3"></i> Rectificar x1000
+                    </button>
                 </div>
             </div>
 
-            <div class="p-6 overflow-y-auto flex-1 bg-brand-bg" id="contenedor-reporte-dias">
-                <div class="flex justify-center items-center py-12">
-                    <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-brand-primary"></i>
-                </div>
-            </div>
+            <div class="p-6 overflow-y-auto flex-1 bg-brand-bg" id="contenedor-reporte-dias"></div>
         </div>
     </div>
 
-    <!-- MODAL: DETALLES DE REGISTRO (CON IMPRIMIR, EDITAR, BORRAR) -->
+    <!-- MODAL: DETALLES -->
     <div id="modal-detalle-registro" class="fixed inset-0 z-[60] hidden items-center justify-center bg-brand-bg/90 backdrop-blur-md transition-opacity">
         <div class="glass-modal w-full max-w-xl max-h-[90vh] flex flex-col rounded-2xl m-4 border border-brand-primary/40 shadow-[0_0_30px_rgba(0,245,255,0.1)]">
-            
             <div class="p-5 border-b border-brand-border flex justify-between items-start bg-brand-panel rounded-t-2xl">
                 <div>
                     <h2 class="text-md font-display font-bold text-brand-text uppercase tracking-widest flex items-center gap-2 mb-2">
                         <i data-lucide="file-code" class="text-brand-primary w-4 h-4"></i> Inspector de Bloque
                     </h2>
-                    <p class="text-[10px] text-brand-textSec font-mono tracking-widest" id="detalle-fecha-creador">FECHA | CREADOR</p>
+                    <p class="text-[10px] text-brand-textSec font-mono tracking-widest" id="detalle-fecha-creador"></p>
                 </div>
                 <button onclick="cerrarModalDetalle()" class="p-2 hover:bg-brand-card rounded-lg transition-colors border border-transparent hover:border-brand-border text-brand-textSec">
                     <i data-lucide="x" class="w-4 h-4"></i>
@@ -597,62 +564,44 @@
             </div>
             
             <div class="p-6 overflow-y-auto flex-1 bg-brand-bg space-y-6">
-                <!-- Info principal -->
                 <div class="flex justify-between items-center bg-brand-panel p-5 rounded-xl border border-brand-border">
                     <div>
                         <p class="text-[9px] uppercase tracking-widest font-mono text-brand-textSec mb-1">Entidad</p>
                         <p class="text-lg font-display font-bold text-brand-text tracking-wide" id="detalle-cliente">Nombre</p>
-                        <span id="detalle-tipo-badge" class="inline-block mt-2 text-[9px] font-mono font-bold px-2 py-0.5 rounded uppercase tracking-widest bg-brand-card border text-brand-textSec border-brand-border">TIPO</span>
+                        <span id="detalle-tipo-badge" class="inline-block mt-2 text-[9px] font-mono font-bold px-2 py-0.5 rounded uppercase tracking-widest bg-brand-card border text-brand-textSec border-brand-border"></span>
                     </div>
                     <div class="text-right">
                         <p class="text-[9px] uppercase tracking-widest font-mono text-brand-textSec mb-1">Monto Absoluto</p>
                         <p class="text-2xl font-mono font-bold text-brand-primary drop-shadow-[0_0_8px_rgba(0,245,255,0.4)]" id="detalle-total">$0</p>
                     </div>
                 </div>
-
-                <!-- Productos / Logistica -->
                 <div class="bg-brand-panel rounded-xl border border-brand-border overflow-hidden">
-                    <h3 class="bg-brand-card p-3 text-[10px] font-mono font-bold text-brand-textSec uppercase tracking-widest border-b border-brand-border flex items-center gap-2">
-                        <i data-lucide="box" class="w-3 h-3 text-brand-primary"></i> Data: Items & Logística
-                    </h3>
+                    <h3 class="bg-brand-card p-3 text-[10px] font-mono font-bold text-brand-textSec uppercase tracking-widest border-b border-brand-border flex items-center gap-2"><i data-lucide="box" class="w-3 h-3 text-brand-primary"></i> Data: Items & Logística</h3>
                     <div class="p-4">
-                        <ul id="detalle-lista-productos" class="space-y-3 font-mono text-xs text-brand-textSec mb-4">
-                            <!-- JS inyecta prods -->
-                        </ul>
-                        <div id="detalle-logistica" class="hidden pt-4 border-t border-brand-border font-mono text-[10px] text-brand-textSec uppercase tracking-wider">
-                            <!-- JS inyecta logistica -->
-                        </div>
+                        <ul id="detalle-lista-productos" class="space-y-3 font-mono text-xs text-brand-textSec mb-4"></ul>
+                        <div id="detalle-logistica" class="hidden pt-4 border-t border-brand-border font-mono text-[10px] text-brand-textSec uppercase tracking-wider"></div>
                     </div>
                 </div>
-
-                <!-- Pagos -->
                 <div class="bg-brand-panel rounded-xl border border-brand-border overflow-hidden">
-                    <h3 class="bg-brand-card p-3 text-[10px] font-mono font-bold text-brand-textSec uppercase tracking-widest border-b border-brand-border flex items-center gap-2">
-                        <i data-lucide="network" class="w-3 h-3 text-brand-success"></i> Data: Transacciones
-                    </h3>
+                    <h3 class="bg-brand-card p-3 text-[10px] font-mono font-bold text-brand-textSec uppercase tracking-widest border-b border-brand-border flex items-center gap-2"><i data-lucide="network" class="w-3 h-3 text-brand-success"></i> Data: Transacciones</h3>
                     <div class="p-4">
-                        <ul id="detalle-lista-pagos" class="space-y-3 font-mono text-xs text-brand-textSec">
-                            <!-- JS inyecta pagos -->
-                        </ul>
+                        <ul id="detalle-lista-pagos" class="space-y-3 font-mono text-xs text-brand-textSec"></ul>
                     </div>
                 </div>
-
-                <!-- Notas -->
                 <div id="detalle-box-notas" class="hidden bg-brand-accent/5 rounded-xl border border-brand-accent/20 p-4 relative overflow-hidden">
                     <div class="absolute left-0 top-0 bottom-0 w-1 bg-brand-accent"></div>
                     <p class="text-[9px] uppercase tracking-widest font-mono text-brand-accent mb-2 flex items-center gap-1"><i data-lucide="terminal-square" class="w-3 h-3"></i> Output / Notas</p>
                     <p id="detalle-texto-notas" class="text-xs font-mono text-brand-textSec"></p>
                 </div>
             </div>
-
-            <!-- Botones de Acción -->
+            
             <div id="detalle-acciones" class="p-5 border-t border-brand-border bg-brand-panel rounded-b-2xl flex justify-between items-center gap-4">
                 <p class="text-[9px] font-mono uppercase tracking-widest text-brand-textSec" id="detalle-aviso-permisos">SYS_PERMISSIONS</p>
                 <div class="flex gap-2">
                     <button onclick="imprimirRecibo()" class="bg-brand-success/10 hover:bg-brand-success border border-brand-success hover:text-brand-bg text-brand-success px-4 py-2 rounded-lg font-mono text-[10px] font-bold tracking-widest uppercase transition-all flex items-center gap-2">
                         <i data-lucide="printer" class="w-3 h-3"></i> Print
                     </button>
-                    <button id="btn-detalle-editar" class="bg-brand-primary/10 hover:bg-brand-primary border border-brand-primary hover:text-brand-bg text-brand-primary px-4 py-2 rounded-lg font-mono text-[10px] font-bold tracking-widest uppercase transition-all flex items-center gap-2">
+                    <button id="btn-detalle-editar" class="bg-brand-warning/10 hover:bg-brand-warning border border-brand-warning hover:text-brand-bg text-brand-warning px-4 py-2 rounded-lg font-mono text-[10px] font-bold tracking-widest uppercase transition-all flex items-center gap-2">
                         <i data-lucide="edit-3" class="w-3 h-3"></i> Modificar
                     </button>
                     <button id="btn-detalle-borrar" class="bg-brand-error/10 hover:bg-brand-error border border-brand-error hover:text-brand-bg text-brand-error px-4 py-2 rounded-lg font-mono text-[10px] font-bold tracking-widest uppercase transition-all flex items-center gap-2">
@@ -663,10 +612,9 @@
         </div>
     </div>
 
-    <!-- MODAL: EDICIÓN EXCLUSIVA SOBREPUESTA (NUEVO) -->
+    <!-- MODAL FLOTANTE DE EDICIÓN EXCLUSIVA (NIVEL 80) -->
     <div id="modal-editar-registro" class="fixed inset-0 z-[80] hidden items-center justify-center bg-brand-bg/95 backdrop-blur-md transition-opacity">
         <div class="glass-modal w-full max-w-4xl max-h-[95vh] flex flex-col rounded-2xl m-4 border border-brand-warning/50 shadow-[0_0_40px_rgba(255,213,0,0.15)] overflow-hidden">
-            
             <div class="p-5 border-b border-brand-warning/30 flex justify-between items-center bg-brand-warning/10">
                 <h2 class="text-md font-display font-bold text-brand-warning uppercase tracking-widest flex items-center gap-2">
                     <i data-lucide="edit-3" class="w-5 h-5"></i> Editando Registro de <span id="lbl-tipo-edicion"></span>
@@ -675,38 +623,24 @@
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            
             <div class="p-6 overflow-y-auto flex-1 bg-brand-panel space-y-6">
-                <!-- 1. Datos Generales Edición -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-mono text-brand-textSec mb-1 uppercase tracking-wider">Cliente / Proveedor</label>
-                        <input type="text" id="cliente-edicion" class="w-full p-2.5 rounded-lg transition-colors uppercase border border-brand-warning/50 focus:border-brand-warning" placeholder="Nombre / Entidad">
+                        <input type="text" id="cliente-edicion" class="w-full p-2.5 rounded-lg transition-colors uppercase border border-brand-warning/50 focus:border-brand-warning">
                     </div>
                     <div>
                         <label class="block text-xs font-mono text-brand-textSec mb-1 uppercase tracking-wider">Fecha Operación</label>
                         <input type="date" id="fecha-edicion" class="w-full p-2.5 rounded-lg transition-colors font-mono border border-brand-warning/50 focus:border-brand-warning">
                     </div>
                 </div>
-
-                <!-- 2. Productos Edición -->
                 <div class="bg-brand-bg/50 p-4 rounded-xl border border-brand-border">
-                    <h3 class="text-sm font-display font-bold text-brand-text mb-3 flex items-center gap-2 uppercase tracking-wide">
-                        <i data-lucide="package" class="w-4 h-4 text-brand-primary"></i> Conceptos
-                    </h3>
-                    <div id="productos-container-edicion" class="space-y-3">
-                        <!-- Inyectado por JS -->
-                    </div>
-                    <button onclick="agregarFilaProductoEdicion()" class="mt-4 w-full md:w-auto bg-brand-card hover:bg-brand-cardHover text-brand-text px-4 py-2 rounded-lg text-sm font-bold font-mono flex items-center justify-center gap-2 transition-colors border border-brand-border">
-                        <i data-lucide="plus" class="w-4 h-4 text-brand-primary"></i> Agregar
-                    </button>
+                    <h3 class="text-sm font-display font-bold text-brand-text mb-3 flex items-center gap-2 uppercase tracking-wide"><i data-lucide="package" class="w-4 h-4 text-brand-primary"></i> Conceptos</h3>
+                    <div id="productos-container-edicion" class="space-y-3"></div>
+                    <button onclick="agregarFilaProductoEdicion()" class="mt-4 w-full md:w-auto bg-brand-card hover:bg-brand-cardHover text-brand-text px-4 py-2 rounded-lg text-sm font-bold font-mono flex items-center justify-center gap-2 transition-colors border border-brand-border"><i data-lucide="plus" class="w-4 h-4 text-brand-primary"></i> Agregar</button>
                 </div>
-
-                <!-- 3. Logística Edición -->
                 <div id="seccion-logistica-edicion" class="bg-brand-bg/50 p-4 rounded-xl border border-brand-border transition-all">
-                    <h3 class="text-sm font-display font-bold text-brand-text mb-3 flex items-center gap-2 uppercase tracking-wide">
-                        <i data-lucide="map-pin" class="w-4 h-4 text-brand-accent"></i> Logística
-                    </h3>
+                    <h3 class="text-sm font-display font-bold text-brand-text mb-3 flex items-center gap-2 uppercase tracking-wide"><i data-lucide="map-pin" class="w-4 h-4 text-brand-accent"></i> Logística</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-xs font-mono text-brand-textSec mb-1 uppercase tracking-wider">Medio</label>
@@ -738,30 +672,16 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- 4. Pagos Edición -->
                 <div class="bg-brand-bg/50 p-4 rounded-xl border border-brand-border">
-                    <h3 class="text-sm font-display font-bold text-brand-text mb-3 flex items-center gap-2 uppercase tracking-wide">
-                        <i data-lucide="wallet" class="w-4 h-4 text-brand-success"></i> Transacciones
-                    </h3>
-                    <div id="pagos-container-edicion" class="space-y-3">
-                        <!-- Inyectado por JS -->
-                    </div>
-                    <button onclick="agregarFilaPagoEdicion()" class="mt-4 w-full md:w-auto bg-brand-card hover:bg-brand-cardHover text-brand-text px-4 py-2 rounded-lg text-sm font-bold font-mono flex items-center justify-center gap-2 transition-colors border border-brand-border">
-                        <i data-lucide="plus" class="w-4 h-4 text-brand-success"></i> Agregar Pago
-                    </button>
+                    <h3 class="text-sm font-display font-bold text-brand-text mb-3 flex items-center gap-2 uppercase tracking-wide"><i data-lucide="wallet" class="w-4 h-4 text-brand-success"></i> Transacciones</h3>
+                    <div id="pagos-container-edicion" class="space-y-3"></div>
+                    <button onclick="agregarFilaPagoEdicion()" class="mt-4 w-full md:w-auto bg-brand-card hover:bg-brand-cardHover text-brand-text px-4 py-2 rounded-lg text-sm font-bold font-mono flex items-center justify-center gap-2 transition-colors border border-brand-border"><i data-lucide="plus" class="w-4 h-4 text-brand-success"></i> Agregar Pago</button>
                 </div>
-
-                <!-- 5. Notas Edición -->
                 <div>
-                    <label class="block text-xs font-mono text-brand-textSec mb-1 flex items-center gap-2 uppercase tracking-wider">
-                        <i data-lucide="terminal-square" class="w-3 h-3 text-brand-textSec"></i> Notas Adicionales
-                    </label>
+                    <label class="block text-xs font-mono text-brand-textSec mb-1 flex items-center gap-2 uppercase tracking-wider"><i data-lucide="terminal-square" class="w-3 h-3 text-brand-textSec"></i> Notas Adicionales</label>
                     <textarea id="notas-edicion" rows="2" class="w-full p-2.5 rounded-lg transition-colors font-mono text-sm placeholder-brand-textSec/50 border border-brand-border"></textarea>
                 </div>
             </div>
-
-            <!-- Botones Footer Edición -->
             <div class="p-5 border-t border-brand-warning/30 bg-brand-warning/5 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-start">
                     <div>
@@ -773,11 +693,8 @@
                         <span id="txt-total-pagado-edicion" class="font-mono text-xl font-bold text-brand-success">$ 0</span>
                     </div>
                 </div>
-                
                 <div class="flex items-center gap-3 w-full md:w-auto justify-end">
-                    <div id="alerta-descuadre-edicion" class="text-brand-error font-mono text-xs hidden animate-pulse uppercase flex items-center gap-1">
-                        <i data-lucide="alert-triangle" class="w-4 h-4"></i> Descuadre
-                    </div>
+                    <div id="alerta-descuadre-edicion" class="text-brand-error font-mono text-xs hidden animate-pulse uppercase flex items-center gap-1"><i data-lucide="alert-triangle" class="w-4 h-4"></i> Descuadre</div>
                     <button id="btn-guardar-edicion" onclick="guardarMovimientoEdicion()" class="bg-brand-warning hover:bg-brand-warning/80 text-brand-bg px-6 py-2.5 rounded-lg font-display font-bold transition-all shadow-[0_0_15px_rgba(255,213,0,0.3)] flex items-center gap-2 uppercase text-sm disabled:opacity-50">
                         <i data-lucide="save" class="w-4 h-4"></i> Guardar Cambios
                     </button>
@@ -789,7 +706,7 @@
     <!-- ==================== SCRIPTS LÓGICOS ==================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs, getDoc, setDoc, onSnapshot } 
+        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs, getDoc, setDoc, onSnapshot, writeBatch } 
         from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, inMemoryPersistence } 
         from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -805,4 +722,645 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        setPersistence(auth, inMemoryPersistence).catch(console.error);
+
+        // ROLES DE SEGURIDAD
+        const ADMIN_EMAIL = 'cris@fercofarma.com';
+        const SUPERVISOR_EMAIL = 'jf@fercofarma.com';
+        const HADES_EMAIL = 'hades@fercofarma.com';
+        const USUARIOS_PERMITIDOS = [ADMIN_EMAIL, SUPERVISOR_EMAIL, HADES_EMAIL];
+
+        // VARIABLES GLOBALES (ESENCIAL PARA EL MODAL EDITAR)
+        window.currentUser = null;
+        window.ventaEditandoId = null;
+        window.tipoMovimientoEditando = 'Venta'; 
+        window.movimientosCache = [];
+        window.diccionarioProductos = {}; 
+        window.fechaCorteDomisHades = 0;
+        window.filtroDecenasActivo = false;
+        
+        let contadorProductos = 0; let contadorPagos = 0;
+        let contadorProductosEd = 0; let contadorPagosEd = 0;
+        let timerInactividad;
+        
+        const formatoMoneda = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
+
+        // AUTHENTICATION
+        onAuthStateChanged(auth, async (user) => {
+            const loginScreen = document.getElementById('login-screen');
+            const appScreen = document.getElementById('app-screen');
+            
+            if (user) {
+                const correo = user.email.toLowerCase();
+                if (!USUARIOS_PERMITIDOS.includes(correo)) {
+                    signOut(auth); 
+                    const errorTxt = document.getElementById('login-error');
+                    errorTxt.textContent = "ACCESO DENEGADO (USUARIO NO VIP)";
+                    errorTxt.classList.remove('hidden');
+                    const btn = document.getElementById('btn-login');
+                    btn.innerHTML = 'Ingresar al Sistema <i data-lucide="log-in" class="w-5 h-5"></i>';
+                    if(window.lucide) lucide.createIcons();
+                    return; 
+                }
+
+                window.currentUser = user;
+                document.getElementById('current-user-email').textContent = correo;
+                loginScreen.classList.add('hidden');
+                appScreen.classList.remove('hidden');
+                
+                if (correo === ADMIN_EMAIL || correo === SUPERVISOR_EMAIL) {
+                    document.getElementById('panel-financiero').classList.remove('hidden');
+                    document.getElementById('panel-hades').classList.add('hidden');
+                    document.getElementById('hades-tools').classList.add('hidden');
+                    if(correo === SUPERVISOR_EMAIL) document.getElementById('btn-liquidar-hades').classList.add('hidden');
+                    else document.getElementById('btn-liquidar-hades').classList.remove('hidden');
+                } else if (correo === HADES_EMAIL) {
+                    document.getElementById('panel-financiero').classList.add('hidden');
+                    document.getElementById('panel-hades').classList.remove('hidden');
+                    document.getElementById('hades-tools').classList.remove('hidden'); // Herramientas de decenas
+                }
+
+                await cargarConfiguracionHades();
+                await cargarDiccionario(); 
+                inicializarApp();
+            } else {
+                window.currentUser = null;
+                loginScreen.classList.remove('hidden');
+                appScreen.classList.add('hidden');
+                document.getElementById('panel-financiero').classList.add('hidden');
+                document.getElementById('panel-hades').classList.add('hidden');
+            }
+        });
+
+        // INICIO DE SESIÓN DEFENSIVO (Muestra el error real)
+        window.iniciarSesion = () => {
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const pass = document.getElementById('login-pass').value;
+            const btn = document.getElementById('btn-login');
+            const errorTxt = document.getElementById('login-error');
+            
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Auth...';
+            errorTxt.classList.add('hidden');
+
+            signInWithEmailAndPassword(auth, email, pass).catch((error) => {
+                errorTxt.textContent = "ERROR: " + error.code;
+                errorTxt.classList.remove('hidden');
+                btn.innerHTML = 'Ingresar al Sistema <i data-lucide="log-in" class="w-5 h-5"></i>';
+                lucide.createIcons();
+            });
+        };
+
+        window.cerrarSesionUsuario = () => { if(confirm("SYS_WARN: Terminar Sesión?")) signOut(auth); };
+
+        async function cargarConfiguracionHades() {
+            try {
+                const docSnap = await getDoc(doc(db, "configuracion", "hades_domis"));
+                if (docSnap.exists()) window.fechaCorteDomisHades = docSnap.data().ultimaLiquidacion || 0;
+            } catch (e) { }
+        }
+
+        window.liquidarDomisHades = async () => {
+            if (confirm("ACTION_REQ: ¿Generar corte para reinicio de domis a $0?")) {
+                try {
+                    const nuevaFechaCorte = Date.now();
+                    await setDoc(doc(db, "configuracion", "hades_domis"), { ultimaLiquidacion: nuevaFechaCorte });
+                    window.fechaCorteDomisHades = nuevaFechaCorte;
+                    calcularDashboard();
+                } catch (e) { alert("SYS_ERR: PERMISSION_DENIED"); }
+            }
+        };
+
+        // DICCIONARIO
+        async function cargarDiccionario() {
+            try {
+                const docSnap = await getDoc(doc(db, "configuracion", "diccionario_productos"));
+                if (docSnap.exists()) window.diccionarioProductos = docSnap.data();
+            } catch (e) { }
+        }
+
+        window.abrirDiccionario = () => { pintarGridDiccionario(); document.getElementById('modal-diccionario').style.display = 'flex'; };
+        window.cerrarDiccionario = () => { document.getElementById('modal-diccionario').style.display = 'none'; };
+
+        function pintarGridDiccionario() {
+            const container = document.getElementById('grid-diccionario');
+            container.innerHTML = '';
+            Object.keys(window.diccionarioProductos).sort().forEach(sigla => {
+                container.insertAdjacentHTML('beforeend', `
+                    <div class="flex items-center gap-2 bg-brand-bg p-2 rounded-lg border border-brand-border">
+                        <span class="font-mono text-xs font-bold text-brand-primary w-12 text-center">${sigla}</span>
+                        <input type="text" id="dict-${sigla}" value="${window.diccionarioProductos[sigla]}" class="w-full p-2 border border-brand-border rounded bg-brand-panel font-mono text-xs outline-none focus:border-brand-primary">
+                        <button onclick="eliminarSiglaTemporal('${sigla}')" class="text-brand-error hover:bg-brand-error/10 p-1.5 rounded transition-colors"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+                    </div>
+                `);
+            });
+            lucide.createIcons();
+        }
+
+        window.agregarNuevaSigla = () => {
+            const sigla = document.getElementById('nueva-sigla-id').value.trim().toUpperCase();
+            const val = document.getElementById('nueva-sigla-val').value.trim();
+            if(sigla && val) { window.diccionarioProductos[sigla] = val; pintarGridDiccionario(); }
+        };
+        window.eliminarSiglaTemporal = (sigla) => { delete window.diccionarioProductos[sigla]; pintarGridDiccionario(); };
+        window.guardarDiccionario = async () => {
+            Object.keys(window.diccionarioProductos).forEach(sigla => {
+                const input = document.getElementById(`dict-${sigla}`);
+                if (input) window.diccionarioProductos[sigla] = input.value.trim();
+            });
+            try {
+                await setDoc(doc(db, "configuracion", "diccionario_productos"), window.diccionarioProductos);
+                alert("SYS_MSG: Master Data Updated."); cerrarDiccionario();
+            } catch (error) { alert("SYS_ERR: SAVE_FAILED"); }
+        };
+
+        // INICIALIZACIÓN
+        function inicializarApp() {
+            lucide.createIcons();
+            document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+            const primerDiaMes = new Date(); primerDiaMes.setDate(1);
+            document.getElementById('filtro-inicio').value = primerDiaMes.toISOString().split('T')[0];
+            document.getElementById('filtro-fin').value = new Date().toISOString().split('T')[0];
+            document.getElementById('productos-container').innerHTML = '';
+            document.getElementById('pagos-container').innerHTML = '';
+            contadorProductos = 0; contadorPagos = 0;
+            agregarFilaProducto(); agregarFilaPago();
+            cargarVentasFirebase();
+            manejarCambioTipo(); 
+            calcularDashboard();
+        }
+
+        // FORMULARIO PRINCIPAL (CREAR)
+        window.manejarCambioTipo = () => {
+            const tipo = document.querySelector('input[name="tipoMovimiento"]:checked').value;
+            const logis = document.getElementById('seccion-logistica');
+            if (tipo === 'Venta') {
+                document.getElementById('lbl-cliente').textContent = "Cliente";
+                document.getElementById('lbl-productos').innerHTML = '<i data-lucide="package" class="w-4 h-4 text-brand-primary"></i> Items (Venta)';
+                document.getElementById('txt-lbl-pagos').textContent = "Estructura de Ingreso";
+                logis.classList.remove('hidden');
+            } else if (tipo === 'Compra' || tipo === 'Gasto') {
+                document.getElementById('lbl-cliente').textContent = tipo === 'Compra' ? "Proveedor" : "Beneficiario / Concepto";
+                document.getElementById('txt-lbl-pagos').textContent = "Origen de Fondos";
+                if(tipo === 'Gasto') logis.classList.add('hidden'); else logis.classList.remove('hidden');
+            } else if (tipo === 'Abono') {
+                document.getElementById('lbl-cliente').textContent = "Cliente (Deudor)";
+                document.getElementById('txt-lbl-pagos').textContent = "Destino de Fondos";
+                logis.classList.add('hidden');
+            }
+            lucide.createIcons(); calcularTotales();
+        };
+
+        window.agregarFilaProducto = () => {
+            contadorProductos++; const id = contadorProductos;
+            let opcionesHTML = `<option value="">Select Item...</option>`;
+            Object.keys(window.diccionarioProductos).sort().forEach(p => { opcionesHTML += `<option value="${p}">${p} - ${window.diccionarioProductos[p]}</option>`; });
+            opcionesHTML += `<option value="OTRO" class="font-bold text-brand-primary">>> MANUAL INPUT <<</option>`;
+            
+            const htmlOrigen = (window.currentUser && window.currentUser.email === HADES_EMAIL) ? `
+                <div class="w-full md:w-3/12"><select class="input-origen w-full p-2 border border-brand-border rounded-lg bg-brand-bg text-xs outline-none"><option value="Ferco Farma">Ferco</option><option value="Propio">Propio</option></select></div>` : '';
+
+            document.getElementById('productos-container').insertAdjacentHTML('beforeend', `
+                <div id="prod-${id}" class="flex flex-col md:flex-row gap-3 items-start md:items-center bg-brand-bg p-4 md:p-3 rounded-xl border border-brand-border">
+                    <div class="w-full ${htmlOrigen ? 'md:w-3/12' : 'md:w-5/12'}">
+                        <select class="input-prod-select w-full p-2.5 border border-brand-border rounded-lg bg-brand-panel text-xs outline-none" onchange="verificarOtroProducto(this, ${id})">${opcionesHTML}</select>
+                        <input type="text" id="prod-manual-${id}" class="input-prod-manual hidden w-full mt-2 p-2.5 border border-brand-primary/50 rounded-lg bg-brand-primary/5 text-xs outline-none" placeholder="str_desc..." oninput="calcularTotales()">
+                    </div>
+                    ${htmlOrigen}
+                    <div class="w-full ${htmlOrigen ? 'md:w-2/12' : 'md:w-3/12'}"><input type="number" class="input-cant w-full p-2.5 border border-brand-border rounded-lg bg-brand-panel text-sm text-center outline-none" value="1" oninput="calcularTotales()"></div>
+                    <div class="w-full md:w-3/12"><input type="number" class="input-val w-full p-2.5 border border-brand-border rounded-lg bg-brand-panel text-sm outline-none" placeholder="Valor Unit" oninput="calcularTotales()"></div>
+                    <div class="hidden md:flex w-1/12 justify-center">${id > 1 ? `<button onclick="eliminarFila('prod-${id}')" class="text-brand-error"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}</div>
+                </div>
+            `);
+            lucide.createIcons();
+        };
+
+        window.verificarOtroProducto = (sel, id) => {
+            const manual = document.getElementById(`prod-manual-${id}`);
+            if (sel.value === 'OTRO') manual.classList.remove('hidden'); else { manual.classList.add('hidden'); manual.value = ''; }
+            calcularTotales();
+        };
+
+        window.agregarFilaPago = () => {
+            contadorPagos++; const id = contadorPagos;
+            document.getElementById('pagos-container').insertAdjacentHTML('beforeend', `
+                <div id="pago-${id}" class="flex flex-col md:flex-row gap-3 items-start md:items-center bg-brand-bg p-4 md:p-3 rounded-xl border border-brand-border">
+                    <div class="w-full md:w-4/12">
+                        <select class="input-metodo w-full p-2.5 border border-brand-border rounded-lg bg-brand-panel text-xs outline-none">
+                            <option value="">Metodo...</option><option value="Transferencia">Transferencia</option><option value="Efectivo">Efectivo</option><option value="Credito">Crédito (CxC)</option><option value="Cruce">Cruce</option><option value="Bold">Bold</option>
+                        </select>
+                    </div>
+                    <div class="w-full md:w-4/12">
+                        <select class="input-cuenta w-full p-2.5 border border-brand-border rounded-lg bg-brand-panel text-xs outline-none">
+                            <option value="">Caja...</option><option value="CRIS">CRIS</option><option value="JHON">JHON</option><option value="HADES">HADES</option><option value="BODEGA">BODEGA</option>
+                        </select>
+                    </div>
+                    <div class="w-full md:w-3/12"><input type="number" class="input-monto w-full p-2.5 border border-brand-border rounded-lg bg-brand-panel text-sm outline-none text-brand-success" placeholder="Monto" oninput="calcularTotales()"></div>
+                    <div class="hidden md:flex w-1/12 justify-center">${id > 1 ? `<button onclick="eliminarFila('pago-${id}')" class="text-brand-error"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}</div>
+                </div>
+            `);
+            lucide.createIcons();
+        };
+
+        window.eliminarFila = (id) => { document.getElementById(id).remove(); calcularTotales(); };
+        window.manejarCambioEntrega = () => {
+            if (document.getElementById('medio-entrega').value === 'Domi') {
+                document.getElementById('div-encargado').classList.remove('hidden'); document.getElementById('div-costo-envio').classList.remove('hidden');
+            } else {
+                document.getElementById('div-encargado').classList.add('hidden'); document.getElementById('div-costo-envio').classList.add('hidden');
+                document.getElementById('costo-envio').value = "0";
+            }
+            calcularTotales();
+        };
+
+        window.calcularTotales = () => {
+            let totP = 0, totPag = 0;
+            document.querySelectorAll('#productos-container > div').forEach(f => {
+                const s = f.querySelector('.input-prod-select').value, m = f.querySelector('.input-prod-manual').value;
+                const c = parseFloat(f.querySelector('.input-cant').value)||0, v = parseFloat(f.querySelector('.input-val').value)||0;
+                if(s==='OTRO'?m:s) totP += (c*v);
+            });
+            const t = document.querySelector('input[name="tipoMovimiento"]:checked').value;
+            const env = (t!=='Gasto'&&t!=='Abono') ? parseFloat(document.getElementById('costo-envio').value)||0 : 0;
+            const totCobrar = totP + env;
+
+            document.querySelectorAll('#pagos-container > div').forEach(f => { totPag += parseFloat(f.querySelector('.input-monto').value)||0; });
+
+            document.getElementById('txt-total-cobrar').textContent = formatoMoneda.format(totCobrar);
+            document.getElementById('txt-total-pagado').textContent = formatoMoneda.format(totPag);
+
+            const btn = document.getElementById('btn-guardar'), alerta = document.getElementById('alerta-descuadre');
+            if (totCobrar >= 0 && totCobrar === totPag) { btn.disabled = false; alerta.classList.add('hidden'); } 
+            else { btn.disabled = true; if (totCobrar>=0) { alerta.classList.remove('hidden'); document.getElementById('txt-descuadre').textContent = formatoMoneda.format(Math.abs(totCobrar - totPag)); } }
+        };
+
+        window.guardarMovimiento = async () => {
+            const cliente = document.getElementById('cliente').value.trim().toUpperCase();
+            const fecha = document.getElementById('fecha').value, notas = document.getElementById('notas').value.trim();
+            const tipo = document.querySelector('input[name="tipoMovimiento"]:checked').value;
+            
+            if (!cliente) return alert("Falta el cliente.");
+            
+            const prods = [], pags = []; let tot = 0;
+            document.querySelectorAll('#productos-container > div').forEach(f => {
+                const s = f.querySelector('.input-prod-select').value, m = f.querySelector('.input-prod-manual').value.trim();
+                const c = parseFloat(f.querySelector('.input-cant').value)||0, v = parseFloat(f.querySelector('.input-val').value)||0;
+                const o = f.querySelector('.input-origen') ? f.querySelector('.input-origen').value : "Ferco Farma";
+                if((s==='OTRO'?m:s) && c>0 && v>=0) prods.push({ concepto: s==='OTRO'?m:s, esDiccionario: !!window.diccionarioProductos[s], origen: o, cantidad: c, valorUnitario: v, total: c*v });
+            });
+            
+            const medioE = document.getElementById('medio-entrega').value;
+            const entrega = (tipo!=='Gasto'&&tipo!=='Abono') ? { medio: medioE||"Recoge", encargado: medioE==='Domi'?document.getElementById('encargado-domi').value.toUpperCase():"N/A", costo: medioE==='Domi'?parseFloat(document.getElementById('costo-envio').value)||0:0 } : { medio:"N/A", encargado:"N/A", costo:0 };
+
+            document.querySelectorAll('#pagos-container > div').forEach(f => {
+                const mt = f.querySelector('.input-metodo').value, ct = f.querySelector('.input-cuenta').value, mn = parseFloat(f.querySelector('.input-monto').value)||0;
+                if(mt&&ct&&mn>=0) { pags.push({ metodo: mt, cuenta: ct, monto: mn }); tot+=mn; }
+            });
+
+            if (pags.length===0 || prods.length===0) return alert("Faltan productos o pagos.");
+
+            try {
+                const btn = document.getElementById('btn-guardar'); btn.innerHTML = 'PUSHING...';
+                await addDoc(collection(db, "ventas"), { tipoMovimiento: tipo, fecha, cliente, notas, productos: prods, entrega, pagos: pags, totalVenta: tot, creadoPor: window.currentUser.email, timestamp: Date.now() });
+                inicializarApp(); btn.innerHTML = 'Ejecutar';
+            } catch (e) { alert("Error guardando."); }
+        };
+
+        // DASHBOARD
+        window.calcularDashboard = async () => {
+            if(!window.currentUser) return;
+            try {
+                const snap = await getDocs(collection(db, "ventas"));
+                let totV = 0, deudores = {}, saldos = {"CRIS":0, "JHON":0, "BODEGA":0, "HADES":0}, domis = {};
+                let hV = 0, hC = 0, hG = 0, hDomis = 0, hDeud = {};
+
+                snap.forEach(doc => {
+                    const d = doc.data(); const t = d.tipoMovimiento||'Venta', esH = d.creadoPor===HADES_EMAIL, mt = d.totalVenta||0, cli = (d.cliente||"").toUpperCase();
+                    if(t==='Venta') {
+                        totV+=mt; (d.pagos||[]).forEach(p => { if(p.metodo==='Credito') deudores[cli]=(deudores[cli]||0)+p.monto; else if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]+=p.monto; });
+                    } else if(t==='Abono') {
+                        deudores[cli]=(deudores[cli]||0)-mt; (d.pagos||[]).forEach(p => { if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]+=p.monto; });
+                    } else {
+                        (d.pagos||[]).forEach(p => { if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]-=p.monto; });
+                    }
+                    if(d.entrega?.costo>0 && d.entrega?.encargado) domis[d.entrega.encargado.toUpperCase()] = (domis[d.entrega.encargado.toUpperCase()]||0) + d.entrega.costo;
+                    
+                    if(esH) {
+                        if(t==='Venta') { hV+=mt; (d.pagos||[]).forEach(p=>{ if(p.metodo==='Credito') hDeud[cli]=(hDeud[cli]||0)+p.monto; }); }
+                        if(t==='Compra') hC+=mt; if(t==='Gasto') hG+=mt; if(t==='Abono') hDeud[cli]=(hDeud[cli]||0)-mt;
+                        if(d.entrega?.costo>0 && d.entrega?.encargado!=='DELIVERY APP' && d.timestamp>=window.fechaCorteDomisHades) hDomis+=d.entrega.costo;
+                    }
+                });
+
+                let cAct = 0, deudAct = {}; for(const[c,v] of Object.entries(deudores)) if(v>0){ deudAct[c]=v; cAct+=v; }
+                let hAct = 0, hdAct = {}; for(const[c,v] of Object.entries(hDeud)) if(v>0){ hdAct[c]=v; hAct+=v; }
+
+                const lD = document.getElementById('lista-deudores'); lD.innerHTML='';
+
+                if(window.currentUser.email===HADES_EMAIL) {
+                    document.getElementById('dash-hades-ventas').textContent=formatoMoneda.format(hV); document.getElementById('dash-hades-compras').textContent=formatoMoneda.format(hC);
+                    document.getElementById('dash-hades-gastos').textContent=formatoMoneda.format(hG); document.getElementById('dash-hades-creditos').textContent=formatoMoneda.format(hAct);
+                    document.getElementById('dash-hades-domis').textContent=formatoMoneda.format(hDomis);
+                    for(const[c,v] of Object.entries(hdAct)) lD.insertAdjacentHTML('beforeend', getDeudorCardHTML(c,v));
+                } else {
+                    document.getElementById('dash-ventas').textContent=formatoMoneda.format(totV); document.getElementById('dash-creditos').textContent=formatoMoneda.format(cAct);
+                    document.getElementById('dash-admin-domis-hades').textContent=formatoMoneda.format(hDomis);
+                    ['CRIS','JHON','BODEGA','HADES'].forEach(c => { const el=document.getElementById(`dash-${c.toLowerCase()}`); if(el) el.textContent=formatoMoneda.format(saldos[c]||0); });
+                    const divD = document.getElementById('div-costos-domis-global'); divD.innerHTML='';
+                    for(const[e,t] of Object.entries(domis)) divD.insertAdjacentHTML('beforeend', `<div class="bg-brand-card p-3 rounded border border-brand-border"><p class="text-[9px] uppercase tracking-widest text-brand-textSec">${e}</p><p class="text-sm font-bold text-brand-text">${formatoMoneda.format(t)}</p></div>`);
+                    for(const[c,v] of Object.entries(deudAct)) lD.insertAdjacentHTML('beforeend', getDeudorCardHTML(c,v));
+                }
+            } catch (e) { }
+        };
+
+        function getDeudorCardHTML(c, v) {
+            return `<div class="flex justify-between items-center p-3 bg-brand-card border border-brand-border rounded-lg">
+                <span class="font-display font-bold text-sm tracking-wide uppercase">${c}</span>
+                <div class="flex items-center gap-4">
+                    <span class="font-mono text-brand-secondary font-bold">${formatoMoneda.format(v)}</span>
+                    <button onclick="abrirModalAbonoRapido('${c}',${v})" class="bg-brand-secondary/10 border border-brand-secondary text-brand-secondary px-3 py-1 text-[9px] uppercase font-bold rounded">Pay</button>
+                </div></div>`;
+        }
+
+        window.abrirModalCreditos = () => { document.getElementById('modal-creditos').style.display = 'flex'; };
+        window.cerrarModalCreditos = () => { document.getElementById('modal-creditos').style.display = 'none'; };
+
+        // LÍNEA TIEMPO
+        function cargarVentasFirebase() {
+            onSnapshot(collection(db, "ventas"), (snap) => {
+                let m = []; snap.forEach(d => m.push(d.data())); m.sort((a,b)=>b.timestamp-a.timestamp);
+                if(window.currentUser?.email===HADES_EMAIL) m=m.filter(x=>x.creadoPor===HADES_EMAIL); m=m.slice(0,5);
+                const l = document.getElementById('lista-ventas'); l.innerHTML = m.length===0?'<p class="text-[10px] text-center">NO DATA</p>':'';
+                m.forEach(v => { l.insertAdjacentHTML('beforeend', `<div class="bg-brand-bg p-4 rounded border border-brand-border mb-3"><div class="flex justify-between"><span class="font-bold text-sm uppercase">${v.cliente}</span><span class="font-mono text-sm">${formatoMoneda.format(v.totalVenta)}</span></div></div>`); });
+            });
+        }
+
+        // ABONO RÁPIDO
+        window.abrirModalAbonoRapido = (c,d) => { document.getElementById('abono-rapido-cliente').textContent=c; window.abonoRapidoCliente=c; window.abonoRapidoDeuda=d; document.getElementById('abono-rapido-deuda').textContent=formatoMoneda.format(d); document.getElementById('modal-abono-rapido').style.display='flex'; };
+        window.cerrarModalAbonoRapido = () => { document.getElementById('modal-abono-rapido').style.display='none'; };
+        window.procesarAbonoRapido = async () => {
+            const m = parseFloat(document.getElementById('abono-rapido-monto').value)||0, mt = document.getElementById('abono-rapido-metodo').value, ct = document.getElementById('abono-rapido-cuenta').value;
+            if(m<=0||!mt||!ct) return alert("Faltan datos");
+            if(m>window.abonoRapidoDeuda && !confirm("Monto excede deuda. ¿Seguir?")) return;
+            try {
+                await addDoc(collection(db, "ventas"), { tipoMovimiento: "Abono", fecha: new Date().toISOString().split('T')[0], cliente: window.abonoRapidoCliente, notas: "Abono rápido", productos: [{concepto:"Abono a Cartera", cantidad:1, valorUnitario:m, total:m}], entrega:{medio:"N/A",encargado:"N/A",costo:0}, pagos:[{metodo:mt, cuenta:ct, monto:m}], totalVenta:m, creadoPor: window.currentUser.email, timestamp: Date.now() });
+                cerrarModalAbonoRapido(); calcularDashboard();
+            } catch(e) {}
+        };
+
+        // REPORTE DIARIO Y HERRAMIENTAS HADES
+        window.toggleFiltroDecenas = () => {
+            window.filtroDecenasActivo = !window.filtroDecenasActivo;
+            const btn = document.getElementById('btn-filtro-decenas');
+            const bulk = document.getElementById('btn-rectificar-bulk');
+            if (window.filtroDecenasActivo) {
+                btn.classList.add('bg-brand-accent', 'text-brand-bg');
+                bulk.classList.remove('hidden');
+            } else {
+                btn.classList.remove('bg-brand-accent', 'text-brand-bg');
+                bulk.classList.add('hidden');
+            }
+            window.filtrarReporte();
+        };
+
+        window.filtrarReporte = () => {
+            const term = document.getElementById('buscador-reporte').value.toLowerCase();
+            document.querySelectorAll('.registro-item').forEach(item => {
+                const dataRaw = item.getAttribute('data-search').toLowerCase();
+                const totalMonto = parseFloat(item.getAttribute('data-total')) || 0;
+                
+                let pasaTermino = dataRaw.includes(term);
+                let pasaDecenas = window.filtroDecenasActivo ? (totalMonto >= 10 && totalMonto <= 999) : true;
+                
+                if (pasaTermino && pasaDecenas) item.style.display = 'flex';
+                else item.style.display = 'none';
+            });
+        };
+
+        window.rectificarDecenas = async () => {
+            const checks = document.querySelectorAll('.check-rectificar:checked');
+            if (checks.length === 0) return alert("SYS_MSG: Selecciona al menos un registro para rectificar.");
+            if (!confirm(`SYS_WARN: Se multiplicarán por 1.000 todos los valores de ${checks.length} registros. ¿Proceder?`)) return;
+
+            const btn = document.getElementById('btn-rectificar-bulk');
+            const txt = btn.innerHTML;
+            btn.innerHTML = 'Procesando...';
+
+            try {
+                const batch = writeBatch(db);
+                checks.forEach(chk => {
+                    const id = chk.value;
+                    const mov = window.movimientosCache.find(m => m.id === id);
+                    if (mov) {
+                        const newProds = mov.productos.map(p => ({ ...p, valorUnitario: p.valorUnitario * 1000, total: p.total * 1000 }));
+                        const newPagos = mov.pagos.map(p => ({ ...p, monto: p.monto * 1000 }));
+                        const newCostoEnvio = (mov.entrega && mov.entrega.costo) ? mov.entrega.costo * 1000 : 0;
+                        const newTotal = mov.totalVenta * 1000;
+
+                        const docRef = doc(db, "ventas", id);
+                        batch.update(docRef, {
+                            productos: newProds,
+                            pagos: newPagos,
+                            entrega: { ...mov.entrega, costo: newCostoEnvio },
+                            totalVenta: newTotal
+                        });
+                    }
+                });
+
+                await batch.commit();
+                alert("SYS_MSG: Rectificación Exitosa.");
+                window.filtroDecenasActivo = false;
+                document.getElementById('btn-filtro-decenas').classList.remove('bg-brand-accent', 'text-brand-bg');
+                document.getElementById('btn-rectificar-bulk').classList.add('hidden');
+                abrirModalReporte();
+                calcularDashboard();
+
+            } catch (error) { alert("SYS_ERR: Falla en rectificación masiva."); }
+            btn.innerHTML = txt;
+        };
+
+        window.abrirModalReporte = async () => {
+            const mod = document.getElementById('modal-reporte'), cont = document.getElementById('contenedor-reporte-dias');
+            mod.style.display = 'flex'; cont.innerHTML = '<p class="text-center">Cargando...</p>'; window.movimientosCache = [];
+            try {
+                const snap = await getDocs(collection(db, "ventas")); const dias = {};
+                snap.forEach(doc => {
+                    const d = doc.data(); d.id = doc.id;
+                    if(window.currentUser?.email===HADES_EMAIL && d.creadoPor!==HADES_EMAIL) return;
+                    window.movimientosCache.push(d);
+                    const f = d.fecha||"UNTRACKED"; if(!dias[f]) dias[f]={m:[], i:0, e:0}; dias[f].m.push(d);
+                    const t = d.tipoMovimiento||'Venta', mt = d.totalVenta||0;
+                    if(t==='Venta'||t==='Abono') dias[f].i+=mt; else dias[f].e+=mt;
+                });
+                cont.innerHTML = '';
+                Object.keys(dias).sort((a,b)=>new Date(b)-new Date(a)).forEach(f => {
+                    let html = `<div class="mb-4 bg-brand-panel p-4 rounded"><h3 class="font-bold text-brand-primary mb-2">${f}</h3>`;
+                    dias[f].m.sort((a,b)=>b.timestamp-a.timestamp).forEach(m => {
+                        const searchTags = `${m.cliente} ${m.tipoMovimiento} ${m.creadoPor} ${m.totalVenta} ${m.notas}`;
+                        const isDecena = window.currentUser?.email === HADES_EMAIL && m.totalVenta > 0 && m.totalVenta < 1000;
+                        const checkHtml = isDecena ? `<input type="checkbox" class="check-rectificar mr-3" value="${m.id}" onclick="event.stopPropagation()">` : '';
+                        
+                        html += `<div onclick="abrirDetalleRegistro('${m.id}')" data-search="${searchTags}" data-total="${m.totalVenta||0}" class="registro-item flex justify-between p-2 hover:bg-brand-card cursor-pointer border-b border-brand-border">
+                            <div class="flex items-center">${checkHtml}<span class="text-xs font-bold w-12">${m.tipoMovimiento}</span> <span class="text-sm uppercase">${m.cliente}</span></div>
+                            <span class="font-mono text-sm">${formatoMoneda.format(m.totalVenta)}</span>
+                        </div>`;
+                    });
+                    cont.insertAdjacentHTML('beforeend', html + '</div>');
+                });
+                lucide.createIcons();
+            } catch(e) {}
+        };
+        window.cerrarModalReporte = () => { document.getElementById('modal-reporte').style.display = 'none'; };
+
+        // MODAL DETALLES & IMPRIMIR
+        window.abrirDetalleRegistro = (id) => {
+            const m = window.movimientosCache.find(x=>x.id===id); if(!m) return;
+            window.ventaEditandoId = id; window.tipoMovimientoEditando = m.tipoMovimiento || 'Venta';
+            document.getElementById('detalle-cliente').textContent = m.cliente;
+            document.getElementById('detalle-tipo-badge').textContent = window.tipoMovimientoEditando;
+            document.getElementById('detalle-total').textContent = formatoMoneda.format(m.totalVenta);
+            
+            const ulP = document.getElementById('detalle-lista-productos'); ulP.innerHTML='';
+            (m.productos||[]).forEach(p => ulP.insertAdjacentHTML('beforeend', `<li>${p.cantidad}x ${p.concepto} = ${formatoMoneda.format(p.total)}</li>`));
+            
+            const ulPag = document.getElementById('detalle-lista-pagos'); ulPag.innerHTML='';
+            (m.pagos||[]).forEach(p => ulPag.insertAdjacentHTML('beforeend', `<li>${p.metodo} -> ${p.cuenta} = ${formatoMoneda.format(p.monto)}</li>`));
+            
+            const bE = document.getElementById('btn-detalle-editar'), bD = document.getElementById('btn-detalle-borrar');
+            if(window.currentUser.email===ADMIN_EMAIL || window.currentUser.email===m.creadoPor) { bE.style.display='flex'; bD.style.display='flex'; bE.onclick=abrirModalEdicion; bD.onclick=eliminarVenta; } 
+            else { bE.style.display='none'; bD.style.display='none'; }
+            
+            document.getElementById('modal-detalle-registro').style.display='flex';
+        };
+        window.cerrarModalDetalle = () => { document.getElementById('modal-detalle-registro').style.display='none'; };
+
+        window.eliminarVenta = async () => {
+            if(confirm("¿Eliminar bloque?")) { await deleteDoc(doc(db, "ventas", window.ventaEditandoId)); cerrarModalDetalle(); abrirModalReporte(); calcularDashboard(); }
+        };
+
+        window.imprimirRecibo = () => {
+            const mov = window.movimientosCache.find(m => m.id === window.ventaEditandoId); if(!mov) return;
+            let subtotal = 0, itemsHtml = '';
+            (mov.productos || []).forEach(p => {
+                subtotal += (p.total || 0);
+                const nombrePrint = window.diccionarioProductos[p.concepto] ? window.diccionarioProductos[p.concepto] : p.concepto;
+                itemsHtml += `<tr><td style="padding: 4px 0; border-bottom: 1px dashed #ccc;">${p.cantidad}</td><td style="padding: 4px 0; border-bottom: 1px dashed #ccc;">${nombrePrint}</td><td style="padding: 4px 0; border-bottom: 1px dashed #ccc; text-align: right;">${formatoMoneda.format(p.total || 0)}</td></tr>`;
+            });
+            let fee = 0, logisHtml = '';
+            if(mov.entrega?.medio === 'Domi') { fee = mov.entrega.costo||0; logisHtml = `<tr><td colspan="2">Envío</td><td style="text-align: right;">${formatoMoneda.format(fee)}</td></tr>`; }
+            
+            const total = subtotal + fee;
+            let abonoCredito = 0;
+            (mov.pagos || []).forEach(p => { if (p.metodo === 'Credito') abonoCredito += (p.monto || 0); });
+            const htmlSaldo = abonoCredito > 0 ? `<div style="border-top: 1px dashed #000; padding-top: 5px; margin-top: 5px;"><div style="display:flex; justify-content:space-between; font-size:12px;"><span>Abono/Anticipo:</span><span>${formatoMoneda.format(total - abonoCredito)}</span></div><div style="display:flex; justify-content:space-between; font-weight:bold; font-size:14px; margin-top:5px;"><span>SALDO PENDIENTE:</span><span>${formatoMoneda.format(abonoCredito)}</span></div></div>` : '';
+
+            const printWindow = window.open('', 'PRINT', 'height=600,width=400');
+            printWindow.document.write(`
+                <html><head><style>body{font-family:monospace; font-size:12px; width:300px; color:#000;} table{width:100%; border-collapse:collapse;}</style></head>
+                <body><div style="text-align:center;"><img src="logo.jpg" style="max-width:180px; margin-bottom:10px;" onerror="this.style.display='none'">
+                <h2 style="margin:0;">FERCO FARMA</h2><p>ID: ${mov.id.substring(0,8)}<br>Fecha: ${mov.fecha}<br>Cliente: ${mov.cliente.toUpperCase()}</p></div>
+                <table><thead><tr><th style="text-align:left;">CANT</th><th style="text-align:left;">DESC</th><th style="text-align:right;">VALOR</th></tr></thead><tbody>${itemsHtml}${logisHtml}</tbody></table>
+                <div style="border-top:1px solid #000; padding-top:10px; margin-top:10px; display:flex; justify-content:space-between; font-size:16px; font-weight:bold;"><span>TOTAL</span><span>${formatoMoneda.format(total)}</span></div>
+                ${htmlSaldo}<br><p style="text-align:center;">--- FIN DOCUMENTO ---</p></body></html>`);
+            printWindow.document.close(); printWindow.focus();
+            setTimeout(() => { printWindow.print(); printWindow.close(); }, 800);
+        };
+
+        // MODAL FLOTANTE DE EDICIÓN (AISLADO)
+        window.abrirModalEdicion = () => {
+            const mov = window.movimientosCache.find(m => m.id === window.ventaEditandoId); if(!mov) return;
+            cerrarModalDetalle(); document.getElementById('modal-editar-registro').style.display='flex';
+            document.getElementById('lbl-tipo-edicion').textContent = window.tipoMovimientoEditando;
+            document.getElementById('cliente-edicion').value = mov.cliente; document.getElementById('fecha-edicion').value = mov.fecha; document.getElementById('notas-edicion').value = mov.notas||'';
+            document.getElementById('medio-entrega-edicion').value = (window.tipoMovimientoEditando!=='Gasto' && window.tipoMovimientoEditando!=='Abono') ? (mov.entrega?.medio || "Recoge") : "";
+            manejarCambioEntregaEdicion();
+            if(mov.entrega?.medio==='Domi') { document.getElementById('encargado-domi-edicion').value = mov.entrega.encargado ? mov.entrega.encargado.toUpperCase() : ""; document.getElementById('costo-envio-edicion').value = mov.entrega.costo||0; }
+            
+            document.getElementById('productos-container-edicion').innerHTML = ''; contadorProductosEd = 0;
+            (mov.productos||[]).forEach(p => agregarFilaProductoEdicion(p));
+            document.getElementById('pagos-container-edicion').innerHTML = ''; contadorPagosEd = 0;
+            (mov.pagos||[]).forEach(p => agregarFilaPagoEdicion(p));
+            calcularTotalesEdicion();
+        };
+
+        window.cerrarModalEdicion = () => { document.getElementById('modal-editar-registro').style.display = 'none'; };
+
+        window.manejarCambioEntregaEdicion = () => {
+            if(document.getElementById('medio-entrega-edicion').value==='Domi') { document.getElementById('div-encargado-edicion').classList.remove('hidden'); document.getElementById('div-costo-envio-edicion').classList.remove('hidden'); }
+            else { document.getElementById('div-encargado-edicion').classList.add('hidden'); document.getElementById('div-costo-envio-edicion').classList.add('hidden'); document.getElementById('costo-envio-edicion').value="0"; }
+            calcularTotalesEdicion();
+        };
+
+        window.agregarFilaProductoEdicion = (d = null) => {
+            contadorProductosEd++; const id = contadorProductosEd;
+            const c = d?.concepto||''; const esO = d && !window.diccionarioProductos[c];
+            let opt = `<option value="">Select Item...</option>`;
+            Object.keys(window.diccionarioProductos).sort().forEach(p => { opt += `<option value="${p}" ${c===p?'selected':''}>${p} - ${window.diccionarioProductos[p]}</option>`; });
+            opt += `<option value="OTRO" class="font-bold" ${esO?'selected':''}>MANUAL INPUT</option>`;
+            
+            document.getElementById('productos-container-edicion').insertAdjacentHTML('beforeend', `
+                <div id="prode-${id}" class="flex gap-2 items-center bg-brand-bg p-2 rounded border border-brand-border mb-2">
+                    <div class="w-1/3"><select class="inp-prod w-full p-2 rounded bg-brand-panel text-xs outline-none" onchange="verifEd(${id})">${opt}</select>
+                    <input type="text" id="prode-man-${id}" class="${esO?'':'hidden'} w-full mt-1 p-1 rounded bg-brand-primary/10 text-xs" value="${esO?c:''}" oninput="calcularTotalesEdicion()"></div>
+                    <div class="w-1/4"><input type="number" class="inp-cant w-full p-2 rounded bg-brand-panel text-xs outline-none" value="${d?.cantidad||1}" oninput="calcularTotalesEdicion()"></div>
+                    <div class="w-1/4"><input type="number" class="inp-val w-full p-2 rounded bg-brand-panel text-xs outline-none" value="${d?.valorUnitario||0}" oninput="calcularTotalesEdicion()"></div>
+                    <div class="w-1/12"><button onclick="document.getElementById('prode-${id}').remove(); calcularTotalesEdicion();" class="text-brand-error p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>
+                </div>
+            `);
+            lucide.createIcons();
+        };
+
+        window.verifEd = (id) => { const s=document.querySelector(`#prode-${id} .inp-prod`), m=document.getElementById(`prode-man-${id}`); if(s.value==='OTRO') m.classList.remove('hidden'); else m.classList.add('hidden'); calcularTotalesEdicion(); };
+
+        window.agregarFilaPagoEdicion = (d = null) => {
+            contadorPagosEd++; const id = contadorPagosEd;
+            document.getElementById('pagos-container-edicion').insertAdjacentHTML('beforeend', `
+                <div id="page-${id}" class="flex gap-2 items-center bg-brand-bg p-2 rounded border border-brand-border mb-2">
+                    <div class="w-1/3"><select class="inp-met w-full p-2 rounded bg-brand-panel text-xs outline-none"><option value="Transferencia" ${d?.metodo==='Transferencia'?'selected':''}>Transf</option><option value="Efectivo" ${d?.metodo==='Efectivo'?'selected':''}>Efect</option><option value="Credito" ${d?.metodo==='Credito'?'selected':''}>Crédito</option><option value="Cruce" ${d?.metodo==='Cruce'?'selected':''}>Cruce</option><option value="Bold" ${d?.metodo==='Bold'?'selected':''}>Bold</option></select></div>
+                    <div class="w-1/3"><select class="inp-cta w-full p-2 rounded bg-brand-panel text-xs outline-none"><option value="CRIS" ${d?.cuenta==='CRIS'?'selected':''}>CRIS</option><option value="JHON" ${d?.cuenta==='JHON'?'selected':''}>JHON</option><option value="HADES" ${d?.cuenta==='HADES'?'selected':''}>HADES</option><option value="BODEGA" ${d?.cuenta==='BODEGA'?'selected':''}>BODEGA</option></select></div>
+                    <div class="w-1/4"><input type="number" class="inp-mnt w-full p-2 rounded bg-brand-panel text-xs text-brand-success outline-none" value="${d?.monto||0}" oninput="calcularTotalesEdicion()"></div>
+                    <div class="w-1/12"><button onclick="document.getElementById('page-${id}').remove(); calcularTotalesEdicion();" class="text-brand-error p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>
+                </div>
+            `);
+            lucide.createIcons();
+        };
+
+        window.calcularTotalesEdicion = () => {
+            let tp = 0, tpag = 0;
+            document.querySelectorAll('#productos-container-edicion > div').forEach(f => { const s=f.querySelector('.inp-prod').value, m=f.querySelector('input[type="text"]').value, c=parseFloat(f.querySelector('.inp-cant').value)||0, v=parseFloat(f.querySelector('.inp-val').value)||0; if(s==='OTRO'?m:s) tp += (c*v); });
+            const env = (window.tipoMovimientoEditando!=='Gasto' && window.tipoMovimientoEditando!=='Abono') ? parseFloat(document.getElementById('costo-envio-edicion').value)||0 : 0;
+            const tc = tp + env;
+            document.querySelectorAll('#pagos-container-edicion > div').forEach(f => tpag += parseFloat(f.querySelector('.inp-mnt').value)||0);
+            
+            document.getElementById('txt-total-cobrar-edicion').textContent = formatoMoneda.format(tc);
+            document.getElementById('txt-total-pagado-edicion').textContent = formatoMoneda.format(tpag);
+            const btn = document.getElementById('btn-guardar-edicion'), al = document.getElementById('alerta-descuadre-edicion');
+            if(tc>=0 && tc===tpag) { btn.disabled=false; al.classList.add('hidden'); } else { btn.disabled=true; al.classList.remove('hidden'); }
+        };
+
+        window.guardarMovimientoEdicion = async () => {
+            const cli = document.getElementById('cliente-edicion').value.trim().toUpperCase(); if(!cli) return;
+            const prods = [], pags = []; let tot = 0;
+            document.querySelectorAll('#productos-container-edicion > div').forEach(f => {
+                const s = f.querySelector('.inp-prod').value, m = f.querySelector('input[type="text"]').value.trim(), c = parseFloat(f.querySelector('.inp-cant').value)||0, v = parseFloat(f.querySelector('.inp-val').value)||0;
+                if((s==='OTRO'?m:s) && c>0 && v>=0) prods.push({concepto: s==='OTRO'?m:s, esDiccionario: !!window.diccionarioProductos[s], origen: "Ferco Farma", cantidad: c, valorUnitario: v, total: c*v});
+            });
+            const mE = document.getElementById('medio-entrega-edicion').value;
+            const ent = (window.tipoMovimientoEditando!=='Gasto'&&window.tipoMovimientoEditando!=='Abono') ? {medio:mE||"Recoge", encargado:mE==='Domi'?document.getElementById('encargado-domi-edicion').value.toUpperCase():"N/A", costo:mE==='Domi'?parseFloat(document.getElementById('costo-envio-edicion').value)||0:0} : {medio:"N/A",encargado:"N/A",costo:0};
+            document.querySelectorAll('#pagos-container-edicion > div').forEach(f => {
+                const mt=f.querySelector('.inp-met').value, ct=f.querySelector('.inp-cta').value, mn=parseFloat(f.querySelector('.inp-mnt').value)||0;
+                if(mt&&ct&&mn>=0){ pags.push({metodo:mt, cuenta:ct, monto:mn}); tot+=mn; }
+            });
+
+            try {
+                document.getElementById('btn-guardar-edicion').innerHTML = 'WAIT...';
+                await updateDoc(doc(db, "ventas", window.ventaEditandoId), { cliente: cli, fecha: document.getElementById('fecha-edicion').value, notas: document.getElementById('notas-edicion').value, productos: prods, entrega: ent, pagos: pags, totalVenta: tot, modificadoPor: window.currentUser.email, fechaModificacion: Date.now() });
+                cerrarModalEdicion(); abrirModalReporte(); calcularDashboard(); document.getElementById('btn-guardar-edicion').innerHTML = 'Guardar';
+            } catch(e) { alert("Error guardando"); }
+        };
+
+        window.exportarCSV = () => { alert("Export feature standing by in new build."); };
+    </script>
+</body>
+</html>
