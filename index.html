@@ -1021,9 +1021,19 @@
             if (pags.length===0 || prods.length===0) return alert("Faltan productos o pagos.");
 
             try {
-                const btn = document.getElementById('btn-guardar'); btn.innerHTML = 'PUSHING...';
+                const btn = document.getElementById('btn-guardar'); 
+                btn.innerHTML = 'PUSHING...';
+                
                 await addDoc(collection(db, "ventas"), { tipoMovimiento: tipo, fecha, cliente, notas, productos: prods, entrega, pagos: pags, totalVenta: tot, creadoPor: window.currentUser.email, timestamp: Date.now() });
-                inicializarApp(); btn.innerHTML = 'Ejecutar';
+                
+                // Ejecutamos la limpieza total y actualizamos los gráficos
+                window.limpiarFormulario();
+                calcularDashboard(); 
+                
+                // Restauramos el botón
+                btn.innerHTML = '<i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">Ejecutar</span>';
+                lucide.createIcons();
+                
             } catch (e) { alert("Error guardando."); }
         };
 
@@ -1230,15 +1240,57 @@
             (m.productos||[]).forEach(p => ulP.insertAdjacentHTML('beforeend', `<li>${p.cantidad}x ${p.concepto} = ${formatoMoneda.format(p.total)}</li>`));
             
             const ulPag = document.getElementById('detalle-lista-pagos'); ulPag.innerHTML='';
-            (m.pagos||[]).forEach(p => ulPag.insertAdjacentHTML('beforeend', `<li>${p.metodo} -> ${p.cuenta} = ${formatoMoneda.format(p.monto)}</li>`));
+            let tieneCrucePendiente = false;
+            (m.pagos||[]).forEach(p => {
+                let badge = '';
+                if (p.metodo === 'Cruce') {
+                    if (p.estadoCruce === 'Saldado') {
+                        badge = '<span class="ml-2 px-1.5 py-0.5 rounded text-[8px] bg-brand-success/20 text-brand-success border border-brand-success/30 font-bold">OK BODEGA</span>';
+                    } else {
+                        badge = '<span class="ml-2 px-1.5 py-0.5 rounded text-[8px] bg-brand-warning/20 text-brand-warning border border-brand-warning/30 font-bold animate-pulse">PENDIENTE</span>';
+                        tieneCrucePendiente = true;
+                    }
+                }
+                ulPag.insertAdjacentHTML('beforeend', `<li>${p.metodo} -> ${p.cuenta} = ${formatoMoneda.format(p.monto)} ${badge}</li>`);
+            });
             
-            const bE = document.getElementById('btn-detalle-editar'), bD = document.getElementById('btn-detalle-borrar');
+            const bE = document.getElementById('btn-detalle-editar'), bD = document.getElementById('btn-detalle-borrar'), bC = document.getElementById('btn-detalle-saldar-cruce');
             if(window.currentUser.email===ADMIN_EMAIL || window.currentUser.email===m.creadoPor) { bE.style.display='flex'; bD.style.display='flex'; bE.onclick=abrirModalEdicion; bD.onclick=eliminarVenta; } 
             else { bE.style.display='none'; bD.style.display='none'; }
+            
+            if (bC) {
+                if (tieneCrucePendiente && (window.currentUser.email === ADMIN_EMAIL || window.currentUser.email === SUPERVISOR_EMAIL)) {
+                    bC.style.display = 'flex';
+                    bC.onclick = () => window.confirmarCruceBodega(m.id);
+                } else {
+                    bC.style.display = 'none';
+                }
+            }
             
             document.getElementById('modal-detalle-registro').style.display='flex';
         };
         window.cerrarModalDetalle = () => { document.getElementById('modal-detalle-registro').style.display='none'; };
+
+        window.confirmarCruceBodega = async (id) => {
+            if(!confirm("ACTION_REQ: ¿Confirmar ingreso físico del producto a Bodega?")) return;
+            const mov = window.movimientosCache.find(x => x.id === id); if(!mov) return;
+            
+            const nuevosPagos = mov.pagos.map(p => {
+                if(p.metodo === 'Cruce' && p.estadoCruce !== 'Saldado') return { ...p, estadoCruce: 'Saldado' };
+                return p;
+            });
+
+            try {
+                const bC = document.getElementById('btn-detalle-saldar-cruce');
+                if(bC) bC.innerHTML = 'SYNC...';
+                await updateDoc(doc(db, "ventas", id), { pagos: nuevosPagos });
+                cerrarModalDetalle();
+                abrirModalReporte();
+                calcularDashboard();
+            } catch(e) {
+                alert("SYS_ERR: Falla actualizando estado de cruce.");
+            }
+        };
 
         window.eliminarVenta = async () => {
             if(confirm("¿Eliminar bloque?")) { await deleteDoc(doc(db, "ventas", window.ventaEditandoId)); cerrarModalDetalle(); abrirModalReporte(); calcularDashboard(); }
@@ -1260,11 +1312,16 @@
             (mov.pagos || []).forEach(p => { if (p.metodo === 'Credito') abonoCredito += (p.monto || 0); });
             const htmlSaldo = abonoCredito > 0 ? `<div style="border-top: 1px dashed #000; padding-top: 5px; margin-top: 5px;"><div style="display:flex; justify-content:space-between; font-size:12px;"><span>Abono/Anticipo:</span><span>${formatoMoneda.format(total - abonoCredito)}</span></div><div style="display:flex; justify-content:space-between; font-weight:bold; font-size:14px; margin-top:5px;"><span>SALDO PENDIENTE:</span><span>${formatoMoneda.format(abonoCredito)}</span></div></div>` : '';
 
+            // Lógica de personalización para Hades
+            const esHades = (mov.creadoPor === HADES_EMAIL);
+            const logoHtml = esHades ? '' : `<img src="logo.jpg" style="max-width:180px; margin-bottom:10px;" onerror="this.style.display='none'">`;
+            const tituloRecibo = esHades ? `<h2 style="margin:0; font-size: 24px;">HADES</h2>` : `<h2 style="margin:0;">FERCO FARMA</h2>`;
+
             const printWindow = window.open('', 'PRINT', 'height=600,width=400');
             printWindow.document.write(`
                 <html><head><style>body{font-family:monospace; font-size:12px; width:300px; color:#000;} table{width:100%; border-collapse:collapse;}</style></head>
-                <body><div style="text-align:center;"><img src="logo.jpg" style="max-width:180px; margin-bottom:10px;" onerror="this.style.display='none'">
-                <h2 style="margin:0;">FERCO FARMA</h2><p>ID: ${mov.id.substring(0,8)}<br>Fecha: ${mov.fecha}<br>Cliente: ${mov.cliente.toUpperCase()}</p></div>
+                <body><div style="text-align:center;">${logoHtml}
+                ${tituloRecibo}<p>ID: ${mov.id.substring(0,8)}<br>Fecha: ${mov.fecha}<br>Cliente: ${mov.cliente.toUpperCase()}</p></div>
                 <table><thead><tr><th style="text-align:left;">CANT</th><th style="text-align:left;">DESC</th><th style="text-align:right;">VALOR</th></tr></thead><tbody>${itemsHtml}${logisHtml}</tbody></table>
                 <div style="border-top:1px solid #000; padding-top:10px; margin-top:10px; display:flex; justify-content:space-between; font-size:16px; font-weight:bold;"><span>TOTAL</span><span>${formatoMoneda.format(total)}</span></div>
                 ${htmlSaldo}<br><p style="text-align:center;">--- FIN DOCUMENTO ---</p></body></html>`);
