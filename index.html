@@ -1126,14 +1126,18 @@
 
         window.filtrarReporte = () => {
             const term = document.getElementById('buscador-reporte').value.toLowerCase();
+            const tipoSeleccionado = document.getElementById('filtro-tipo-reporte').value;
+            
             document.querySelectorAll('.registro-item').forEach(item => {
                 const dataRaw = item.getAttribute('data-search').toLowerCase();
                 const totalMonto = parseFloat(item.getAttribute('data-total')) || 0;
+                const tipoItem = item.getAttribute('data-tipo'); // Leemos la categoría
                 
                 let pasaTermino = dataRaw.includes(term);
                 let pasaDecenas = window.filtroDecenasActivo ? (totalMonto >= 10 && totalMonto <= 999) : true;
+                let pasaTipo = (tipoSeleccionado === "" || tipoItem === tipoSeleccionado);
                 
-                if (pasaTermino && pasaDecenas) item.style.display = 'flex';
+                if (pasaTermino && pasaDecenas && pasaTipo) item.style.display = 'flex';
                 else item.style.display = 'none';
             });
         };
@@ -1201,7 +1205,8 @@
                         const isDecena = window.currentUser?.email === HADES_EMAIL && m.totalVenta > 0 && m.totalVenta < 1000;
                         const checkHtml = isDecena ? `<input type="checkbox" class="check-rectificar mr-3" value="${m.id}" onclick="event.stopPropagation()">` : '';
                         
-                        html += `<div onclick="abrirDetalleRegistro('${m.id}')" data-search="${searchTags}" data-total="${m.totalVenta||0}" class="registro-item flex justify-between p-2 hover:bg-brand-card cursor-pointer border-b border-brand-border">
+                        // NOTA: Se agregó data-tipo para que el nuevo filtro pueda leer la categoría
+                        html += `<div onclick="abrirDetalleRegistro('${m.id}')" data-search="${searchTags}" data-tipo="${m.tipoMovimiento}" data-total="${m.totalVenta||0}" class="registro-item flex justify-between p-2 hover:bg-brand-card cursor-pointer border-b border-brand-border">
                             <div class="flex items-center">${checkHtml}<span class="text-xs font-bold w-12">${m.tipoMovimiento}</span> <span class="text-sm uppercase">${m.cliente}</span></div>
                             <span class="font-mono text-sm">${formatoMoneda.format(m.totalVenta)}</span>
                         </div>`;
@@ -1268,11 +1273,31 @@
         };
 
         // MODAL FLOTANTE DE EDICIÓN (AISLADO)
+        window.manejarCambioTipoEdicion = () => {
+            const tipo = document.querySelector('input[name="tipoMovimientoEdicion"]:checked').value;
+            window.tipoMovimientoEditando = tipo;
+            document.getElementById('lbl-tipo-edicion').textContent = tipo;
+            const logis = document.getElementById('seccion-logistica-edicion');
+            
+            if (tipo === 'Gasto' || tipo === 'Abono') { logis.classList.add('hidden'); } 
+            else { logis.classList.remove('hidden'); }
+            calcularTotalesEdicion();
+        };
+
         window.abrirModalEdicion = () => {
             const mov = window.movimientosCache.find(m => m.id === window.ventaEditandoId); if(!mov) return;
             cerrarModalDetalle(); document.getElementById('modal-editar-registro').style.display='flex';
+            
+            // Cargar el tipo correcto y marcar el botón
+            window.tipoMovimientoEditando = mov.tipoMovimiento || 'Venta';
+            const radioTipo = document.querySelector(`input[name="tipoMovimientoEdicion"][value="${window.tipoMovimientoEditando}"]`);
+            if(radioTipo) radioTipo.checked = true;
             document.getElementById('lbl-tipo-edicion').textContent = window.tipoMovimientoEditando;
+            
             document.getElementById('cliente-edicion').value = mov.cliente; document.getElementById('fecha-edicion').value = mov.fecha; document.getElementById('notas-edicion').value = mov.notas||'';
+            
+            manejarCambioTipoEdicion(); // Aplica las reglas visuales según la categoría
+            
             document.getElementById('medio-entrega-edicion').value = (window.tipoMovimientoEditando!=='Gasto' && window.tipoMovimientoEditando!=='Abono') ? (mov.entrega?.medio || "Recoge") : "";
             manejarCambioEntregaEdicion();
             if(mov.entrega?.medio==='Domi') { document.getElementById('encargado-domi-edicion').value = mov.entrega.encargado ? mov.entrega.encargado.toUpperCase() : ""; document.getElementById('costo-envio-edicion').value = mov.entrega.costo||0; }
@@ -1341,6 +1366,8 @@
 
         window.guardarMovimientoEdicion = async () => {
             const cli = document.getElementById('cliente-edicion').value.trim().toUpperCase(); if(!cli) return;
+            const nuevoTipo = document.querySelector('input[name="tipoMovimientoEdicion"]:checked').value; // Toma el nuevo tipo
+            
             const prods = [], pags = []; let tot = 0;
             document.querySelectorAll('#productos-container-edicion > div').forEach(f => {
                 const s = f.querySelector('.inp-prod').value, m = f.querySelector('input[type="text"]').value.trim(), c = parseFloat(f.querySelector('.inp-cant').value)||0, v = parseFloat(f.querySelector('.inp-val').value)||0;
@@ -1355,8 +1382,8 @@
 
             try {
                 document.getElementById('btn-guardar-edicion').innerHTML = 'WAIT...';
-                await updateDoc(doc(db, "ventas", window.ventaEditandoId), { cliente: cli, fecha: document.getElementById('fecha-edicion').value, notas: document.getElementById('notas-edicion').value, productos: prods, entrega: ent, pagos: pags, totalVenta: tot, modificadoPor: window.currentUser.email, fechaModificacion: Date.now() });
-                cerrarModalEdicion(); abrirModalReporte(); calcularDashboard(); document.getElementById('btn-guardar-edicion').innerHTML = 'Guardar';
+                await updateDoc(doc(db, "ventas", window.ventaEditandoId), { tipoMovimiento: nuevoTipo, cliente: cli, fecha: document.getElementById('fecha-edicion').value, notas: document.getElementById('notas-edicion').value, productos: prods, entrega: ent, pagos: pags, totalVenta: tot, modificadoPor: window.currentUser.email, fechaModificacion: Date.now() });
+                cerrarModalEdicion(); abrirModalReporte(); calcularDashboard(); document.getElementById('btn-guardar-edicion').innerHTML = 'Guardar Cambios';
             } catch(e) { alert("Error guardando"); }
         };
 
