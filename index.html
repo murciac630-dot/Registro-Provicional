@@ -58,7 +58,7 @@
                 <p class="text-sm font-mono text-brand-textSec mt-2 tracking-widest uppercase">Acceso Restringido</p>
             </div>
             
-            <form id="login-form" class="space-y-5 relative z-10">
+            <form id="login-form" onsubmit="event.preventDefault(); window.iniciarSesion(event);" class="space-y-5 relative z-10">
                 <div>
                     <label class="block text-xs font-mono mb-1 text-brand-textSec uppercase">Correo Electrónico</label>
                     <input type="email" id="login-email" required class="w-full p-3 rounded-lg transition-all">
@@ -196,7 +196,7 @@
                     <div class="mb-6">
                         <h3 id="lbl-pagos" class="text-sm font-display font-bold text-brand-text mb-3 flex items-center gap-2 uppercase tracking-wide">
                             <i data-lucide="wallet" class="w-4 h-4 text-brand-success" id="icon-pagos"></i> 
-                            <span id="txt-lbl-pagos">Pagos (Dejar vacío si es Pendiente)</span>
+                            <span id="txt-lbl-pagos">Estructura de Pago (Dejar vacío si es Pendiente)</span>
                         </h3>
                         <div id="pagos-container" class="space-y-3"></div>
                         <button onclick="agregarFilaPago()" class="mt-4 w-full md:w-auto bg-brand-card hover:bg-brand-cardHover text-brand-text px-4 py-2 rounded-lg text-sm font-bold font-mono flex items-center justify-center gap-2 transition-colors border border-brand-border">
@@ -259,7 +259,6 @@
                         </div>
                     </div>
                     
-                    <!-- NUEVO: CRUCES PENDIENTES -->
                     <div class="bg-brand-card border border-brand-border p-3 rounded-lg mb-6 flex justify-between items-center">
                         <div>
                             <p class="font-mono text-[9px] uppercase tracking-widest text-brand-textSec mb-1">Mercancía en Tránsito</p>
@@ -592,7 +591,7 @@
         </div>
     </div>
 
-    <!-- Otros modales menores -->
+    <!-- Otros modales menores (Glosario, Creditos) se simplifican visualmente por espacio -->
     <div id="modal-diccionario" class="fixed inset-0 z-[55] hidden items-center justify-center bg-brand-bg/80 backdrop-blur-md transition-opacity">
         <div class="glass-modal w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl m-4"><div class="p-5 border-b border-brand-border flex justify-between bg-brand-panel rounded-t-2xl"><h2 class="text-lg font-bold text-brand-text">Glosario</h2><button onclick="cerrarDiccionario()"><i data-lucide="x" class="w-5 h-5 text-brand-textSec"></i></button></div><div class="p-4"><input type="text" id="nueva-sigla-id" placeholder="ID"><input type="text" id="nueva-sigla-val" placeholder="Valor"><button onclick="agregarNuevaSigla()">Add</button></div><div class="p-4 overflow-y-auto flex-1 bg-brand-bg"><div id="grid-diccionario"></div></div><div class="p-4 bg-brand-panel text-right"><button onclick="guardarDiccionario()">Guardar</button></div></div>
     </div>
@@ -613,7 +612,6 @@
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, inMemoryPersistence } 
         from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // NOTA: Deja las llaves originales que tengas en tu base de datos si las habías cambiado.
         const firebaseConfig = {
             apiKey: "AIzaSyB8Ei-GTiqedjsFy09XVujGb94mzkBmVOU",
             authDomain: "ferco-farma.firebaseapp.com",
@@ -642,31 +640,13 @@
         window.diccionarioProductos = {}; 
         window.fechaCorteDomisHades = 0;
         window.filtroDecenasActivo = false;
-        window.saldandoId = null; 
+        window.saldandoId = null; // Para liquidar pendientes
         
         let contadorProductos = 0; let contadorPagos = 0;
         let contadorProductosEd = 0; let contadorPagosEd = 0;
         const formatoMoneda = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
-        // AUTHENTICATION (Con Freno Absoluto)
-        document.getElementById('login-form').addEventListener('submit', (e) => {
-            e.preventDefault(); 
-            const email = document.getElementById('login-email').value.trim().toLowerCase();
-            const pass = document.getElementById('login-pass').value;
-            const btn = document.getElementById('btn-login');
-            const errorTxt = document.getElementById('login-error');
-            
-            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Conectando...';
-            errorTxt.classList.add('hidden');
-
-            signInWithEmailAndPassword(auth, email, pass).catch((error) => {
-                errorTxt.textContent = "Error: " + error.code;
-                errorTxt.classList.remove('hidden');
-                btn.innerHTML = 'Ingresar al Sistema <i data-lucide="log-in" class="w-5 h-5"></i>';
-                if(window.lucide) lucide.createIcons();
-            });
-        });
-
+        // AUTHENTICATION DEFENSIVA
         onAuthStateChanged(auth, async (user) => {
             const loginScreen = document.getElementById('login-screen');
             const appScreen = document.getElementById('app-screen');
@@ -676,8 +656,10 @@
                 const correo = user.email.toLowerCase();
                 if (!USUARIOS_PERMITIDOS.includes(correo)) {
                     signOut(auth); 
-                    errorTxt.textContent = "ACCESO DENEGADO (USUARIO NO AUTORIZADO)";
+                    errorTxt.textContent = "ERROR: ACCESO DENEGADO (USUARIO NO VIP)";
                     errorTxt.classList.remove('hidden');
+                    document.getElementById('btn-login').innerHTML = 'Ingresar al Sistema <i data-lucide="log-in" class="w-5 h-5"></i>';
+                    if(window.lucide) lucide.createIcons();
                     return; 
                 }
 
@@ -707,13 +689,32 @@
             }
         });
 
+        // LOGIN MANUAL CON REPORTE REAL
+        window.iniciarSesion = (e) => {
+            e.preventDefault(); 
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const pass = document.getElementById('login-pass').value;
+            const btn = document.getElementById('btn-login');
+            const errorTxt = document.getElementById('login-error');
+            
+            btn.innerHTML = 'Verificando... <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>';
+            errorTxt.classList.add('hidden');
+
+            signInWithEmailAndPassword(auth, email, pass).catch((error) => {
+                errorTxt.textContent = "Error: " + error.code;
+                errorTxt.classList.remove('hidden');
+                btn.innerHTML = 'Ingresar al Sistema <i data-lucide="log-in" class="w-5 h-5"></i>';
+                if(window.lucide) lucide.createIcons();
+            });
+        };
+
         window.cerrarSesionUsuario = () => { if(confirm("¿Terminar Sesión?")) signOut(auth); };
 
         async function cargarConfiguracionHades() {
             try { const docSnap = await getDoc(doc(db, "configuracion", "hades_domis")); if (docSnap.exists()) window.fechaCorteDomisHades = docSnap.data().ultimaLiquidacion || 0; } catch (e) { }
         }
 
-        // INICIALIZACIÓN Y ESCOBA MAGICA BLINDADA
+        // INIT & CLEANUP
         function inicializarApp() {
             if(window.lucide) lucide.createIcons();
             window.limpiarFormulario();
@@ -723,33 +724,24 @@
 
         window.limpiarFormulario = () => {
             try {
-                // Limpiar Textos
                 document.getElementById('cliente').value = '';
                 document.getElementById('notas').value = '';
                 document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
-                
-                // Reiniciar Radio Botón a "Venta"
                 document.querySelector('input[name="tipoMovimiento"][value="Venta"]').checked = true;
                 
-                // Limpiar Logística
                 document.getElementById('medio-entrega').value = '';
                 document.getElementById('encargado-domi').value = '';
                 document.getElementById('costo-envio').value = '0';
                 
-                // Destruir todas las filas de productos y pagos existentes
                 document.getElementById('productos-container').innerHTML = '';
                 document.getElementById('pagos-container').innerHTML = '';
                 contadorProductos = 0; contadorPagos = 0;
                 
-                // Refrescar UI Visual
-                window.manejarCambioTipo(); 
-                
-                // Dejar un solo campo de producto en blanco para empezar
-                window.agregarFilaProducto();
-                // NO agregamos Fila de Pago por defecto. Si el cliente quiere pagar, que presione "Agregar Pago".
-                
-                window.calcularTotales();
-            } catch(e) { console.error("Silenciado error visual al limpiar:", e); }
+                window.manejarCambioTipo(); // Refresca UI
+                agregarFilaProducto();
+                agregarFilaPago(); 
+                calcularTotales();
+            } catch(e) { console.error("Error limpiando form:", e); }
         };
 
         // FORMULARIO PRINCIPAL
@@ -807,7 +799,7 @@
                         </select>
                     </div>
                     <div class="w-full md:w-3/12"><input type="number" class="input-monto w-full p-2.5 border rounded-lg bg-brand-panel text-sm text-brand-success" placeholder="Monto" oninput="calcularTotales()"></div>
-                    <div class="hidden md:flex w-1/12 justify-center"><button onclick="eliminarFila('pago-${id}')" class="text-brand-error"><i data-lucide="trash-2"></i></button></div>
+                    <div class="hidden md:flex w-1/12 justify-center">${id>1?`<button onclick="eliminarFila('pago-${id}')" class="text-brand-error"><i data-lucide="trash-2"></i></button>`:''}</div>
                 </div>
             `);
             if(window.lucide) lucide.createIcons();
@@ -842,8 +834,8 @@
 
             const btn = document.getElementById('btn-guardar'), alerta = document.getElementById('alerta-descuadre');
             
-            // PERMITIR GUARDAR SI HAY ALGO COBRADO (O ABONO HECHO) INCLUSO SIN PAGOS
-            btn.disabled = !(totCobrar > 0 || totPag > 0);
+            // PERMITIR GUARDAR SI HAY ALGO COBRADO (O ABONO HECHO)
+            if (totCobrar > 0 || totPag > 0) { btn.disabled = false; } else { btn.disabled = true; }
 
             alerta.classList.remove('hidden');
             if (totCobrar > totPag && t === 'Venta') {
@@ -862,12 +854,11 @@
             const cliente = document.getElementById('cliente').value.trim().toUpperCase();
             if (!cliente) return alert("Falta ingresar el Cliente.");
             
-            const btn = document.getElementById('btn-guardar'); btn.innerHTML = 'Guardando...'; btn.disabled = true;
+            const btn = document.getElementById('btn-guardar'); btn.innerHTML = 'Guardando...';
             
-            let totCobrar = 0;
             try {
                 const tipo = document.querySelector('input[name="tipoMovimiento"]:checked').value;
-                const prods = [], pags = [];
+                const prods = [], pags = []; let totPag = 0;
                 
                 document.querySelectorAll('#productos-container > div').forEach(f => {
                     const s = f.querySelector('.input-prod-select').value, m = f.querySelector('.input-prod-manual').value.trim();
@@ -877,37 +868,28 @@
                 
                 const medioE = document.getElementById('medio-entrega').value;
                 const entrega = (tipo!=='Gasto'&&tipo!=='Abono') ? { medio: medioE||"Recoge", encargado: medioE==='Domi'?document.getElementById('encargado-domi').value.toUpperCase():"N/A", costo: medioE==='Domi'?parseFloat(document.getElementById('costo-envio').value)||0:0 } : { medio:"N/A", encargado:"N/A", costo:0 };
-                totCobrar = prods.reduce((acc, p) => acc + p.total, 0) + entrega.costo;
+                let totCobrar = prods.reduce((acc, p) => acc + p.total, 0) + entrega.costo;
 
                 document.querySelectorAll('#pagos-container > div').forEach(f => {
                     const mt = f.querySelector('.input-metodo').value, ct = f.querySelector('.input-cuenta').value, mn = parseFloat(f.querySelector('.input-monto').value)||0;
-                    if(mt&&ct&&mn>0) { pags.push({ metodo: mt, cuenta: ct, monto: mn, estadoCruce: mt==='Cruce'?'Pendiente':'N/A' }); }
+                    if(mt&&ct&&mn>0) { pags.push({ metodo: mt, cuenta: ct, monto: mn, estadoCruce: mt==='Cruce'?'Pendiente':'N/A' }); totPag+=mn; }
                 });
 
                 if (prods.length===0 && pags.length===0) { btn.innerHTML='Ejecutar'; return alert("No hay datos para guardar."); }
 
-                // GUARDAR EN BASE DE DATOS
                 await addDoc(collection(db, "ventas"), { 
                     tipoMovimiento: tipo, fecha: document.getElementById('fecha').value, cliente, notas: document.getElementById('notas').value.trim(), 
                     productos: prods, entrega, pagos: pags, totalVenta: totCobrar, creadoPor: window.currentUser.email, timestamp: Date.now() 
                 });
                 
-            } catch (e) {
-                console.error(e);
-                alert("Error crítico conectando con Base de Datos: " + e.message);
-                btn.innerHTML = 'Ejecutar';
-                btn.disabled = false;
-                return; // Si falla BD, detenemos aquí.
-            }
-
-            // SI LLEGA A ESTE PUNTO, EL GUARDADO FUE EXITOSO. AHORA LIMPIAMOS DE FORMA SEGURA.
-            try {
                 window.limpiarFormulario(); // LA ESCOBA MAGICA
                 btn.innerHTML = '<i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">Ejecutar</span>';
                 if(window.lucide) lucide.createIcons();
+                
             } catch (e) {
-                console.error("Silenciado error en la escoba visual:", e);
-                btn.innerHTML = '<i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">Ejecutar</span>';
+                console.error(e);
+                alert("Error crítico conectando con Base de Datos.");
+                btn.innerHTML = 'Ejecutar';
             }
         };
 
@@ -927,11 +909,14 @@
             try {
                 let totV=0, saldos={"CRIS":0,"JHON":0,"BODEGA":0,"HADES":0}, hV=0, hC=0, hG=0, hDomis=0, pendientesMonto=0;
                 let cxcActivo = {}, hCxcActivo = {};
+                
+                // CRUCES PENDIENTES TOTALES (Global)
                 let totalCrucesPendientes = 0;
 
                 window.movimientosCache.forEach(d => {
                     const t = d.tipoMovimiento||'Venta', esH = d.creadoPor===HADES_EMAIL, cli = (d.cliente||"").toUpperCase();
                     
+                    // Calculamos cruces
                     (d.pagos||[]).forEach(p => { if(p.metodo==='Cruce' && p.estadoCruce!=='Saldado') totalCrucesPendientes += p.monto; });
 
                     let totalPagadoVenta = 0;
@@ -939,8 +924,9 @@
                     
                     if(t==='Venta') {
                         if(esH) hV+=d.totalVenta; else totV+=d.totalVenta;
+                        // Calcular deuda (Si no pagó completo o si usó crédito)
                         let deudaCliente = d.totalVenta - totalPagadoVenta; 
-                        (d.pagos||[]).forEach(p => { if(p.metodo==='Credito') deudaCliente += p.monto; }); 
+                        (d.pagos||[]).forEach(p => { if(p.metodo==='Credito') deudaCliente += p.monto; }); // Crédito ya se sumó arriba, lo re-agregamos a deuda real
                         if(deudaCliente > 0) {
                             if(esH) hCxcActivo[cli] = (hCxcActivo[cli]||0) + deudaCliente;
                             else cxcActivo[cli] = (cxcActivo[cli]||0) + deudaCliente;
@@ -951,18 +937,21 @@
                     } else if (t==='Compra') { if(esH) hC += d.totalVenta; } 
                       else if (t==='Gasto') { if(esH) hG += d.totalVenta; }
 
+                    // Calcular cajas reales
                     if(t==='Venta' || t==='Abono') {
                         (d.pagos||[]).forEach(p => { if(saldos[p.cuenta]!==undefined && p.metodo!=='Credito') saldos[p.cuenta]+=p.monto; });
                     } else {
                         (d.pagos||[]).forEach(p => { if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]-=p.monto; });
                     }
                     
+                    // Domis Hades
                     if(d.entrega?.costo>0 && d.entrega?.encargado==='HADES' && d.timestamp>=window.fechaCorteDomisHades) hDomis+=d.entrega.costo;
                     
                     // Contar pendientes (Badge)
                     if(t==='Venta' && totalPagadoVenta < d.totalVenta) pendientesMonto++;
                 });
 
+                // UI Global
                 document.getElementById('dash-ventas').textContent=formatoMoneda.format(totV);
                 document.getElementById('dash-cruces-pendientes').textContent=formatoMoneda.format(totalCrucesPendientes);
                 
@@ -972,11 +961,15 @@
                 
                 ['CRIS','JHON','BODEGA','HADES'].forEach(c => { const el=document.getElementById(`dash-${c.toLowerCase()}`); if(el) el.textContent=formatoMoneda.format(saldos[c]); });
 
+                // UI Hades
                 document.getElementById('dash-hades-ventas').textContent=formatoMoneda.format(hV);
+                document.getElementById('dash-hades-compras').textContent=formatoMoneda.format(hC);
+                document.getElementById('dash-hades-gastos').textContent=formatoMoneda.format(hG);
                 let sumCxCHades = 0; for(const v of Object.values(hCxcActivo)) if(v>0) sumCxCHades+=v;
                 document.getElementById('dash-hades-creditos').textContent=formatoMoneda.format(sumCxCHades);
                 document.getElementById('dash-hades-domis').textContent=formatoMoneda.format(hDomis);
 
+                // Badge Pendientes
                 const badge = document.getElementById('badge-pendientes');
                 if(pendientesMonto > 0) { badge.textContent = pendientesMonto; badge.classList.remove('hidden'); }
                 else badge.classList.add('hidden');
@@ -1001,7 +994,7 @@
                                 <p class="text-xs text-brand-warning font-mono mt-1">Saldo a Deber: ${formatoMoneda.format(m.totalVenta - totPag)}</p>
                             </div>
                             <div class="flex gap-2 w-full md:w-auto">
-                                <button onclick="window.imprimirRecibo('${m.id}')" class="w-full md:w-auto px-4 py-2 border border-brand-primary text-brand-primary rounded font-mono text-xs font-bold hover:bg-brand-primary hover:text-brand-bg transition-colors"><i data-lucide="printer" class="inline w-3 h-3 mr-1"></i> Imprimir</button>
+                                <button onclick="window.imprimirRecibo('${m.id}')" class="w-full md:w-auto px-4 py-2 border border-brand-primary text-brand-primary rounded font-mono text-xs font-bold hover:bg-brand-primary hover:text-brand-bg transition-colors"><i data-lucide="printer" class="inline w-3 h-3 mr-1"></i> Imprimir (Pte)</button>
                                 <button onclick="window.abrirModalSaldar('${m.id}', ${m.totalVenta - totPag})" class="w-full md:w-auto px-4 py-2 bg-brand-success text-brand-bg rounded font-mono text-xs font-bold hover:bg-brand-success/80 transition-colors"><i data-lucide="check-circle" class="inline w-3 h-3 mr-1"></i> Saldar</button>
                             </div>
                         </div>
@@ -1018,6 +1011,7 @@
             window.saldandoId = id;
             document.getElementById('saldar-monto-display').textContent = formatoMoneda.format(monto);
             document.getElementById('modal-saldar-pedido').style.display = 'flex';
+            // Guardamos temporalmente el monto exacto faltante
             window.saldandoMontoExacto = monto;
         };
         window.cerrarModalSaldar = () => document.getElementById('modal-saldar-pedido').style.display = 'none';
@@ -1154,6 +1148,7 @@
                 ulPag.insertAdjacentHTML('beforeend', `<li>${p.metodo} -> ${p.cuenta} = ${formatoMoneda.format(p.monto)} ${badge}</li>`);
             });
 
+            // Permisos Botones
             const bE = document.getElementById('btn-detalle-editar'), bD = document.getElementById('btn-detalle-borrar'), bC = document.getElementById('btn-detalle-saldar-cruce');
             if(window.currentUser.email===ADMIN_EMAIL || window.currentUser.email===m.creadoPor) {
                 bE.onclick = window.abrirModalEdicion; bE.classList.remove('hidden'); bD.onclick = window.eliminarVenta; bD.classList.remove('hidden');
@@ -1188,18 +1183,10 @@
             });
             
             let fee = 0, logisHtml = '';
-            if(mov.entrega?.medio === 'Domi') { 
-                fee = mov.entrega.costo||0; 
-                logisHtml = `<tr><td colspan="2">Envío</td><td style="text-align: right;">${formatoMoneda.format(fee)}</td></tr>`; 
-            }
+            if(mov.entrega?.medio === 'Domi') { fee = mov.entrega.costo||0; logisHtml = `<tr><td colspan="2">Envío</td><td style="text-align: right;">${formatoMoneda.format(fee)}</td></tr>`; }
             
             const total = subtotal + fee;
-            let totalPagado = 0; let pagadoConCredito = 0;
-            (mov.pagos || []).forEach(p => {
-                totalPagado += (p.monto || 0);
-                if (p.metodo === 'Credito') pagadoConCredito += (p.monto || 0);
-            });
-            
+            let totalPagado = 0; (mov.pagos || []).forEach(p => totalPagado += (p.monto || 0));
             const saldoPendiente = total - totalPagado;
             const estaPendiente = saldoPendiente > 0 && mov.tipoMovimiento === 'Venta';
             
@@ -1207,33 +1194,25 @@
             const logoHtml = esHades ? '' : `<img src="logo.jpg" style="max-width:180px; margin-bottom:10px;" onerror="this.style.display='none'">`;
             let tituloRecibo = esHades ? `<h2 style="margin:0; font-size: 24px;">HADES</h2>` : `<h2 style="margin:0;">FERCO FARMA</h2>`;
             
-            if(estaPendiente) tituloRecibo += `<h3 style="margin:5px 0; font-size: 14px; border:1px solid #000; padding:3px; text-align:center;">ORDEN DE PEDIDO<br>PENDIENTE DE PAGO</h3>`;
+            if(estaPendiente) tituloRecibo += `<h3 style="margin:5px 0; font-size: 14px; border:1px solid #000; padding:3px;">ORDEN DE PEDIDO<br>PENDIENTE DE PAGO</h3>`;
 
             let marcaDeAgua = '';
-            if(!estaPendiente && mov.tipoMovimiento === 'Venta') marcaDeAgua = `<div style="position:absolute; top:40%; left:5%; font-size:50px; color:rgba(0,0,0,0.12); transform:rotate(-45deg); font-weight:bold; border: 5px solid rgba(0,0,0,0.12); padding:10px; z-index:0; pointer-events:none;">PAGADO</div>`;
+            if(!estaPendiente && mov.tipoMovimiento === 'Venta') marcaDeAgua = `<div style="position:absolute; top:40%; left:5%; font-size:45px; color:rgba(0,0,0,0.15); transform:rotate(-45deg); font-weight:bold; border: 5px solid rgba(0,0,0,0.15); padding:10px; z-index:-1;">PAGADO</div>`;
 
             let htmlSaldo = '';
-            if(saldoPendiente > 0 || pagadoConCredito > 0) {
-                htmlSaldo = `<div style="border-top: 1px dashed #000; padding-top: 5px; margin-top: 5px;">`;
-                htmlSaldo += `<div style="display:flex; justify-content:space-between; font-size:12px;"><span>Abonado:</span><span>${formatoMoneda.format(totalPagado)}</span></div>`;
-                let saldoReal = saldoPendiente > 0 ? saldoPendiente : pagadoConCredito;
-                let labelSaldo = saldoPendiente > 0 ? 'SALDO PENDIENTE' : 'SALDO EN CRÉDITO';
-                htmlSaldo += `<div style="display:flex; justify-content:space-between; font-weight:bold; font-size:14px; margin-top:5px;"><span>${labelSaldo}:</span><span>${formatoMoneda.format(saldoReal)}</span></div></div>`;
-            }
+            if(saldoPendiente > 0) htmlSaldo = `<div style="border-top: 1px dashed #000; padding-top: 5px; margin-top: 5px;"><div style="display:flex; justify-content:space-between; font-size:12px;"><span>Abonado:</span><span>${formatoMoneda.format(totalPagado)}</span></div><div style="display:flex; justify-content:space-between; font-weight:bold; font-size:14px; margin-top:5px;"><span>SALDO PENDIENTE:</span><span>${formatoMoneda.format(saldoPendiente)}</span></div></div>`;
 
             const printWindow = window.open('', 'PRINT', 'height=600,width=400');
             printWindow.document.write(`
-                <html><head><style>body{font-family:monospace; font-size:12px; width:300px; color:#000; position:relative; margin:0; padding:10px;} table{width:100%; border-collapse:collapse; position:relative; z-index:1;} .content{position:relative; z-index:1;}</style></head>
-                <body>${marcaDeAgua}
-                <div class="content"><div style="text-align:center;">${logoHtml}${tituloRecibo}<p>ID: ${mov.id.substring(0,8)}<br>Fecha: ${mov.fecha}<br>Cliente: ${mov.cliente.toUpperCase()}</p></div>
+                <html><head><style>body{font-family:monospace; font-size:12px; width:300px; color:#000; position:relative;} table{width:100%; border-collapse:collapse;}</style></head>
+                <body>${marcaDeAgua}<div style="text-align:center;">${logoHtml}${tituloRecibo}<p>ID: ${mov.id.substring(0,8)}<br>Fecha: ${mov.fecha}<br>Cliente: ${mov.cliente.toUpperCase()}</p></div>
                 <table><thead><tr><th style="text-align:left;">CANT</th><th style="text-align:left;">DESC</th><th style="text-align:right;">VALOR</th></tr></thead><tbody>${itemsHtml}${logisHtml}</tbody></table>
                 <div style="border-top:1px solid #000; padding-top:10px; margin-top:10px; display:flex; justify-content:space-between; font-size:16px; font-weight:bold;"><span>TOTAL</span><span>${formatoMoneda.format(total)}</span></div>
-                ${htmlSaldo}<br><p style="text-align:center;">--- FIN DOCUMENTO ---</p></div></body></html>`);
-            printWindow.document.close(); printWindow.focus(); 
-            setTimeout(() => { printWindow.print(); printWindow.close(); }, 800);
+                ${htmlSaldo}<br><p style="text-align:center;">--- FIN DOCUMENTO ---</p></body></html>`);
+            printWindow.document.close(); printWindow.focus(); setTimeout(() => { printWindow.print(); printWindow.close(); }, 800);
         };
 
-        // MODAL FLOTANTE EDICIÓN ROBUSTA BLINDADA
+        // MODAL FLOTANTE EDICIÓN ROBUSTA
         window.manejarCambioTipoEdicion = () => {
             window.tipoMovimientoEditando = document.querySelector('input[name="tipoMovimientoEdicion"]:checked').value;
             document.getElementById('lbl-tipo-edicion').textContent = window.tipoMovimientoEditando;
@@ -1245,12 +1224,10 @@
 
         window.abrirModalEdicion = () => {
             try {
-                const mov = window.movimientosCache.find(m => m.id === window.ventaEditandoId); 
-                if(!mov) return;
+                const mov = window.movimientosCache.find(m => m.id === window.ventaEditandoId); if(!mov) return;
+                cerrarModalDetalle(); document.getElementById('modal-editar-registro').style.display='flex';
                 
-                cerrarModalDetalle(); 
-                document.getElementById('modal-editar-registro').style.display='flex';
-                
+                // Set Tipo
                 window.tipoMovimientoEditando = mov.tipoMovimiento || 'Venta';
                 const radioTipo = document.querySelector(`input[name="tipoMovimientoEdicion"][value="${window.tipoMovimientoEditando}"]`);
                 if(radioTipo) radioTipo.checked = true;
@@ -1261,34 +1238,25 @@
                 
                 window.manejarCambioTipoEdicion(); 
                 
-                // Set Logística Blindado
-                const medioE = mov.entrega?.medio || '';
-                document.getElementById('medio-entrega-edicion').value = (window.tipoMovimientoEditando!=='Gasto' && window.tipoMovimientoEditando!=='Abono') ? medioE : "";
+                // Set Logística
+                document.getElementById('medio-entrega-edicion').value = (window.tipoMovimientoEditando!=='Gasto' && window.tipoMovimientoEditando!=='Abono') ? (mov.entrega?.medio || "Recoge") : "";
                 window.manejarCambioEntregaEdicion();
-                
-                if(medioE === 'Domi') { 
-                    document.getElementById('encargado-domi-edicion').value = (mov.entrega?.encargado || "").toUpperCase(); 
-                    document.getElementById('costo-envio-edicion').value = mov.entrega?.costo || 0; 
+                if(mov.entrega?.medio==='Domi') { 
+                    document.getElementById('encargado-domi-edicion').value = mov.entrega.encargado ? mov.entrega.encargado.toUpperCase() : ""; 
+                    document.getElementById('costo-envio-edicion').value = mov.entrega.costo||0; 
                 }
                 
-                // Set Productos & Pagos Blindados
+                // Set Productos & Pagos
                 document.getElementById('productos-container-edicion').innerHTML = ''; contadorProductosEd = 0;
-                if(mov.productos && Array.isArray(mov.productos) && mov.productos.length > 0) {
-                    mov.productos.forEach(p => window.agregarFilaProductoEdicion(p));
-                } else {
-                    window.agregarFilaProductoEdicion();
-                }
+                if(mov.productos && Array.isArray(mov.productos) && mov.productos.length > 0) mov.productos.forEach(p => window.agregarFilaProductoEdicion(p));
+                else window.agregarFilaProductoEdicion();
 
                 document.getElementById('pagos-container-edicion').innerHTML = ''; contadorPagosEd = 0;
-                if(mov.pagos && Array.isArray(mov.pagos) && mov.pagos.length > 0) {
-                    mov.pagos.forEach(p => window.agregarFilaPagoEdicion(p));
-                } // Si está vacío, se deja vacío para no estorbar.
+                if(mov.pagos && Array.isArray(mov.pagos) && mov.pagos.length > 0) mov.pagos.forEach(p => window.agregarFilaPagoEdicion(p));
+                else window.agregarFilaPagoEdicion();
 
                 window.calcularTotalesEdicion();
-            } catch(e) { 
-                console.error("Error cargando edición:", e); 
-                alert("Error cargando los datos. Hubo una falla de lectura interna."); 
-            }
+            } catch(e) { console.error("Error cargando edición:", e); alert("Error cargando los datos. Ver consola."); }
         };
         window.cerrarModalEdicion = () => document.getElementById('modal-editar-registro').style.display = 'none';
 
@@ -1344,7 +1312,7 @@
             
             const btn = document.getElementById('btn-guardar-edicion'), al = document.getElementById('alerta-descuadre-edicion');
             
-            btn.disabled = !(tc > 0 || tpag > 0);
+            if (tc > 0 || tpag > 0) btn.disabled = false; else btn.disabled = true;
 
             al.classList.remove('hidden');
             if (tc > tpag && window.tipoMovimientoEditando === 'Venta') { al.className = "text-brand-warning bg-brand-warning/10 px-2 py-1 rounded border border-brand-warning/30 font-bold uppercase text-[10px]"; al.innerHTML = `Pte Pago: ${formatoMoneda.format(tc - tpag)}`; } 
@@ -1359,14 +1327,14 @@
             
             const btn = document.getElementById('btn-guardar-edicion'); btn.innerHTML = 'Wait...'; btn.disabled = true;
             try {
-                const prods = [], pags = []; let tc = 0;
+                const prods = [], pags = []; let tot = 0;
                 document.querySelectorAll('#productos-container-edicion > div').forEach(f => {
                     const s = f.querySelector('.inp-prod').value, m = f.querySelector('input[type="text"]').value.trim(), c = parseFloat(f.querySelector('.inp-cant').value)||0, v = parseFloat(f.querySelector('.inp-val').value)||0;
                     if((s==='OTRO'?m:s) && c>0 && v>=0) prods.push({concepto: s==='OTRO'?m:s, esDiccionario: !!window.diccionarioProductos[s], cantidad: c, valorUnitario: v, total: c*v});
                 });
                 const mE = document.getElementById('medio-entrega-edicion').value;
                 const ent = (nuevoTipo!=='Gasto'&&nuevoTipo!=='Abono') ? {medio:mE||"Recoge", encargado:mE==='Domi'?document.getElementById('encargado-domi-edicion').value.toUpperCase():"N/A", costo:mE==='Domi'?parseFloat(document.getElementById('costo-envio-edicion').value)||0:0} : {medio:"N/A",encargado:"N/A",costo:0};
-                tc = prods.reduce((acc, p) => acc + p.total, 0) + ent.costo;
+                let tc = prods.reduce((acc, p) => acc + p.total, 0) + ent.costo;
 
                 document.querySelectorAll('#pagos-container-edicion > div').forEach(f => {
                     const mt=f.querySelector('.inp-met').value, ct=f.querySelector('.inp-cta').value, mn=parseFloat(f.querySelector('.inp-mnt').value)||0;
@@ -1380,7 +1348,7 @@
                 
                 cerrarModalEdicion(); 
                 btn.innerHTML = 'Guardar Cambios'; btn.disabled = false;
-            } catch(e) { console.error(e); alert("Error guardando cambios."); btn.innerHTML = 'Guardar Cambios'; btn.disabled = false; }
+            } catch(e) { console.error(e); alert("Error guardando."); btn.innerHTML = 'Guardar Cambios'; btn.disabled = false; }
         };
         
         // Modal GLOSARIO, CREDITOS...
