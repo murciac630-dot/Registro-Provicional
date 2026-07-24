@@ -3,1097 +3,1391 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERP Maestro - Ferco Farma</title>
+    <title>ERP Web - Ferco Farma</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { 
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], display: ['"Space Grotesk"', 'sans-serif'], mono: ['"JetBrains Mono"', 'monospace'] },
+                    colors: {
+                        brand: {
+                            bg: '#050816', panel: '#0B1120', card: '#111827', cardHover: '#172554', border: 'rgba(0, 245, 255, 0.15)',
+                            text: '#F8FAFC', textSec: '#94A3B8', primary: '#00F5FF', primaryHover: '#5EF9FF', secondary: '#8B5CF6',
+                            accent: '#FF00E5', success: '#00FF9D', warning: '#FFD500', error: '#FF3B5C'
+                        }
+                    }
+                } 
+            }
+        }
+    </script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        
-        /* Scrollbar estilizada */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(226, 232, 240, 0.8); }
-        .toast { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        
-        /* Estilos de impresión térmicos */
-        @media print {
-            body * { visibility: hidden; }
-            #print-section, #print-section * { visibility: visible; }
-            #print-section { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; background: white; font-family: monospace; color: black; }
-            @page { margin: 0; }
+        body { background-color: #050816; color: #F8FAFC; transition: background-color 0.3s, color 0.3s; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #050816; }
+        ::-webkit-scrollbar-thumb { background: #172554; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #8B5CF6; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .glass-modal { background: rgba(11, 17, 32, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(0, 245, 255, 0.2); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        .card-dash { transition: transform 0.2s, background-color 0.2s; }
+        .card-dash:hover { transform: translateY(-3px); }
+        input[type="text"], input[type="number"], input[type="email"], input[type="password"], input[type="date"], select, textarea {
+            background-color: #050816 !important; border-color: rgba(0, 245, 255, 0.15) !important; color: #F8FAFC !important;
         }
+        input:focus, select:focus, textarea:focus { border-color: #00F5FF !important; box-shadow: 0 0 0 1px #00F5FF !important; outline: none; }
+        ::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
     </style>
 </head>
-<body class="text-slate-800 antialiased h-screen overflow-hidden flex flex-col">
+<body class="font-sans antialiased min-h-screen selection:bg-brand-primary selection:text-brand-bg">
 
-    <!-- CONTENEDOR DE TOASTS (Notificaciones sin Alerts) -->
-    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
-
-    <!-- PANTALLA DE LOGIN -->
-    <div id="login-screen" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md mx-4">
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600">
-                    <i data-lucide="shield-check" class="w-8 h-8"></i>
+    <!-- ==================== PANTALLA DE LOGIN ==================== -->
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-brand-bg transition-colors">
+        <div class="bg-brand-panel p-8 rounded-2xl shadow-2xl w-full max-w-md border border-brand-border relative overflow-hidden">
+            <div class="absolute -top-20 -right-20 w-40 h-40 bg-brand-primary rounded-full blur-[80px] opacity-20"></div>
+            <div class="text-center mb-8 relative z-10">
+                <div class="w-16 h-16 bg-brand-card border border-brand-primary/30 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-[0_0_15px_rgba(0,245,255,0.2)]">
+                    <i data-lucide="shield-alert" class="w-8 h-8 text-brand-primary"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-slate-800">Acceso Restringido</h2>
-                <p class="text-slate-500 text-sm mt-1">ERP Maestro Ferco Farma</p>
+                <h1 class="text-2xl font-display font-bold text-brand-text tracking-wide">Ferco Farma</h1>
+                <p class="text-sm font-mono text-brand-textSec mt-2 tracking-widest uppercase">Acceso Restringido</p>
             </div>
             
-            <form id="login-form" class="space-y-4">
+            <form id="login-form" class="space-y-5 relative z-10">
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico</label>
-                    <input type="email" id="login-email" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                    <label class="block text-xs font-mono mb-1 text-brand-textSec uppercase">Correo Electrónico</label>
+                    <input type="email" id="login-email" required class="w-full p-3 rounded-lg transition-all">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
-                    <input type="password" id="login-pass" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                    <label class="block text-xs font-mono mb-1 text-brand-textSec uppercase">Contraseña</label>
+                    <input type="password" id="login-pass" required class="w-full p-3 rounded-lg transition-all">
                 </div>
-                <p id="login-error" class="text-red-500 text-sm font-medium text-center hidden"></p>
-                <button type="submit" id="btn-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold p-3 rounded-xl transition-colors flex items-center justify-center gap-2">
+                <div id="login-error" class="text-brand-error font-mono text-xs hidden text-center animate-pulse p-2 bg-brand-error/10 border border-brand-error/30 rounded">Error</div>
+                <button type="submit" id="btn-login" class="w-full bg-brand-primary hover:bg-brand-primaryHover text-brand-bg font-bold py-3 rounded-lg transition-all shadow-[0_0_15px_rgba(0,245,255,0.3)] flex justify-center items-center gap-2">
                     Ingresar al Sistema <i data-lucide="log-in" class="w-5 h-5"></i>
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- APLICACIÓN PRINCIPAL -->
-    <div id="app-screen" class="hidden flex-1 h-full flex flex-col bg-slate-50">
+    <!-- ==================== APLICACIÓN PRINCIPAL ==================== -->
+    <div id="app-screen" class="hidden p-4 md:p-8">
+        
         <!-- HEADER -->
-        <header class="bg-white border-b border-slate-200 px-6 py-3 flex justify-between items-center shrink-0">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-blue-600 text-white rounded-lg flex items-center justify-center font-bold text-xl">F</div>
+        <header class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-brand-panel p-4 rounded-xl shadow-lg border border-brand-border">
+            <div class="flex items-center gap-3 w-full md:w-auto">
+                <i data-lucide="activity" class="w-8 h-8 text-brand-primary"></i>
                 <div>
-                    <h1 class="font-bold text-slate-800 leading-tight">ERP Maestro</h1>
-                    <span id="user-badge" class="text-xs font-medium px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full"></span>
+                    <h1 class="text-xl font-display font-bold text-brand-text tracking-wide">ERP Ferco Farma</h1>
+                    <p class="text-xs font-mono text-brand-textSec">ID Sesión: <span id="current-user-email" class="text-brand-primary"></span></p>
                 </div>
             </div>
-            <button onclick="window.cerrarSesion()" class="text-slate-500 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-colors">
-                <i data-lucide="log-out" class="w-5 h-5"></i>
-            </button>
+            <div class="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+                <button onclick="abrirModalPendientes()" class="flex-shrink-0 flex items-center gap-2 px-3 py-2 bg-brand-warning/10 text-brand-warning border border-brand-warning/30 rounded-lg hover:bg-brand-warning/20 transition-colors text-sm font-semibold relative">
+                    <i data-lucide="clock" class="w-4 h-4"></i> Pendientes
+                    <span id="badge-pendientes" class="absolute -top-2 -right-2 bg-brand-error text-brand-text text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow hidden">0</span>
+                </button>
+                <button onclick="abrirDiccionario()" class="flex-shrink-0 flex items-center gap-2 px-3 py-2 bg-brand-secondary/10 text-brand-secondary border border-brand-secondary/30 rounded-lg hover:bg-brand-secondary/20 transition-colors text-sm font-semibold">
+                    <i data-lucide="database" class="w-4 h-4"></i> Glosario
+                </button>
+                <button onclick="cerrarSesionUsuario()" class="flex-shrink-0 flex items-center gap-2 px-4 py-2 bg-brand-error/10 text-brand-error border border-brand-error/30 rounded-lg hover:bg-brand-error/20 transition-colors text-sm font-bold">
+                    <i data-lucide="power" class="w-4 h-4"></i> Terminar
+                </button>
+            </div>
         </header>
 
-        <!-- DASHBOARD Y PANEL DIVIDIDO -->
-        <div class="flex-1 overflow-hidden flex flex-col lg:flex-row">
+        <!-- Cuadrícula Principal -->
+        <div class="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-3 gap-6 relative">
             
             <!-- COLUMNA IZQUIERDA: FORMULARIO PRINCIPAL -->
-            <div class="w-full lg:w-[400px] xl:w-[450px] bg-white border-r border-slate-200 flex flex-col h-full z-10 shadow-lg lg:shadow-none">
-                <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                    <h2 class="font-semibold text-slate-800 flex items-center gap-2">
-                        <i data-lucide="plus-circle" class="w-5 h-5 text-blue-600"></i> Nuevo Registro
-                    </h2>
-                </div>
+            <div class="xl:col-span-2 space-y-6">
                 
-                <div class="flex-1 overflow-y-auto p-4 space-y-5">
+                <div id="form-container-main" class="bg-brand-panel p-6 rounded-xl shadow-lg border border-brand-border transition-all duration-300">
                     
-                    <!-- Datos Básicos -->
-                    <div class="space-y-3">
+                    <!-- 0. TIPO DE MOVIMIENTO -->
+                    <div class="mb-6 bg-brand-bg/50 p-4 rounded-xl border border-brand-border">
+                        <label class="block text-xs font-mono text-brand-textSec mb-3 uppercase tracking-wider">Clasificación de Operación</label>
+                        <div class="grid grid-cols-3 gap-3">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="tipoMovimiento" value="Venta" class="peer sr-only" checked onchange="manejarCambioTipo()">
+                                <div class="rounded-lg border border-brand-border bg-brand-card p-3 text-center text-brand-textSec hover:bg-brand-cardHover peer-checked:border-brand-primary peer-checked:bg-brand-primary/10 peer-checked:text-brand-primary transition-all font-bold shadow-sm font-display tracking-wide">Venta</div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="tipoMovimiento" value="Compra" class="peer sr-only" onchange="manejarCambioTipo()">
+                                <div class="rounded-lg border border-brand-border bg-brand-card p-3 text-center text-brand-textSec hover:bg-brand-cardHover peer-checked:border-brand-warning peer-checked:bg-brand-warning/10 peer-checked:text-brand-warning transition-all font-bold shadow-sm font-display tracking-wide">Compra</div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="tipoMovimiento" value="Gasto" class="peer sr-only" onchange="manejarCambioTipo()">
+                                <div class="rounded-lg border border-brand-border bg-brand-card p-3 text-center text-brand-textSec hover:bg-brand-cardHover peer-checked:border-brand-error peer-checked:bg-brand-error/10 peer-checked:text-brand-error transition-all font-bold shadow-sm font-display tracking-wide">Gasto</div>
+                            </label>
+                            <label id="label-tipo-abono" class="hidden cursor-pointer">
+                                <input type="radio" name="tipoMovimiento" value="Abono" class="peer sr-only" onchange="manejarCambioTipo()">
+                                <div class="rounded-lg border border-brand-border bg-brand-card p-3 text-center text-brand-textSec peer-checked:border-brand-secondary peer-checked:bg-brand-secondary/10 peer-checked:text-brand-secondary transition-all font-bold shadow-sm font-display tracking-wide">Abono a Cartera</div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 1. Datos Generales -->
+                    <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Cliente / Proveedor</label>
-                            <input type="text" id="main-cliente" placeholder="Nombre completo" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:border-blue-500 outline-none">
+                            <label id="lbl-cliente" class="block text-xs font-mono text-brand-textSec mb-1 uppercase tracking-wider">Cliente / Proveedor</label>
+                            <input type="text" id="cliente" class="w-full p-2.5 rounded-lg transition-colors uppercase" placeholder="Nombre / Entidad">
                         </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="text-xs font-semibold text-slate-500 uppercase mb-1 block">Categoría</label>
-                                <select id="main-categoria" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:border-blue-500 outline-none font-medium">
-                                    <option value="Venta">Venta</option>
-                                    <option value="Compra">Compra</option>
-                                    <option value="Gasto">Gasto</option>
-                                    <option value="Abono">Abono (Ingreso)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="text-xs font-semibold text-slate-500 uppercase mb-1 block">Logística</label>
-                                <select id="main-tipo-entrega" onchange="window.toggleDomiciliario('main')" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none">
-                                    <option value="Recoge">Recoge en Punto</option>
-                                    <option value="Domicilio">Envío Domicilio</option>
-                                </select>
-                            </div>
+                        <div>
+                            <label class="block text-xs font-mono text-brand-textSec mb-1 uppercase tracking-wider">Fecha Operación</label>
+                            <input type="date" id="fecha" class="w-full p-2.5 rounded-lg transition-colors font-mono">
                         </div>
                     </div>
 
-                    <!-- Logística Domicilio (Oculta por defecto) -->
-                    <div id="main-box-domicilio" class="hidden bg-orange-50/50 border border-orange-100 p-3 rounded-lg space-y-3">
-                        <div class="grid grid-cols-2 gap-3">
+                    <!-- 2. Productos -->
+                    <div class="mb-6">
+                        <h3 id="lbl-productos" class="text-sm font-display font-bold text-brand-text mb-3 flex items-center gap-2 uppercase tracking-wide">
+                            <i data-lucide="package" class="w-4 h-4 text-brand-primary" id="icon-productos"></i> Conceptos
+                        </h3>
+                        <div id="productos-container" class="space-y-3"></div>
+                        <button onclick="agregarFilaProducto()" class="mt-4 w-full md:w-auto bg-brand-card hover:bg-brand-cardHover text-brand-text px-4 py-2 rounded-lg text-sm font-bold font-mono flex items-center justify-center gap-2 transition-colors border border-brand-border">
+                            <i data-lucide="plus" class="w-4 h-4 text-brand-primary"></i> Agregar
+                        </button>
+                    </div>
+
+                    <!-- 3. Logística -->
+                    <div id="seccion-logistica" class="mb-6 bg-brand-card p-4 rounded-xl border border-brand-border transition-all duration-300">
+                        <h3 class="text-sm font-display font-bold text-brand-text mb-3 flex items-center gap-2 uppercase tracking-wide">
+                            <i data-lucide="map-pin" class="w-4 h-4 text-brand-accent"></i> Logística
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                                <label class="text-xs font-semibold text-slate-500 uppercase mb-1 block">Encargado</label>
-                                <select id="main-domiciliario" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-sm outline-none">
+                                <label class="block text-xs font-mono text-brand-textSec mb-1 uppercase tracking-wider">Medio</label>
+                                <select id="medio-entrega" onchange="manejarCambioEntrega()" class="w-full p-2.5 rounded-lg transition-colors">
                                     <option value="">Seleccionar...</option>
-                                    <option value="CRISTIAN">Cristian</option>
-                                    <option value="JF">JF</option>
-                                    <option value="HADES">Hades</option>
-                                    <option value="EXTERNO">Servicio Externo</option>
+                                    <option value="Recoge">Recoge en Punto</option>
+                                    <option value="Domi">Domicilio</option>
                                 </select>
                             </div>
-                            <div>
-                                <label class="text-xs font-semibold text-slate-500 uppercase mb-1 block">Costo Envío</label>
-                                <input type="number" id="main-costo-envio" placeholder="$0" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-sm outline-none">
+                            <div id="div-encargado" class="hidden">
+                                <label class="block text-xs font-mono text-brand-textSec mb-1 uppercase tracking-wider">Encargado</label>
+                                <select id="encargado-domi" class="w-full p-2.5 rounded-lg transition-colors">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="JF">JF</option>
+                                    <option value="CRIS">CRIS</option>
+                                    <option value="MONO">MONO</option>
+                                    <option value="DAVID">DAVID</option>
+                                    <option value="HADES">HADES</option>
+                                    <option value="VALENTINO ROSSI">VALENTINO ROSSI</option>
+                                    <option value="DELIVERY APP">DELIVERY APP</option>
+                                </select>
+                            </div>
+                            <div id="div-costo-envio" class="hidden">
+                                <label class="block text-xs font-mono text-brand-textSec mb-1 uppercase tracking-wider">Costo Envío</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-2.5 font-mono text-brand-textSec">$</span>
+                                    <input type="number" id="costo-envio" oninput="calcularTotales()" value="0" class="w-full p-2.5 pl-8 rounded-lg transition-colors font-mono">
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Productos -->
-                    <div>
-                        <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
-                            <i data-lucide="package" class="w-4 h-4"></i> Conceptos / Productos
+                    <!-- 4. Pagos (Opcional para Ventas) -->
+                    <div class="mb-6">
+                        <h3 id="lbl-pagos" class="text-sm font-display font-bold text-brand-text mb-3 flex items-center gap-2 uppercase tracking-wide">
+                            <i data-lucide="wallet" class="w-4 h-4 text-brand-success" id="icon-pagos"></i> 
+                            <span id="txt-lbl-pagos">Pagos (Dejar vacío si es Pendiente)</span>
+                        </h3>
+                        <div id="pagos-container" class="space-y-3"></div>
+                        <button onclick="agregarFilaPago()" class="mt-4 w-full md:w-auto bg-brand-card hover:bg-brand-cardHover text-brand-text px-4 py-2 rounded-lg text-sm font-bold font-mono flex items-center justify-center gap-2 transition-colors border border-brand-border">
+                            <i data-lucide="plus" class="w-4 h-4 text-brand-success"></i> Agregar Pago
+                        </button>
+                    </div>
+
+                    <!-- 5. NOTAS -->
+                    <div class="mb-6">
+                        <label class="block text-xs font-mono text-brand-textSec mb-1 flex items-center gap-2 uppercase tracking-wider">
+                            <i data-lucide="terminal-square" class="w-3 h-3 text-brand-textSec"></i> Notas Adicionales
                         </label>
-                        <div class="flex gap-2 mb-2">
-                            <input type="text" id="main-prod-nombre" placeholder="Producto/Servicio" class="flex-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none">
-                            <input type="number" id="main-prod-cant" placeholder="Cant" class="w-16 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none">
-                            <input type="number" id="main-prod-precio" placeholder="$ Und" class="w-24 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none">
-                            <button onclick="window.agregarItem('main', 'producto')" class="p-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700"><i data-lucide="plus" class="w-4 h-4"></i></button>
-                        </div>
-                        <div id="main-lista-productos" class="space-y-2 mb-2 max-h-32 overflow-y-auto"></div>
-                        <div class="text-right text-sm font-bold text-slate-700 bg-slate-100 p-2 rounded-lg">
-                            Subtotal: $<span id="main-total-productos">0</span>
-                        </div>
+                        <textarea id="notas" rows="2" class="w-full p-2.5 rounded-lg transition-colors font-mono text-sm placeholder-brand-textSec/50" placeholder="> Ingresar observaciones..."></textarea>
                     </div>
 
-                    <!-- Pagos -->
-                    <div>
-                        <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-2">
-                            <i data-lucide="wallet" class="w-4 h-4"></i> Pagos Registrados
-                        </label>
-                        <div class="flex gap-2 mb-2">
-                            <select id="main-pago-metodo" class="flex-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none">
-                                <option value="Efectivo">Efectivo</option>
-                                <option value="Nequi">Nequi</option>
-                                <option value="Bancolombia">Bancolombia</option>
-                                <option value="Daviplata">Daviplata</option>
-                                <option value="Crédito">Crédito (Abono)</option>
-                                <option value="Cruce">Cruce de Bodega</option>
-                            </select>
-                            <input type="number" id="main-pago-monto" placeholder="$ Monto" class="w-28 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none">
-                            <button onclick="window.agregarItem('main', 'pago')" class="p-2 bg-green-600 text-white rounded-lg hover:bg-green-700"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                    <!-- 6. Totales -->
+                    <div class="bg-brand-card border border-brand-border p-5 rounded-xl flex flex-col md:flex-row justify-between items-center gap-6 shadow-[0_0_20px_rgba(0,245,255,0.05)] transition-colors duration-300">
+                        <div class="flex gap-8 w-full md:w-auto justify-between md:justify-start">
+                            <div>
+                                <span id="lbl-total-calc" class="block font-mono text-brand-textSec text-[10px] uppercase tracking-widest mb-1">Total Calculado</span>
+                                <span id="txt-total-cobrar" class="font-mono text-2xl font-bold text-brand-primary drop-shadow-[0_0_8px_rgba(0,245,255,0.5)]">$ 0</span>
+                            </div>
+                            <div>
+                                <span id="lbl-total-pagado" class="block font-mono text-brand-textSec text-[10px] uppercase tracking-widest mb-1">Total Ingresado</span>
+                                <span id="txt-total-pagado" class="font-mono text-2xl font-bold text-brand-success drop-shadow-[0_0_8px_rgba(0,255,157,0.5)]">$ 0</span>
+                            </div>
                         </div>
-                        <div id="main-lista-pagos" class="space-y-2 max-h-32 overflow-y-auto"></div>
+                        
+                        <div class="flex flex-col items-end w-full md:w-auto gap-2">
+                            <div id="alerta-descuadre" class="hidden"></div>
+                            <button id="btn-guardar" onclick="guardarMovimiento()" disabled class="w-full md:w-auto bg-brand-primary hover:bg-brand-primaryHover disabled:bg-brand-card disabled:text-brand-textSec disabled:border-brand-border disabled:shadow-none disabled:cursor-not-allowed text-brand-bg border border-transparent px-8 py-3 rounded-lg font-display font-bold transition-all shadow-[0_0_15px_rgba(0,245,255,0.3)] hover:shadow-[0_0_25px_rgba(0,245,255,0.5)] flex items-center justify-center gap-2 tracking-wide uppercase text-sm">
+                                <i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">Ejecutar</span>
+                            </button>
+                        </div>
                     </div>
-
-                    <!-- Notas -->
-                    <div>
-                        <textarea id="main-notas" placeholder="Notas u observaciones (opcional)" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none h-16 resize-none"></textarea>
-                    </div>
-
                 </div>
-                
-                <!-- Botón Guardar -->
-                <div class="p-4 border-t border-slate-200 bg-white">
-                    <div class="flex justify-between items-center mb-3">
-                        <span class="text-sm font-medium text-slate-500">Total a Cobrar:</span>
-                        <span class="text-lg font-bold text-slate-800" id="main-gran-total">$0</span>
+            </div>
+
+            <!-- COLUMNA DERECHA: DASHBOARD -->
+            <div class="space-y-6">
+                <!-- PANEL FINANCIERO -->
+                <div id="panel-financiero" class="hidden bg-brand-panel p-6 rounded-xl shadow-lg border border-brand-border fade-in">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-sm font-display font-bold text-brand-text flex items-center gap-2 uppercase tracking-widest">
+                            <i data-lucide="bar-chart-3" class="w-4 h-4 text-brand-primary"></i> Métrica Global
+                        </h2>
+                        <button onclick="calcularDashboard()" class="text-xs bg-brand-card hover:bg-brand-cardHover border border-brand-border p-1.5 rounded transition-colors text-brand-textSec">
+                            <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+                        </button>
                     </div>
-                    <button onclick="window.guardarMovimiento('main')" id="btn-guardar-main" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2">
-                        <i data-lucide="save" class="w-5 h-5"></i> Ejecutar Registro
+
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div class="bg-brand-bg/50 p-4 rounded-xl border border-brand-border card-dash">
+                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-primary mb-1">Volumen Ventas</p>
+                            <p id="dash-ventas" class="font-mono text-xl font-bold text-brand-text drop-shadow-[0_0_5px_rgba(0,245,255,0.3)]">$ 0</p>
+                        </div>
+                        <div onclick="abrirModalCreditos()" class="bg-brand-secondary/5 border border-brand-secondary/20 p-4 rounded-xl card-dash cursor-pointer hover:bg-brand-secondary/10 transition-all">
+                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-secondary mb-1 flex items-center justify-between">CxC <i data-lucide="external-link" class="w-3 h-3 opacity-50"></i></p>
+                            <p id="dash-creditos" class="font-mono text-xl font-bold text-brand-secondary drop-shadow-[0_0_5px_rgba(139,92,246,0.3)]">$ 0</p>
+                        </div>
+                    </div>
+                    
+                    <!-- NUEVO: CRUCES PENDIENTES -->
+                    <div class="bg-brand-card border border-brand-border p-3 rounded-lg mb-6 flex justify-between items-center">
+                        <div>
+                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-textSec mb-1">Mercancía en Tránsito</p>
+                            <p id="dash-cruces-pendientes" class="font-mono text-lg font-bold text-brand-warning">$ 0</p>
+                        </div>
+                        <i data-lucide="package-search" class="w-6 h-6 text-brand-warning opacity-50"></i>
+                    </div>
+
+                    <p class="font-mono text-[10px] text-brand-textSec uppercase tracking-widest mb-3 border-b border-brand-border pb-2">Distribución (Ingresos-Egresos)</p>
+                    <div class="grid grid-cols-2 gap-2 mb-6">
+                        <div class="bg-brand-success/5 p-2.5 rounded border border-brand-success/20">
+                            <p class="font-mono text-[9px] text-brand-success uppercase tracking-widest mb-0.5 opacity-80">Cuenta Cris</p>
+                            <p id="dash-cris" class="font-mono text-sm font-bold text-brand-text">$ 0</p>
+                        </div>
+                        <div class="bg-brand-success/5 p-2.5 rounded border border-brand-success/20">
+                            <p class="font-mono text-[9px] text-brand-success uppercase tracking-widest mb-0.5 opacity-80">Cuenta Jhon</p>
+                            <p id="dash-jhon" class="font-mono text-sm font-bold text-brand-text">$ 0</p>
+                        </div>
+                        <div class="bg-brand-success/5 p-2.5 rounded border border-brand-success/20">
+                            <p class="font-mono text-[9px] text-brand-success uppercase tracking-widest mb-0.5 opacity-80">Cuenta Hades</p>
+                            <p id="dash-hades" class="font-mono text-sm font-bold text-brand-text">$ 0</p>
+                        </div>
+                        <div class="bg-brand-success/5 p-2.5 rounded border border-brand-success/20">
+                            <p class="font-mono text-[9px] text-brand-success uppercase tracking-widest mb-0.5 opacity-80">Caja Bodega</p>
+                            <p id="dash-bodega" class="font-mono text-sm font-bold text-brand-text">$ 0</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-brand-warning/5 border border-brand-warning/20 p-4 rounded-xl">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="font-mono text-[9px] text-brand-warning font-bold uppercase tracking-widest opacity-80 mb-1">CtaxCobrar Domis (Hades)</p>
+                                <p id="dash-admin-domis-hades" class="font-mono text-lg font-bold text-brand-warning drop-shadow-[0_0_5px_rgba(255,213,0,0.3)]">$ 0</p>
+                            </div>
+                            <button id="btn-liquidar-hades" onclick="liquidarDomisHades()" class="bg-brand-warning/10 hover:bg-brand-warning border border-brand-warning hover:text-brand-bg text-brand-warning px-3 py-2 rounded-lg font-mono text-[10px] uppercase font-bold transition-all flex items-center gap-1">
+                                <i data-lucide="check-square" class="w-3 h-3"></i> CUT
+                            </button>
+                        </div>
+                    </div>
+                    <button onclick="abrirModalReporte()" class="mt-6 w-full bg-brand-card hover:bg-brand-cardHover border border-brand-border text-brand-text px-4 py-3 rounded-lg font-display font-bold uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="terminal" class="w-4 h-4 text-brand-primary"></i> Analítica Global
+                    </button>
+                </div>
+
+                <!-- PANEL HADES -->
+                <div id="panel-hades" class="hidden bg-brand-panel p-6 rounded-xl shadow-lg border border-brand-border fade-in">
+                    <div class="flex justify-between items-center mb-6 border-b border-brand-border pb-4">
+                        <h2 class="text-sm font-display font-bold text-brand-text flex items-center gap-2 uppercase tracking-widest">
+                            <i data-lucide="rocket" class="w-4 h-4 text-brand-accent"></i> Mi Dashboard
+                        </h2>
+                        <button onclick="calcularDashboard()" class="text-xs bg-brand-card hover:bg-brand-cardHover border border-brand-border p-1.5 rounded transition-colors text-brand-textSec">
+                            <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div class="bg-brand-primary/5 p-3 rounded-lg border border-brand-primary/20">
+                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-primary opacity-80 mb-1">Mis Ventas</p>
+                            <p id="dash-hades-ventas" class="font-mono text-lg font-bold text-brand-primary">$ 0</p>
+                        </div>
+                        <div onclick="abrirModalCreditos()" class="bg-brand-secondary/5 border border-brand-secondary/20 p-3 rounded-lg cursor-pointer hover:bg-brand-secondary/20 transition-colors">
+                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-secondary opacity-80 mb-1 flex items-center justify-between">CxC Clientes <i data-lucide="external-link" class="w-3 h-3"></i></p>
+                            <p id="dash-hades-creditos" class="font-mono text-lg font-bold text-brand-secondary">$ 0</p>
+                        </div>
+                    </div>
+                    <div class="bg-brand-bg/50 p-4 rounded-xl border border-brand-border flex justify-between items-center mt-2">
+                        <div>
+                            <p class="font-mono text-[9px] text-brand-textSec uppercase tracking-widest mb-1">Deuda a Ferco (Domis)</p>
+                            <p id="dash-hades-domis" class="font-mono text-xl font-bold text-brand-warning drop-shadow-[0_0_5px_rgba(255,213,0,0.3)]">$ 0</p>
+                        </div>
+                        <i data-lucide="bike" class="w-6 h-6 text-brand-textSec opacity-50"></i>
+                    </div>
+                    <button onclick="abrirModalReporte()" class="mt-6 w-full bg-brand-primary/10 hover:bg-brand-primary hover:text-brand-bg border border-brand-primary text-brand-primary px-4 py-3 rounded-lg font-display font-bold uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="terminal" class="w-4 h-4"></i> Mi Analítica
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: REPORTE DIARIO -->
+    <div id="modal-reporte" class="fixed inset-0 z-[50] hidden items-center justify-center bg-brand-bg/90 backdrop-blur-md transition-opacity">
+        <div class="glass-modal w-full max-w-4xl h-[90vh] flex flex-col rounded-2xl m-4 relative overflow-hidden">
+            <div class="p-5 border-b border-brand-border flex justify-between items-center bg-brand-panel rounded-t-2xl">
+                <h2 class="text-md font-display font-bold uppercase tracking-widest flex items-center gap-2 text-brand-text">
+                    <i data-lucide="terminal" class="text-brand-primary w-4 h-4"></i> Data Viewer: Reportes
+                </h2>
+                <button onclick="cerrarModalReporte()" class="p-2 hover:bg-brand-card border border-transparent hover:border-brand-border rounded-lg transition-colors text-brand-textSec">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            
+            <div class="px-6 py-4 bg-brand-panel border-b border-brand-border flex flex-col lg:flex-row gap-4">
+                <div class="flex gap-2 w-full lg:w-auto">
+                    <select id="filtro-tipo-reporte" onchange="window.filtrarReporte()" class="p-2.5 rounded-lg bg-brand-card border border-brand-border text-brand-text font-mono text-xs outline-none">
+                        <option value="">Todas las Ops</option>
+                        <option value="Venta">Solo Ventas</option>
+                        <option value="Compra">Solo Compras</option>
+                        <option value="Gasto">Solo Gastos</option>
+                        <option value="Abono">Solo Abonos</option>
+                    </select>
+                </div>
+                <div class="relative w-full">
+                    <i data-lucide="search" class="absolute left-3 top-3 w-4 h-4 text-brand-textSec"></i>
+                    <input type="text" id="buscador-reporte" onkeyup="window.filtrarReporte()" placeholder="Buscar por cliente, monto..." class="w-full pl-10 p-2.5 rounded-lg font-mono text-xs bg-brand-bg border border-brand-border text-brand-text outline-none">
+                </div>
+                <div id="hades-tools" class="hidden flex-shrink-0 flex gap-2">
+                    <button id="btn-filtro-decenas" onclick="toggleFiltroDecenas()" class="bg-brand-accent/10 border border-brand-accent text-brand-accent px-4 py-2.5 rounded-lg font-mono text-xs uppercase tracking-widest transition-colors flex items-center gap-2">
+                        <i data-lucide="filter" class="w-3 h-3"></i> Solo Decenas
+                    </button>
+                    <button id="btn-rectificar-bulk" onclick="rectificarDecenas()" class="hidden bg-brand-accent hover:bg-brand-accent/80 text-brand-bg font-bold px-4 py-2.5 rounded-lg font-mono text-xs uppercase transition-colors flex items-center gap-2">
+                        <i data-lucide="zap" class="w-3 h-3"></i> Rectificar x1000
                     </button>
                 </div>
             </div>
 
-            <!-- COLUMNA DERECHA: DASHBOARD Y REPORTE -->
-            <div class="flex-1 flex flex-col h-full bg-slate-50/50">
-                
-                <!-- Tarjetas de Resumen -->
-                <div class="p-6 grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Volumen Ventas</p>
-                        <h3 class="text-2xl font-bold text-emerald-600" id="dash-ventas">$0</h3>
-                    </div>
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Por Cobrar (Pend.)</p>
-                        <h3 class="text-2xl font-bold text-amber-600" id="dash-cxc">$0</h3>
-                    </div>
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Cruces Pendientes</p>
-                        <h3 class="text-2xl font-bold text-orange-600" id="dash-cruces">0</h3>
-                    </div>
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Gastos / Egresos</p>
-                        <h3 class="text-2xl font-bold text-red-600" id="dash-gastos">$0</h3>
-                    </div>
-                </div>
+            <div class="p-6 overflow-y-auto flex-1 bg-brand-bg" id="contenedor-reporte-dias"></div>
+        </div>
+    </div>
 
-                <!-- Reporte Diario -->
-                <div class="flex-1 bg-white m-6 mt-0 rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
-                    <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex flex-wrap gap-3 items-center justify-between">
-                        <h2 class="font-bold text-slate-800">Operaciones del Día</h2>
-                        
-                        <div class="flex items-center gap-2 flex-1 min-w-[200px] max-w-lg justify-end">
-                            <!-- Filtro Categoría -->
-                            <select id="filtro-categoria" onchange="window.renderizarReporte()" class="p-2 bg-white border border-slate-200 rounded-lg text-sm outline-none">
-                                <option value="Todos">Todas las Ops</option>
-                                <option value="Venta">Solo Ventas</option>
-                                <option value="Compra">Solo Compras</option>
-                                <option value="Gasto">Solo Gastos</option>
-                                <option value="Abono">Solo Abonos</option>
-                            </select>
-                            
-                            <!-- Búsqueda -->
-                            <div class="relative flex-1">
-                                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-                                <input type="text" id="buscador-reporte" onkeyup="window.renderizarReporte()" placeholder="Buscar cliente..." class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
-                            </div>
-
-                            <!-- Botones Exclusivos Hades (Se muestran por JS si es él) -->
-                            <button id="btn-hades-decenas" onclick="window.toggleDecenasHades()" class="hidden px-3 py-2 bg-purple-100 text-purple-700 font-semibold rounded-lg text-sm hover:bg-purple-200 transition-colors">
-                                Solo Decenas
-                            </button>
-                            <button id="btn-hades-rectificar" onclick="window.rectificarMasivoHades()" class="hidden px-3 py-2 bg-pink-600 text-white font-bold rounded-lg text-sm hover:bg-pink-700 transition-colors shadow-sm">
-                                Rectificar x1000
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="flex-1 overflow-y-auto p-2" id="contenedor-reporte">
-                        <!-- Items inyectados por JS -->
-                    </div>
-                </div>
-
+    <!-- MODAL: PEDIDOS PENDIENTES -->
+    <div id="modal-pedidos-pendientes" class="fixed inset-0 z-[55] hidden items-center justify-center bg-brand-bg/90 backdrop-blur-md transition-opacity">
+        <div class="glass-modal w-full max-w-3xl max-h-[85vh] flex flex-col rounded-2xl m-4 border border-brand-warning/50">
+            <div class="p-5 border-b border-brand-warning/30 flex justify-between items-center bg-brand-warning/10 rounded-t-2xl">
+                <h2 class="text-md font-display font-bold uppercase tracking-widest flex items-center gap-2 text-brand-warning">
+                    <i data-lucide="clock" class="w-5 h-5"></i> Pedidos Pendientes de Pago
+                </h2>
+                <button onclick="cerrarModalPendientes()" class="p-2 hover:bg-brand-card rounded-lg transition-colors text-brand-warning">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 bg-brand-bg space-y-4" id="lista-pedidos-pendientes">
+                <!-- Se llena por JS -->
             </div>
         </div>
     </div>
 
-    <!-- MODAL: DETALLE DE REGISTRO (INSPECTOR) -->
-    <div id="modal-detalle" class="fixed inset-0 bg-slate-900/60 z-50 hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-full">
-            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                <h3 class="font-bold text-slate-800" id="det-titulo">Detalle de Operación</h3>
-                <button onclick="window.cerrarDetalle()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+    <!-- MODAL: SALDAR PEDIDO -->
+    <div id="modal-saldar-pedido" class="fixed inset-0 z-[70] hidden items-center justify-center bg-brand-bg/95 backdrop-blur-md transition-opacity">
+        <div class="glass-modal w-full max-w-sm flex flex-col rounded-2xl m-4 border border-brand-success/50">
+            <div class="p-5 border-b border-brand-success/30 flex justify-between items-center bg-brand-success/10 rounded-t-2xl">
+                <h2 class="text-md font-display font-bold uppercase tracking-widest flex items-center gap-2 text-brand-success">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i> Ingresar Pago
+                </h2>
+                <button onclick="cerrarModalSaldar()" class="p-2 hover:bg-brand-card rounded-lg transition-colors text-brand-success">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
             </div>
-            
-            <div class="p-5 overflow-y-auto space-y-4 text-sm" id="det-contenido">
-                <!-- Inyectado por JS -->
-            </div>
-            
-            <div class="p-4 border-t border-slate-100 bg-slate-50 flex flex-wrap gap-2 justify-end" id="det-acciones">
-                <!-- Botones inyectados por JS (Saldar, Imprimir, Editar, Eliminar) -->
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: EDICIÓN BLINDADA -->
-    <div id="modal-edicion" class="fixed inset-0 bg-slate-900/60 z-[60] hidden items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col max-h-full">
-            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-blue-50 text-blue-800">
-                <h3 class="font-bold flex items-center gap-2"><i data-lucide="edit-3" class="w-5 h-5"></i> Modificar Registro</h3>
-                <button onclick="window.cerrarModalEdicion()" class="text-blue-500 hover:text-blue-700"><i data-lucide="x" class="w-5 h-5"></i></button>
-            </div>
-            
-            <div class="p-4 overflow-y-auto space-y-4">
-                <!-- Selectores de Categoría Superior -->
-                <div class="flex gap-2 p-1 bg-slate-100 rounded-lg mb-2">
-                    <button onclick="window.cambiarCategoriaEdicion('Venta')" id="ed-cat-Venta" class="flex-1 py-1.5 text-xs font-bold rounded-md bg-white shadow text-slate-800">Venta</button>
-                    <button onclick="window.cambiarCategoriaEdicion('Compra')" id="ed-cat-Compra" class="flex-1 py-1.5 text-xs font-bold rounded-md text-slate-500 hover:text-slate-700">Compra</button>
-                    <button onclick="window.cambiarCategoriaEdicion('Gasto')" id="ed-cat-Gasto" class="flex-1 py-1.5 text-xs font-bold rounded-md text-slate-500 hover:text-slate-700">Gasto</button>
-                    <button onclick="window.cambiarCategoriaEdicion('Abono')" id="ed-cat-Abono" class="flex-1 py-1.5 text-xs font-bold rounded-md text-slate-500 hover:text-slate-700">Abono</button>
+            <div class="p-6 bg-brand-bg rounded-b-2xl space-y-4">
+                <div class="text-center mb-4">
+                    <p class="text-[10px] font-mono uppercase text-brand-textSec">Saldo a Cancelar</p>
+                    <p id="saldar-monto-display" class="text-3xl font-mono font-bold text-brand-success my-2"></p>
                 </div>
-                <!-- Campo Oculto para la categoría seleccionada -->
-                <input type="hidden" id="edit-categoria" value="Venta">
-
-                <div>
-                    <label class="text-xs font-semibold text-slate-500 uppercase">Cliente</label>
-                    <input type="text" id="edit-cliente" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm mt-1">
-                </div>
-                
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="text-xs font-semibold text-slate-500 uppercase">Logística</label>
-                        <select id="edit-tipo-entrega" onchange="window.toggleDomiciliario('edit')" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm mt-1">
-                            <option value="Recoge">Recoge en Punto</option>
-                            <option value="Domicilio">Envío Domicilio</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div id="edit-box-domicilio" class="hidden grid-cols-2 gap-3 bg-orange-50/50 p-3 rounded-lg">
-                    <div>
-                        <label class="text-xs font-semibold text-slate-500 uppercase">Encargado</label>
-                        <select id="edit-domiciliario" class="w-full p-2 border border-slate-200 rounded-lg text-sm mt-1">
-                            <option value="">Seleccionar...</option>
-                            <option value="CRISTIAN">Cristian</option>
-                            <option value="JF">JF</option>
-                            <option value="HADES">Hades</option>
-                            <option value="EXTERNO">Externo</option>
+                        <label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase tracking-widest">Medio</label>
+                        <select id="saldar-metodo" class="w-full p-2.5 font-mono text-xs bg-brand-card border border-brand-border rounded-lg outline-none">
+                            <option value="">Medio...</option><option value="Transferencia">Transferencia</option><option value="Efectivo">Efectivo</option><option value="Bold">Bold</option>
                         </select>
                     </div>
                     <div>
-                        <label class="text-xs font-semibold text-slate-500 uppercase">Costo Envío</label>
-                        <input type="number" id="edit-costo-envio" class="w-full p-2 border border-slate-200 rounded-lg text-sm mt-1">
-                    </div>
-                </div>
-
-                <!-- Productos Edit -->
-                <div>
-                    <label class="text-xs font-semibold text-slate-500 uppercase">Productos</label>
-                    <div class="flex gap-1 my-1">
-                        <input type="text" id="edit-prod-nombre" placeholder="Item" class="flex-1 p-2 bg-slate-50 border rounded-lg text-sm">
-                        <input type="number" id="edit-prod-cant" placeholder="Unid" class="w-14 p-2 bg-slate-50 border rounded-lg text-sm">
-                        <input type="number" id="edit-prod-precio" placeholder="$" class="w-20 p-2 bg-slate-50 border rounded-lg text-sm">
-                        <button onclick="window.agregarItem('edit', 'producto')" class="p-2 bg-slate-800 text-white rounded-lg"><i data-lucide="plus" class="w-4 h-4"></i></button>
-                    </div>
-                    <div id="edit-lista-productos" class="space-y-1 max-h-24 overflow-y-auto"></div>
-                </div>
-
-                <!-- Pagos Edit -->
-                <div>
-                    <label class="text-xs font-semibold text-slate-500 uppercase">Pagos</label>
-                    <div class="flex gap-1 my-1">
-                        <select id="edit-pago-metodo" class="flex-1 p-2 bg-slate-50 border rounded-lg text-sm">
-                            <option value="Efectivo">Efectivo</option>
-                            <option value="Nequi">Nequi</option>
-                            <option value="Bancolombia">Bancolombia</option>
-                            <option value="Daviplata">Daviplata</option>
-                            <option value="Crédito">Crédito (Abono)</option>
-                            <option value="Cruce">Cruce de Bodega</option>
+                        <label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase tracking-widest">Caja</label>
+                        <select id="saldar-cuenta" class="w-full p-2.5 font-mono text-xs bg-brand-card border border-brand-border rounded-lg outline-none">
+                            <option value="">Caja...</option><option value="CRIS">CRIS</option><option value="JHON">JHON</option><option value="HADES">HADES</option><option value="BODEGA">BODEGA</option>
                         </select>
-                        <input type="number" id="edit-pago-monto" placeholder="$" class="w-24 p-2 bg-slate-50 border rounded-lg text-sm">
-                        <button onclick="window.agregarItem('edit', 'pago')" class="p-2 bg-green-600 text-white rounded-lg"><i data-lucide="plus" class="w-4 h-4"></i></button>
                     </div>
-                    <div id="edit-lista-pagos" class="space-y-1 max-h-24 overflow-y-auto"></div>
                 </div>
-                
-                <textarea id="edit-notas" placeholder="Notas..." class="w-full p-2 bg-slate-50 border rounded-lg text-sm h-12"></textarea>
-            </div>
-            
-            <div class="p-4 border-t border-slate-100 bg-white">
-                <button onclick="window.guardarMovimiento('edit')" class="w-full py-3 bg-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2">
-                    <i data-lucide="save" class="w-5 h-5"></i> Actualizar Registro
+                <button onclick="guardarSaldarPedido()" class="w-full mt-4 bg-brand-success hover:bg-brand-success/80 text-brand-bg px-4 py-3 rounded-lg font-mono font-bold uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(0,255,157,0.4)]">
+                    <i data-lucide="save" class="w-4 h-4"></i> Confirmar Ingreso
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- SECCIÓN DE IMPRESIÓN (Térmica) -->
-    <div id="print-section" class="hidden">
-        <div style="text-align: center; margin-bottom: 15px;" id="print-header">
-            <h1 style="font-size: 24px; font-weight: bold; margin: 0;" id="print-title">FERCO FARMA</h1>
-            <p style="font-size: 12px; margin: 2px 0; border-bottom: 1px dashed black; padding-bottom: 10px;">Comprobante de Operación</p>
-        </div>
-        
-        <div style="font-size: 14px; margin-bottom: 15px;" id="print-info-basica"></div>
-        
-        <div style="font-size: 14px; margin-bottom: 15px;" id="print-sello"></div>
-
-        <table style="width: 100%; font-size: 14px; border-collapse: collapse; margin-bottom: 15px;">
-            <thead>
-                <tr style="border-bottom: 1px solid black; text-align: left;">
-                    <th>Cant</th>
-                    <th>Concepto</th>
-                    <th style="text-align: right;">Total</th>
-                </tr>
-            </thead>
-            <tbody id="print-lista-items"></tbody>
-        </table>
-
-        <div style="font-size: 14px; margin-bottom: 15px;" id="print-logistica"></div>
-        
-        <div style="border-top: 1px dashed black; padding-top: 10px; font-size: 16px; font-weight: bold; text-align: right; margin-bottom: 20px;">
-            TOTAL: $<span id="print-total"></span>
-        </div>
-
-        <div style="font-size: 14px; margin-bottom: 10px;" id="print-pagos-detalle"></div>
-        <div style="font-size: 14px; font-weight: bold; text-align: right;" id="print-saldo-pendiente"></div>
-        
-        <div style="text-align: center; font-size: 12px; margin-top: 30px; border-top: 1px dashed black; padding-top: 10px;">
-            <p style="margin: 0;">Gracias por su confianza.</p>
-            <p style="margin: 0; font-size: 10px;" id="print-fecha-hora"></p>
+    <!-- MODAL: DETALLES DE REGISTRO -->
+    <div id="modal-detalle-registro" class="fixed inset-0 z-[60] hidden items-center justify-center bg-brand-bg/90 backdrop-blur-md transition-opacity">
+        <div class="glass-modal w-full max-w-xl max-h-[90vh] flex flex-col rounded-2xl m-4 border border-brand-primary/40 shadow-[0_0_30px_rgba(0,245,255,0.1)]">
+            <div class="p-5 border-b border-brand-border flex justify-between items-start bg-brand-panel rounded-t-2xl">
+                <div>
+                    <h2 class="text-md font-display font-bold text-brand-text uppercase tracking-widest flex items-center gap-2 mb-2">
+                        <i data-lucide="file-code" class="text-brand-primary w-4 h-4"></i> Inspector de Bloque
+                    </h2>
+                    <p class="text-[10px] text-brand-textSec font-mono tracking-widest" id="detalle-fecha-creador"></p>
+                </div>
+                <button onclick="cerrarModalDetalle()" class="p-2 hover:bg-brand-card rounded-lg transition-colors text-brand-textSec">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-1 bg-brand-bg space-y-6">
+                <div class="flex justify-between items-center bg-brand-panel p-5 rounded-xl border border-brand-border">
+                    <div>
+                        <p class="text-[9px] uppercase tracking-widest font-mono text-brand-textSec mb-1">Entidad</p>
+                        <p class="text-lg font-display font-bold text-brand-text tracking-wide" id="detalle-cliente">Nombre</p>
+                        <span id="detalle-tipo-badge" class="inline-block mt-2 text-[9px] font-mono font-bold px-2 py-0.5 rounded uppercase tracking-widest bg-brand-card border text-brand-textSec border-brand-border"></span>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[9px] uppercase tracking-widest font-mono text-brand-textSec mb-1">Monto Absoluto</p>
+                        <p class="text-2xl font-mono font-bold text-brand-primary drop-shadow-[0_0_8px_rgba(0,245,255,0.4)]" id="detalle-total">$0</p>
+                    </div>
+                </div>
+                <div class="bg-brand-panel rounded-xl border border-brand-border overflow-hidden">
+                    <h3 class="bg-brand-card p-3 text-[10px] font-mono font-bold text-brand-textSec uppercase border-b border-brand-border">Items & Logística</h3>
+                    <div class="p-4">
+                        <ul id="detalle-lista-productos" class="space-y-3 font-mono text-xs text-brand-textSec mb-4"></ul>
+                        <div id="detalle-logistica" class="hidden pt-4 border-t border-brand-border font-mono text-[10px] text-brand-textSec uppercase tracking-wider"></div>
+                    </div>
+                </div>
+                <div class="bg-brand-panel rounded-xl border border-brand-border overflow-hidden">
+                    <h3 class="bg-brand-card p-3 text-[10px] font-mono font-bold text-brand-textSec uppercase border-b border-brand-border">Transacciones</h3>
+                    <div class="p-4"><ul id="detalle-lista-pagos" class="space-y-3 font-mono text-xs text-brand-textSec"></ul></div>
+                </div>
+            </div>
+            
+            <div id="detalle-acciones" class="p-5 border-t border-brand-border bg-brand-panel rounded-b-2xl flex flex-wrap gap-2 justify-end">
+                <button onclick="imprimirRecibo()" class="bg-brand-success/10 hover:bg-brand-success border border-brand-success hover:text-brand-bg text-brand-success px-4 py-2 rounded-lg font-mono text-[10px] font-bold uppercase transition-all flex items-center gap-2">
+                    <i data-lucide="printer" class="w-3 h-3"></i> Print
+                </button>
+                <button id="btn-detalle-saldar-cruce" class="hidden bg-brand-warning hover:bg-brand-warning/80 text-brand-bg px-4 py-2 rounded-lg font-mono text-[10px] font-bold uppercase transition-all shadow-[0_0_10px_rgba(255,213,0,0.3)] items-center gap-2">
+                    <i data-lucide="check-square" class="w-3 h-3"></i> OK BODEGA
+                </button>
+                <button id="btn-detalle-editar" class="bg-brand-warning/10 border border-brand-warning text-brand-warning px-4 py-2 rounded-lg font-mono text-[10px] font-bold uppercase transition-all flex items-center gap-2">
+                    <i data-lucide="edit-3" class="w-3 h-3"></i> Modificar
+                </button>
+                <button id="btn-detalle-borrar" class="bg-brand-error/10 border border-brand-error text-brand-error px-4 py-2 rounded-lg font-mono text-[10px] font-bold uppercase transition-all flex items-center gap-2">
+                    <i data-lucide="trash-2" class="w-3 h-3"></i> Delete
+                </button>
+            </div>
         </div>
     </div>
 
+    <!-- MODAL FLOTANTE DE EDICIÓN EXCLUSIVA (NIVEL 80) -->
+    <div id="modal-editar-registro" class="fixed inset-0 z-[80] hidden items-center justify-center bg-brand-bg/95 backdrop-blur-md transition-opacity">
+        <div class="glass-modal w-full max-w-4xl max-h-[95vh] flex flex-col rounded-2xl m-4 border border-brand-warning/50 shadow-[0_0_40px_rgba(255,213,0,0.15)] overflow-hidden">
+            <div class="p-5 border-b border-brand-warning/30 flex justify-between items-center bg-brand-warning/10">
+                <h2 class="text-md font-display font-bold text-brand-warning uppercase tracking-widest flex items-center gap-2">
+                    <i data-lucide="edit-3" class="w-5 h-5"></i> Editando Registro de <span id="lbl-tipo-edicion"></span>
+                </h2>
+                <button onclick="cerrarModalEdicion()" class="p-2 hover:bg-brand-card rounded-lg transition-colors text-brand-warning">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 bg-brand-panel space-y-6">
+                <!-- Selector de Categoría en Edición -->
+                <div class="grid grid-cols-4 gap-2 mb-2">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="tipoMovimientoEdicion" value="Venta" class="peer sr-only" onchange="manejarCambioTipoEdicion()">
+                        <div class="rounded border border-brand-border bg-brand-card p-2 text-center text-[10px] uppercase font-bold peer-checked:bg-brand-primary peer-checked:text-brand-bg transition-colors">Venta</div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="tipoMovimientoEdicion" value="Compra" class="peer sr-only" onchange="manejarCambioTipoEdicion()">
+                        <div class="rounded border border-brand-border bg-brand-card p-2 text-center text-[10px] uppercase font-bold peer-checked:bg-brand-warning peer-checked:text-brand-bg transition-colors">Compra</div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="tipoMovimientoEdicion" value="Gasto" class="peer sr-only" onchange="manejarCambioTipoEdicion()">
+                        <div class="rounded border border-brand-border bg-brand-card p-2 text-center text-[10px] uppercase font-bold peer-checked:bg-brand-error peer-checked:text-brand-bg transition-colors">Gasto</div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="tipoMovimientoEdicion" value="Abono" class="peer sr-only" onchange="manejarCambioTipoEdicion()">
+                        <div class="rounded border border-brand-border bg-brand-card p-2 text-center text-[10px] uppercase font-bold peer-checked:bg-brand-secondary peer-checked:text-brand-bg transition-colors">Abono</div>
+                    </label>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-mono text-brand-textSec mb-1 uppercase">Cliente / Proveedor</label>
+                        <input type="text" id="cliente-edicion" class="w-full p-2.5 rounded-lg uppercase border border-brand-warning/50">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono text-brand-textSec mb-1 uppercase">Fecha</label>
+                        <input type="date" id="fecha-edicion" class="w-full p-2.5 rounded-lg font-mono border border-brand-warning/50">
+                    </div>
+                </div>
+                
+                <div class="bg-brand-bg/50 p-4 rounded-xl border border-brand-border">
+                    <h3 class="text-sm font-display font-bold text-brand-text mb-3 uppercase">Conceptos</h3>
+                    <div id="productos-container-edicion" class="space-y-3"></div>
+                    <button onclick="agregarFilaProductoEdicion()" class="mt-4 w-full md:w-auto bg-brand-card px-4 py-2 rounded-lg text-sm font-bold font-mono border border-brand-border">Agregar Item</button>
+                </div>
+                
+                <div id="seccion-logistica-edicion" class="bg-brand-bg/50 p-4 rounded-xl border border-brand-border">
+                    <h3 class="text-sm font-display font-bold text-brand-text mb-3 uppercase">Logística</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-mono text-brand-textSec mb-1 uppercase">Medio</label>
+                            <select id="medio-entrega-edicion" onchange="manejarCambioEntregaEdicion()" class="w-full p-2.5 rounded-lg border border-brand-border">
+                                <option value="">Seleccionar...</option><option value="Recoge">Recoge en Punto</option><option value="Domi">Domicilio</option>
+                            </select>
+                        </div>
+                        <div id="div-encargado-edicion" class="hidden">
+                            <label class="block text-xs font-mono text-brand-textSec mb-1 uppercase">Encargado</label>
+                            <select id="encargado-domi-edicion" class="w-full p-2.5 rounded-lg border border-brand-border">
+                                <option value="">Seleccionar...</option><option value="JF">JF</option><option value="CRIS">CRIS</option><option value="MONO">MONO</option><option value="DAVID">DAVID</option><option value="HADES">HADES</option><option value="VALENTINO ROSSI">VALENTINO ROSSI</option><option value="DELIVERY APP">DELIVERY APP</option>
+                            </select>
+                        </div>
+                        <div id="div-costo-envio-edicion" class="hidden">
+                            <label class="block text-xs font-mono text-brand-textSec mb-1 uppercase">Costo Envío</label>
+                            <input type="number" id="costo-envio-edicion" oninput="calcularTotalesEdicion()" value="0" class="w-full p-2.5 rounded-lg font-mono">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-brand-bg/50 p-4 rounded-xl border border-brand-border">
+                    <h3 class="text-sm font-display font-bold text-brand-text mb-3 uppercase">Transacciones</h3>
+                    <div id="pagos-container-edicion" class="space-y-3"></div>
+                    <button onclick="agregarFilaPagoEdicion()" class="mt-4 w-full md:w-auto bg-brand-card px-4 py-2 rounded-lg text-sm font-bold font-mono border border-brand-border">Agregar Pago</button>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-mono text-brand-textSec mb-1 uppercase">Notas Adicionales</label>
+                    <textarea id="notas-edicion" rows="2" class="w-full p-2.5 rounded-lg font-mono text-sm border border-brand-border"></textarea>
+                </div>
+            </div>
+            
+            <div class="p-5 border-t border-brand-warning/30 bg-brand-warning/5 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex gap-8">
+                    <div>
+                        <span class="block font-mono text-brand-textSec text-[10px] uppercase">Cálculo</span>
+                        <span id="txt-total-cobrar-edicion" class="font-mono text-xl font-bold text-brand-primary">$ 0</span>
+                    </div>
+                    <div>
+                        <span class="block font-mono text-brand-textSec text-[10px] uppercase">Ingresado</span>
+                        <span id="txt-total-pagado-edicion" class="font-mono text-xl font-bold text-brand-success">$ 0</span>
+                    </div>
+                </div>
+                <div class="flex gap-3 items-center">
+                    <div id="alerta-descuadre-edicion" class="hidden font-mono text-xs uppercase p-2 rounded"></div>
+                    <button id="btn-guardar-edicion" onclick="guardarMovimientoEdicion()" class="bg-brand-warning hover:bg-brand-warning/80 text-brand-bg px-6 py-2.5 rounded-lg font-bold shadow-[0_0_15px_rgba(255,213,0,0.3)] uppercase">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <!-- ========================================== -->
-    <!-- SCRIPT PRINCIPAL Y LÓGICA DE NEGOCIO       -->
-    <!-- ========================================== -->
+    <!-- Otros modales menores -->
+    <div id="modal-diccionario" class="fixed inset-0 z-[55] hidden items-center justify-center bg-brand-bg/80 backdrop-blur-md transition-opacity">
+        <div class="glass-modal w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl m-4"><div class="p-5 border-b border-brand-border flex justify-between bg-brand-panel rounded-t-2xl"><h2 class="text-lg font-bold text-brand-text">Glosario</h2><button onclick="cerrarDiccionario()"><i data-lucide="x" class="w-5 h-5 text-brand-textSec"></i></button></div><div class="p-4"><input type="text" id="nueva-sigla-id" placeholder="ID"><input type="text" id="nueva-sigla-val" placeholder="Valor"><button onclick="agregarNuevaSigla()">Add</button></div><div class="p-4 overflow-y-auto flex-1 bg-brand-bg"><div id="grid-diccionario"></div></div><div class="p-4 bg-brand-panel text-right"><button onclick="guardarDiccionario()">Guardar</button></div></div>
+    </div>
+    
+    <div id="modal-creditos" class="fixed inset-0 z-[55] hidden items-center justify-center bg-brand-bg/80 backdrop-blur-md transition-opacity">
+         <div class="glass-modal w-full max-w-md max-h-[80vh] flex flex-col rounded-2xl m-4"><div class="p-5 border-b border-brand-border flex justify-between"><h2 class="text-lg font-bold text-brand-text">CxC</h2><button onclick="cerrarModalCreditos()"><i data-lucide="x" class="text-brand-textSec"></i></button></div><div class="p-4 overflow-y-auto" id="lista-deudores"></div></div>
+    </div>
+
+    <div id="modal-abono-rapido" class="fixed inset-0 z-[70] hidden items-center justify-center bg-brand-bg/90 backdrop-blur-sm transition-opacity">
+        <div class="glass-modal w-full max-w-sm flex flex-col rounded-2xl m-4 border-brand-secondary/50"><div class="p-5 border-b border-brand-border flex justify-between"><h2 class="text-md font-bold text-brand-secondary">Liquidar Abono</h2><button onclick="cerrarModalAbonoRapido()"><i data-lucide="x"></i></button></div><div class="p-6 bg-brand-bg rounded-b-2xl"><p id="abono-rapido-cliente" class="text-lg font-bold"></p><p id="abono-rapido-deuda" class="text-2xl font-bold text-brand-error"></p><input type="number" id="abono-rapido-monto" placeholder="0" class="w-full mt-4 p-3"><select id="abono-rapido-metodo" class="w-full mt-2 p-2"><option value="Transferencia">Transf</option><option value="Efectivo">Efect</option></select><select id="abono-rapido-cuenta" class="w-full mt-2 p-2"><option value="CRIS">CRIS</option><option value="JHON">JHON</option><option value="HADES">HADES</option><option value="BODEGA">BODEGA</option></select><button onclick="procesarAbonoRapido()" class="w-full mt-4 bg-brand-secondary p-3 rounded font-bold text-white">Confirmar</button></div></div>
+    </div>
+
+    <!-- ==================== SCRIPTS LÓGICOS ==================== -->
     <script type="module">
-        // Importaciones modulares estandarizadas (V11)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs, getDoc, setDoc, onSnapshot, writeBatch } 
+        from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, inMemoryPersistence } 
+        from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // 1. TU CONFIGURACIÓN EXACTA DE FIREBASE
+        // NOTA: Deja las llaves originales que tengas en tu base de datos si las habías cambiado.
         const firebaseConfig = {
             apiKey: "AIzaSyB8Ei-GTiqedjsFy09XVujGb94mzkBmVOU",
             authDomain: "ferco-farma.firebaseapp.com",
             projectId: "ferco-farma",
             storageBucket: "ferco-farma.firebasestorage.app",
             messagingSenderId: "974529589553",
-            appId: "1:974529589553:web:e8cf49594134e54b514010",
-            measurementId: "G-KDFQN6DXC1"
+            appId: "1:974529589553:web:e8cf49594134e54b514010"
         };
 
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getFirestore(app);
+        const auth = getAuth(app);
+        setPersistence(auth, inMemoryPersistence).catch(console.error);
 
-        // 2. VARIABLES GLOBALES DE ESTADO
-        window.movimientosGlobales = [];
-        window.estadoListas = {
-            main: { productos: [], pagos: [] },
-            edit: { productos: [], pagos: [] }
-        };
-        window.usuarioActual = null;
-        window.filtroHadesDecenas = false;
-        window.movimientoEditandoID = null;
+        // ROLES
+        const ADMIN_EMAIL = 'cris@fercofarma.com';
+        const SUPERVISOR_EMAIL = 'jf@fercofarma.com';
+        const HADES_EMAIL = 'hades@fercofarma.com';
+        const USUARIOS_PERMITIDOS = [ADMIN_EMAIL, SUPERVISOR_EMAIL, HADES_EMAIL];
 
-        // 3. UTILIDADES VISUALES (Toast y Formateo)
-        window.mostrarToast = (mensaje, tipo = 'success') => {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            const colorClass = tipo === 'success' ? 'bg-green-600' : (tipo === 'error' ? 'bg-red-600' : 'bg-blue-600');
-            const icon = tipo === 'success' ? 'check-circle' : 'alert-circle';
-            
-            toast.className = `flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-white font-medium ${colorClass} translate-x-full opacity-0 toast`;
-            toast.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5"></i> ${mensaje}`;
-            
-            container.appendChild(toast);
-            lucide.createIcons();
-            
-            // Animar entrada
-            setTimeout(() => { toast.classList.remove('translate-x-full', 'opacity-0'); }, 10);
-            
-            // Destruir
-            setTimeout(() => {
-                toast.classList.add('translate-x-full', 'opacity-0');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        };
+        // GLOBALES
+        window.currentUser = null;
+        window.ventaEditandoId = null;
+        window.tipoMovimientoEditando = 'Venta'; 
+        window.movimientosCache = [];
+        window.diccionarioProductos = {}; 
+        window.fechaCorteDomisHades = 0;
+        window.filtroDecenasActivo = false;
+        window.saldandoId = null; 
+        
+        let contadorProductos = 0; let contadorPagos = 0;
+        let contadorProductosEd = 0; let contadorPagosEd = 0;
+        const formatoMoneda = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
-        window.formatMoneda = (valor) => {
-            return new Intl.NumberFormat('es-CO').format(valor || 0);
-        };
-
-        // 4. AUTENTICACIÓN Y SEGURIDAD (Blindaje Anti-Recarga)
+        // AUTHENTICATION (Con Freno Absoluto)
         document.getElementById('login-form').addEventListener('submit', (e) => {
-            e.preventDefault(); // FRENO ABSOLUTO ANTI-RECARGA
-            
+            e.preventDefault(); 
             const email = document.getElementById('login-email').value.trim().toLowerCase();
             const pass = document.getElementById('login-pass').value;
             const btn = document.getElementById('btn-login');
             const errorTxt = document.getElementById('login-error');
             
-            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Validando...';
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Conectando...';
             errorTxt.classList.add('hidden');
 
             signInWithEmailAndPassword(auth, email, pass).catch((error) => {
-                // Muestra el código real para saber por qué falla (ej. auth/invalid-credential)
-                errorTxt.textContent = "Error: " + error.code; 
+                errorTxt.textContent = "Error: " + error.code;
                 errorTxt.classList.remove('hidden');
                 btn.innerHTML = 'Ingresar al Sistema <i data-lucide="log-in" class="w-5 h-5"></i>';
-                lucide.createIcons();
+                if(window.lucide) lucide.createIcons();
             });
         });
 
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             const loginScreen = document.getElementById('login-screen');
             const appScreen = document.getElementById('app-screen');
+            const errorTxt = document.getElementById('login-error');
             
             if (user) {
-                // VIP Check
-                const permitidos = ['cris@fercofarma.com', 'jf@fercofarma.com', 'hades@fercofarma.com'];
-                if(permitidos.includes(user.email)) {
-                    window.usuarioActual = user.email;
-                    document.getElementById('user-badge').textContent = user.email.split('@')[0].toUpperCase();
-                    loginScreen.classList.add('hidden');
-                    appScreen.classList.remove('hidden');
-                    
-                    // Mostrar botones VIP de Hades
-                    if(user.email === 'hades@fercofarma.com') {
-                        document.getElementById('btn-hades-decenas').classList.remove('hidden');
-                        document.getElementById('btn-hades-rectificar').classList.remove('hidden');
-                    }
-                    
-                    iniciarEscuchaDatos();
-                } else {
-                    document.getElementById('login-error').textContent = "ACCESO DENEGADO (USUARIO NO VIP)";
-                    document.getElementById('login-error').classList.remove('hidden');
-                    signOut(auth);
+                const correo = user.email.toLowerCase();
+                if (!USUARIOS_PERMITIDOS.includes(correo)) {
+                    signOut(auth); 
+                    errorTxt.textContent = "ACCESO DENEGADO (USUARIO NO AUTORIZADO)";
+                    errorTxt.classList.remove('hidden');
+                    return; 
                 }
+
+                window.currentUser = user;
+                document.getElementById('current-user-email').textContent = correo;
+                loginScreen.classList.add('hidden');
+                appScreen.classList.remove('hidden');
+                
+                if (correo === ADMIN_EMAIL || correo === SUPERVISOR_EMAIL) {
+                    document.getElementById('panel-financiero').classList.remove('hidden');
+                    document.getElementById('panel-hades').classList.add('hidden');
+                    document.getElementById('hades-tools').classList.add('hidden');
+                    if(correo === SUPERVISOR_EMAIL) document.getElementById('btn-liquidar-hades').classList.add('hidden');
+                } else if (correo === HADES_EMAIL) {
+                    document.getElementById('panel-financiero').classList.add('hidden');
+                    document.getElementById('panel-hades').classList.remove('hidden');
+                    document.getElementById('hades-tools').classList.remove('hidden'); 
+                }
+                
+                await cargarConfiguracionHades();
+                await cargarDiccionario(); 
+                inicializarApp();
             } else {
+                window.currentUser = null;
                 loginScreen.classList.remove('hidden');
                 appScreen.classList.add('hidden');
-                window.usuarioActual = null;
             }
         });
 
-        window.cerrarSesion = () => { signOut(auth); };
+        window.cerrarSesionUsuario = () => { if(confirm("¿Terminar Sesión?")) signOut(auth); };
 
-        // 5. FLUJO DE FORMULARIO (Agregación y Limpieza)
-        window.toggleDomiciliario = (prefijo) => {
-            const tipo = document.getElementById(`${prefijo}-tipo-entrega`).value;
-            const box = document.getElementById(`${prefijo}-box-domicilio`);
-            if(tipo === 'Domicilio') {
-                box.classList.remove('hidden');
-                box.classList.add('grid');
-            } else {
-                box.classList.add('hidden');
-                box.classList.remove('grid');
-                document.getElementById(`${prefijo}-domiciliario`).value = '';
-                document.getElementById(`${prefijo}-costo-envio`).value = '';
-            }
-            window.calcularTotales(prefijo);
-        };
+        async function cargarConfiguracionHades() {
+            try { const docSnap = await getDoc(doc(db, "configuracion", "hades_domis")); if (docSnap.exists()) window.fechaCorteDomisHades = docSnap.data().ultimaLiquidacion || 0; } catch (e) { }
+        }
 
-        // Escuchar cambios de costo envío para actualizar total
-        document.getElementById('main-costo-envio').addEventListener('input', () => window.calcularTotales('main'));
-        document.getElementById('edit-costo-envio').addEventListener('input', () => window.calcularTotales('edit'));
+        // INICIALIZACIÓN Y ESCOBA MAGICA BLINDADA
+        function inicializarApp() {
+            if(window.lucide) lucide.createIcons();
+            window.limpiarFormulario();
+            cargarVentasFirebase(); // Cache listener
+            calcularDashboard();
+        }
 
-        window.agregarItem = (prefijo, tipo) => {
-            if (tipo === 'producto') {
-                const nombre = document.getElementById(`${prefijo}-prod-nombre`).value.trim();
-                const cant = parseInt(document.getElementById(`${prefijo}-prod-cant`).value) || 1;
-                const precio = parseFloat(document.getElementById(`${prefijo}-prod-precio`).value) || 0;
-                
-                if(!nombre || precio <= 0) return window.mostrarToast("Concepto y precio requeridos", "error");
-                
-                window.estadoListas[prefijo].productos.push({
-                    id: Date.now().toString(),
-                    nombre, cant, precio, subtotal: cant * precio
-                });
-                
-                document.getElementById(`${prefijo}-prod-nombre`).value = '';
-                document.getElementById(`${prefijo}-prod-cant`).value = '';
-                document.getElementById(`${prefijo}-prod-precio`).value = '';
-                document.getElementById(`${prefijo}-prod-nombre`).focus();
-                
-            } else if (tipo === 'pago') {
-                const metodo = document.getElementById(`${prefijo}-pago-metodo`).value;
-                const monto = parseFloat(document.getElementById(`${prefijo}-pago-monto`).value) || 0;
-                
-                if(monto <= 0) return window.mostrarToast("Ingrese un monto válido", "error");
-                
-                window.estadoListas[prefijo].pagos.push({ id: Date.now().toString(), metodo, monto });
-                document.getElementById(`${prefijo}-pago-monto`).value = '';
-            }
-            
-            window.renderizarListas(prefijo);
-            window.calcularTotales(prefijo);
-        };
-
-        window.eliminarItem = (prefijo, tipo, id) => {
-            window.estadoListas[prefijo][tipo] = window.estadoListas[prefijo][tipo].filter(i => i.id !== id);
-            window.renderizarListas(prefijo);
-            window.calcularTotales(prefijo);
-        };
-
-        window.renderizarListas = (prefijo) => {
-            const listProd = document.getElementById(`${prefijo}-lista-productos`);
-            const listPagos = document.getElementById(`${prefijo}-lista-pagos`);
-            
-            listProd.innerHTML = window.estadoListas[prefijo].productos.map(p => `
-                <div class="flex justify-between items-center p-2 bg-white border border-slate-100 rounded text-sm">
-                    <span>${p.cant}x ${p.nombre}</span>
-                    <div class="flex items-center gap-3">
-                        <span class="font-semibold">$${window.formatMoneda(p.subtotal)}</span>
-                        <button onclick="window.eliminarItem('${prefijo}', 'productos', '${p.id}')" class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                    </div>
-                </div>
-            `).join('');
-
-            listPagos.innerHTML = window.estadoListas[prefijo].pagos.map(p => `
-                <div class="flex justify-between items-center p-2 bg-white border border-slate-100 rounded text-sm">
-                    <span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-xs font-medium">${p.metodo}</span>
-                    <div class="flex items-center gap-3">
-                        <span class="font-semibold text-green-700">$${window.formatMoneda(p.monto)}</span>
-                        <button onclick="window.eliminarItem('${prefijo}', 'pagos', '${p.id}')" class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                    </div>
-                </div>
-            `).join('');
-            
-            lucide.createIcons();
-        };
-
-        window.calcularTotales = (prefijo) => {
-            const totalProd = window.estadoListas[prefijo].productos.reduce((s, p) => s + p.subtotal, 0);
-            const costoEnvio = parseFloat(document.getElementById(`${prefijo}-costo-envio`).value) || 0;
-            const granTotal = totalProd + costoEnvio;
-            
-            if(prefijo === 'main') {
-                document.getElementById('main-total-productos').textContent = window.formatMoneda(totalProd);
-                document.getElementById('main-gran-total').textContent = "$" + window.formatMoneda(granTotal);
-            }
-            return granTotal;
-        };
-
-        // LA "ESCOBA": Limpieza absoluta del formulario después de guardar
-        window.limpiarFormulario = (prefijo) => {
-            document.getElementById(`${prefijo}-cliente`).value = '';
-            document.getElementById(`${prefijo}-categoria`).value = 'Venta';
-            document.getElementById(`${prefijo}-tipo-entrega`).value = 'Recoge';
-            
-            // Reset logística
-            window.toggleDomiciliario(prefijo); 
-            document.getElementById(`${prefijo}-domiciliario`).value = '';
-            document.getElementById(`${prefijo}-costo-envio`).value = '';
-            
-            // Reset items inputs
-            document.getElementById(`${prefijo}-prod-nombre`).value = '';
-            document.getElementById(`${prefijo}-prod-cant`).value = '';
-            document.getElementById(`${prefijo}-prod-precio`).value = '';
-            document.getElementById(`${prefijo}-pago-monto`).value = '';
-            
-            // Reset notas
-            document.getElementById(`${prefijo}-notas`).value = '';
-            
-            // Vaciar arreglos
-            window.estadoListas[prefijo].productos = [];
-            window.estadoListas[prefijo].pagos = [];
-            
-            window.renderizarListas(prefijo);
-            window.calcularTotales(prefijo);
-        };
-
-        // 6. GUARDADO EN BASE DE DATOS (Anti-Crash y Pendientes)
-        window.guardarMovimiento = async (prefijo) => {
-            const cliente = document.getElementById(`${prefijo}-cliente`).value.trim();
-            const categoria = document.getElementById(`${prefijo}-categoria`).value;
-            const tipoEntrega = document.getElementById(`${prefijo}-tipo-entrega`).value;
-            const encargado = document.getElementById(`${prefijo}-domiciliario`).value;
-            const costoEnvio = parseFloat(document.getElementById(`${prefijo}-costo-envio`).value) || 0;
-            const notas = document.getElementById(`${prefijo}-notas`).value.trim();
-            const productos = window.estadoListas[prefijo].productos;
-            const pagos = window.estadoListas[prefijo].pagos;
-
-            if(!cliente && productos.length === 0) {
-                return window.mostrarToast("Faltan datos básicos para el registro", "error");
-            }
-
-            const totalCobrar = window.calcularTotales(prefijo);
-            const totalPagado = pagos.reduce((s, p) => s + p.monto, 0);
-            
-            // DETERMINAR EL ESTADO (El corazón del flujo de Pendientes)
-            let estadoFinal = 'Pagado';
-            if (totalPagado < totalCobrar) estadoFinal = 'Pendiente';
-            
-            // Si algún pago es CRUCE, sobreescribimos a pendiente especial
-            const tieneCruce = pagos.some(p => p.metodo === 'Cruce');
-            if (tieneCruce) estadoFinal = 'Pendiente_Cruce';
-
-            const data = {
-                cliente: cliente || 'Consumidor Final',
-                categoria: categoria,
-                entrega: { tipo: tipoEntrega, encargado, costo: costoEnvio },
-                productos: productos,
-                pagos: pagos,
-                notas: notas,
-                total: totalCobrar,
-                estado: estadoFinal, // 'Pagado', 'Pendiente' o 'Pendiente_Cruce'
-                creador: window.usuarioActual,
-                timestamp: Date.now() // Solo para ordenamiento
-            };
-
-            const btn = document.getElementById(prefijo === 'main' ? 'btn-guardar-main' : 'btn-guardar-edit');
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Guardando...';
-
+        window.limpiarFormulario = () => {
             try {
-                if (prefijo === 'main') {
-                    // Nuevo registro
-                    data.fecha = new Date().toISOString();
-                    await addDoc(collection(db, "movimientos"), data);
-                    window.mostrarToast("Registro guardado con éxito");
-                    window.limpiarFormulario('main'); // Escoba!
-                } else {
-                    // Edición
-                    await updateDoc(doc(db, "movimientos", window.movimientoEditandoID), data);
-                    window.mostrarToast("Registro actualizado correctamente");
-                    window.cerrarModalEdicion();
-                }
-            } catch (error) {
-                console.error("Error al guardar:", error);
-                window.mostrarToast("No se pudo guardar: Revisa la conexión", "error");
-            } finally {
-                btn.innerHTML = originalHTML;
-                lucide.createIcons();
+                // Limpiar Textos
+                document.getElementById('cliente').value = '';
+                document.getElementById('notas').value = '';
+                document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+                
+                // Reiniciar Radio Botón a "Venta"
+                document.querySelector('input[name="tipoMovimiento"][value="Venta"]').checked = true;
+                
+                // Limpiar Logística
+                document.getElementById('medio-entrega').value = '';
+                document.getElementById('encargado-domi').value = '';
+                document.getElementById('costo-envio').value = '0';
+                
+                // Destruir todas las filas de productos y pagos existentes
+                document.getElementById('productos-container').innerHTML = '';
+                document.getElementById('pagos-container').innerHTML = '';
+                contadorProductos = 0; contadorPagos = 0;
+                
+                // Refrescar UI Visual
+                window.manejarCambioTipo(); 
+                
+                // Dejar un solo campo de producto en blanco para empezar
+                window.agregarFilaProducto();
+                // NO agregamos Fila de Pago por defecto. Si el cliente quiere pagar, que presione "Agregar Pago".
+                
+                window.calcularTotales();
+            } catch(e) { console.error("Silenciado error visual al limpiar:", e); }
+        };
+
+        // FORMULARIO PRINCIPAL
+        window.manejarCambioTipo = () => {
+            const tipo = document.querySelector('input[name="tipoMovimiento"]:checked').value;
+            const logis = document.getElementById('seccion-logistica');
+            document.getElementById('lbl-cliente').textContent = (tipo==='Venta'||tipo==='Abono') ? "Cliente" : "Proveedor / Beneficiario";
+            document.getElementById('txt-lbl-pagos').textContent = tipo==='Venta' ? "Pagos (Dejar vacío si es Pendiente)" : "Estructura de Pago";
+            
+            if (tipo === 'Gasto' || tipo === 'Abono') logis.classList.add('hidden'); 
+            else logis.classList.remove('hidden');
+            
+            if(window.lucide) lucide.createIcons();
+            calcularTotales();
+        };
+
+        window.agregarFilaProducto = () => {
+            contadorProductos++; const id = contadorProductos;
+            let opt = `<option value="">Select Item...</option>`;
+            Object.keys(window.diccionarioProductos).sort().forEach(p => { opt += `<option value="${p}">${p} - ${window.diccionarioProductos[p]}</option>`; });
+            opt += `<option value="OTRO" class="font-bold text-brand-primary">>> MANUAL INPUT <<</option>`;
+            
+            document.getElementById('productos-container').insertAdjacentHTML('beforeend', `
+                <div id="prod-${id}" class="flex flex-col md:flex-row gap-3 items-start md:items-center bg-brand-bg p-4 rounded-xl border border-brand-border">
+                    <div class="w-full md:w-5/12">
+                        <select class="input-prod-select w-full p-2.5 border rounded-lg bg-brand-panel text-xs outline-none" onchange="verificarOtroProducto(this, ${id})">${opt}</select>
+                        <input type="text" id="prod-manual-${id}" class="input-prod-manual hidden w-full mt-2 p-2.5 border border-brand-primary/50 rounded-lg bg-brand-primary/5 text-xs outline-none" placeholder="Desc manual..." oninput="calcularTotales()">
+                    </div>
+                    <div class="w-full md:w-3/12"><input type="number" class="input-cant w-full p-2.5 border rounded-lg bg-brand-panel text-sm text-center" value="1" oninput="calcularTotales()"></div>
+                    <div class="w-full md:w-3/12"><input type="number" class="input-val w-full p-2.5 border rounded-lg bg-brand-panel text-sm" placeholder="Valor Unit" oninput="calcularTotales()"></div>
+                    <div class="hidden md:flex w-1/12 justify-center">${id>1?`<button onclick="eliminarFila('prod-${id}')" class="text-brand-error"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`:''}</div>
+                </div>
+            `);
+            if(window.lucide) lucide.createIcons();
+        };
+
+        window.verificarOtroProducto = (sel, id) => {
+            const manual = document.getElementById(`prod-manual-${id}`);
+            if (sel.value === 'OTRO') manual.classList.remove('hidden'); else { manual.classList.add('hidden'); manual.value = ''; }
+            calcularTotales();
+        };
+
+        window.agregarFilaPago = () => {
+            contadorPagos++; const id = contadorPagos;
+            document.getElementById('pagos-container').insertAdjacentHTML('beforeend', `
+                <div id="pago-${id}" class="flex flex-col md:flex-row gap-3 items-start md:items-center bg-brand-bg p-4 rounded-xl border border-brand-border">
+                    <div class="w-full md:w-4/12">
+                        <select class="input-metodo w-full p-2.5 border rounded-lg bg-brand-panel text-xs outline-none">
+                            <option value="">Metodo...</option><option value="Transferencia">Transferencia</option><option value="Efectivo">Efectivo</option><option value="Credito">Crédito</option><option value="Cruce">Cruce</option><option value="Bold">Bold</option>
+                        </select>
+                    </div>
+                    <div class="w-full md:w-4/12">
+                        <select class="input-cuenta w-full p-2.5 border rounded-lg bg-brand-panel text-xs outline-none">
+                            <option value="">Caja...</option><option value="CRIS">CRIS</option><option value="JHON">JHON</option><option value="HADES">HADES</option><option value="BODEGA">BODEGA</option>
+                        </select>
+                    </div>
+                    <div class="w-full md:w-3/12"><input type="number" class="input-monto w-full p-2.5 border rounded-lg bg-brand-panel text-sm text-brand-success" placeholder="Monto" oninput="calcularTotales()"></div>
+                    <div class="hidden md:flex w-1/12 justify-center"><button onclick="eliminarFila('pago-${id}')" class="text-brand-error"><i data-lucide="trash-2"></i></button></div>
+                </div>
+            `);
+            if(window.lucide) lucide.createIcons();
+        };
+
+        window.eliminarFila = (id) => { document.getElementById(id).remove(); calcularTotales(); };
+        window.manejarCambioEntrega = () => {
+            if (document.getElementById('medio-entrega').value === 'Domi') {
+                document.getElementById('div-encargado').classList.remove('hidden'); document.getElementById('div-costo-envio').classList.remove('hidden');
+            } else {
+                document.getElementById('div-encargado').classList.add('hidden'); document.getElementById('div-costo-envio').classList.add('hidden');
+                document.getElementById('costo-envio').value = "0";
+            }
+            calcularTotales();
+        };
+
+        window.calcularTotales = () => {
+            let totP = 0, totPag = 0;
+            document.querySelectorAll('#productos-container > div').forEach(f => {
+                const s = f.querySelector('.input-prod-select').value, m = f.querySelector('.input-prod-manual').value;
+                const c = parseFloat(f.querySelector('.input-cant').value)||0, v = parseFloat(f.querySelector('.input-val').value)||0;
+                if(s==='OTRO'?m:s) totP += (c*v);
+            });
+            const t = document.querySelector('input[name="tipoMovimiento"]:checked').value;
+            const env = (t!=='Gasto'&&t!=='Abono') ? parseFloat(document.getElementById('costo-envio').value)||0 : 0;
+            const totCobrar = totP + env;
+
+            document.querySelectorAll('#pagos-container > div').forEach(f => { totPag += parseFloat(f.querySelector('.input-monto').value)||0; });
+
+            document.getElementById('txt-total-cobrar').textContent = formatoMoneda.format(totCobrar);
+            document.getElementById('txt-total-pagado').textContent = formatoMoneda.format(totPag);
+
+            const btn = document.getElementById('btn-guardar'), alerta = document.getElementById('alerta-descuadre');
+            
+            // PERMITIR GUARDAR SI HAY ALGO COBRADO (O ABONO HECHO) INCLUSO SIN PAGOS
+            btn.disabled = !(totCobrar > 0 || totPag > 0);
+
+            alerta.classList.remove('hidden');
+            if (totCobrar > totPag && t === 'Venta') {
+                alerta.className = "text-brand-warning font-mono text-[10px] bg-brand-warning/10 px-2 py-1 rounded border border-brand-warning/30 font-bold uppercase";
+                alerta.innerHTML = `Pte de Pago: ${formatoMoneda.format(totCobrar - totPag)}`;
+            } else if (totCobrar < totPag) {
+                alerta.className = "text-brand-error font-mono text-[10px] bg-brand-error/10 px-2 py-1 rounded border border-brand-error/30 font-bold uppercase";
+                alerta.innerHTML = `Descuadre (Exceso): ${formatoMoneda.format(totPag - totCobrar)}`;
+            } else if (totCobrar > 0) {
+                alerta.className = "text-brand-success font-mono text-[10px] bg-brand-success/10 px-2 py-1 rounded border border-brand-success/30 font-bold uppercase";
+                alerta.innerHTML = "Saldado OK";
+            } else { alerta.classList.add('hidden'); }
+        };
+
+        window.guardarMovimiento = async () => {
+            const cliente = document.getElementById('cliente').value.trim().toUpperCase();
+            if (!cliente) return alert("Falta ingresar el Cliente.");
+            
+            const btn = document.getElementById('btn-guardar'); btn.innerHTML = 'Guardando...'; btn.disabled = true;
+            
+            let totCobrar = 0;
+            try {
+                const tipo = document.querySelector('input[name="tipoMovimiento"]:checked').value;
+                const prods = [], pags = [];
+                
+                document.querySelectorAll('#productos-container > div').forEach(f => {
+                    const s = f.querySelector('.input-prod-select').value, m = f.querySelector('.input-prod-manual').value.trim();
+                    const c = parseFloat(f.querySelector('.input-cant').value)||0, v = parseFloat(f.querySelector('.input-val').value)||0;
+                    if((s==='OTRO'?m:s) && c>0 && v>=0) prods.push({ concepto: s==='OTRO'?m:s, esDiccionario: !!window.diccionarioProductos[s], cantidad: c, valorUnitario: v, total: c*v });
+                });
+                
+                const medioE = document.getElementById('medio-entrega').value;
+                const entrega = (tipo!=='Gasto'&&tipo!=='Abono') ? { medio: medioE||"Recoge", encargado: medioE==='Domi'?document.getElementById('encargado-domi').value.toUpperCase():"N/A", costo: medioE==='Domi'?parseFloat(document.getElementById('costo-envio').value)||0:0 } : { medio:"N/A", encargado:"N/A", costo:0 };
+                totCobrar = prods.reduce((acc, p) => acc + p.total, 0) + entrega.costo;
+
+                document.querySelectorAll('#pagos-container > div').forEach(f => {
+                    const mt = f.querySelector('.input-metodo').value, ct = f.querySelector('.input-cuenta').value, mn = parseFloat(f.querySelector('.input-monto').value)||0;
+                    if(mt&&ct&&mn>0) { pags.push({ metodo: mt, cuenta: ct, monto: mn, estadoCruce: mt==='Cruce'?'Pendiente':'N/A' }); }
+                });
+
+                if (prods.length===0 && pags.length===0) { btn.innerHTML='Ejecutar'; return alert("No hay datos para guardar."); }
+
+                // GUARDAR EN BASE DE DATOS
+                await addDoc(collection(db, "ventas"), { 
+                    tipoMovimiento: tipo, fecha: document.getElementById('fecha').value, cliente, notas: document.getElementById('notas').value.trim(), 
+                    productos: prods, entrega, pagos: pags, totalVenta: totCobrar, creadoPor: window.currentUser.email, timestamp: Date.now() 
+                });
+                
+            } catch (e) {
+                console.error(e);
+                alert("Error crítico conectando con Base de Datos: " + e.message);
+                btn.innerHTML = 'Ejecutar';
+                btn.disabled = false;
+                return; // Si falla BD, detenemos aquí.
+            }
+
+            // SI LLEGA A ESTE PUNTO, EL GUARDADO FUE EXITOSO. AHORA LIMPIAMOS DE FORMA SEGURA.
+            try {
+                window.limpiarFormulario(); // LA ESCOBA MAGICA
+                btn.innerHTML = '<i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">Ejecutar</span>';
+                if(window.lucide) lucide.createIcons();
+            } catch (e) {
+                console.error("Silenciado error en la escoba visual:", e);
+                btn.innerHTML = '<i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">Ejecutar</span>';
             }
         };
 
-        // 7. ESCUCHA DE DATOS EN TIEMPO REAL Y RENDERIZADO
-        const iniciarEscuchaDatos = () => {
-            const q = query(collection(db, "movimientos"), orderBy("timestamp", "desc"));
-            onSnapshot(q, (snapshot) => {
-                window.movimientosGlobales = [];
-                snapshot.forEach((doc) => {
-                    window.movimientosGlobales.push({ id: doc.id, ...doc.data() });
-                });
-                window.calcularDashboard();
-                window.renderizarReporte();
-            }, (error) => {
-                console.error("Error escuchando datos:", error);
-                window.mostrarToast("Desconectado de la base de datos", "error");
+        // DASHBOARD & LISTENER
+        function cargarVentasFirebase() {
+            onSnapshot(collection(db, "ventas"), (snap) => {
+                window.movimientosCache = [];
+                snap.forEach(d => { const data = d.data(); data.id = d.id; window.movimientosCache.push(data); });
+                window.movimientosCache.sort((a,b)=>b.timestamp-a.timestamp);
+                calcularDashboard();
+                if(document.getElementById('modal-reporte').style.display === 'flex') window.abrirModalReporte(); // Refresca lista si está abierta
             });
-        };
+        }
 
         window.calcularDashboard = () => {
-            let ventasDia = 0, cxc = 0, gastos = 0, cruces = 0;
-            
-            // Simple cálculo de los datos cargados
-            window.movimientosGlobales.forEach(mov => {
-                if (mov.categoria === 'Venta') ventasDia += mov.total;
-                if (mov.categoria === 'Gasto') gastos += mov.total;
-                if (mov.estado === 'Pendiente') {
-                    // Por cobrar real es el total menos lo abonado
-                    const abonado = (mov.pagos || []).reduce((s, p) => s + p.monto, 0);
-                    cxc += (mov.total - abonado);
-                }
-                if (mov.estado === 'Pendiente_Cruce') {
-                    cruces++; // Contador de operaciones
-                }
-            });
+            if(!window.currentUser) return;
+            try {
+                let totV=0, saldos={"CRIS":0,"JHON":0,"BODEGA":0,"HADES":0}, hV=0, hC=0, hG=0, hDomis=0, pendientesMonto=0;
+                let cxcActivo = {}, hCxcActivo = {};
+                let totalCrucesPendientes = 0;
 
-            document.getElementById('dash-ventas').textContent = "$" + window.formatMoneda(ventasDia);
-            document.getElementById('dash-cxc').textContent = "$" + window.formatMoneda(cxc);
-            document.getElementById('dash-cruces').textContent = cruces;
-            document.getElementById('dash-gastos').textContent = "$" + window.formatMoneda(gastos);
-        };
+                window.movimientosCache.forEach(d => {
+                    const t = d.tipoMovimiento||'Venta', esH = d.creadoPor===HADES_EMAIL, cli = (d.cliente||"").toUpperCase();
+                    
+                    (d.pagos||[]).forEach(p => { if(p.metodo==='Cruce' && p.estadoCruce!=='Saldado') totalCrucesPendientes += p.monto; });
 
-        // 8. FUNCIONES DE HADES (Decenas y Rectificador Mágico)
-        window.toggleDecenasHades = () => {
-            window.filtroHadesDecenas = !window.filtroHadesDecenas;
-            const btn = document.getElementById('btn-hades-decenas');
-            if(window.filtroHadesDecenas) {
-                btn.classList.replace('bg-purple-100', 'bg-purple-600');
-                btn.classList.replace('text-purple-700', 'text-white');
-            } else {
-                btn.classList.replace('bg-purple-600', 'bg-purple-100');
-                btn.classList.replace('text-white', 'text-purple-700');
-            }
-            window.renderizarReporte();
-        };
+                    let totalPagadoVenta = 0;
+                    (d.pagos||[]).forEach(p => totalPagadoVenta+=p.monto);
+                    
+                    if(t==='Venta') {
+                        if(esH) hV+=d.totalVenta; else totV+=d.totalVenta;
+                        let deudaCliente = d.totalVenta - totalPagadoVenta; 
+                        (d.pagos||[]).forEach(p => { if(p.metodo==='Credito') deudaCliente += p.monto; }); 
+                        if(deudaCliente > 0) {
+                            if(esH) hCxcActivo[cli] = (hCxcActivo[cli]||0) + deudaCliente;
+                            else cxcActivo[cli] = (cxcActivo[cli]||0) + deudaCliente;
+                        }
+                    } else if (t==='Abono') {
+                        if(esH) hCxcActivo[cli] = (hCxcActivo[cli]||0) - d.totalVenta;
+                        else cxcActivo[cli] = (cxcActivo[cli]||0) - d.totalVenta;
+                    } else if (t==='Compra') { if(esH) hC += d.totalVenta; } 
+                      else if (t==='Gasto') { if(esH) hG += d.totalVenta; }
 
-        window.rectificarMasivoHades = async () => {
-            const checks = document.querySelectorAll('.check-rectificar:checked');
-            if(checks.length === 0) return window.mostrarToast("Selecciona al menos un registro para arreglar", "error");
-            
-            if(confirm(`¿Estás seguro que deseas multiplicar por 1.000 los ${checks.length} registros seleccionados?`)) {
-                let exitos = 0;
-                for(let check of checks) {
-                    const id = check.value;
-                    const mov = window.movimientosGlobales.find(m => m.id === id);
-                    if(mov) {
-                        try {
-                            const newTotal = mov.total * 1000;
-                            const newCosto = (mov.entrega?.costo || 0) * 1000;
-                            const newProds = (mov.productos || []).map(p => ({...p, precio: p.precio*1000, subtotal: p.subtotal*1000}));
-                            const newPagos = (mov.pagos || []).map(p => ({...p, monto: p.monto*1000}));
-                            
-                            await updateDoc(doc(db, "movimientos", id), {
-                                total: newTotal,
-                                'entrega.costo': newCosto,
-                                productos: newProds,
-                                pagos: newPagos
-                            });
-                            exitos++;
-                        } catch(e) { console.error(e); }
+                    if(t==='Venta' || t==='Abono') {
+                        (d.pagos||[]).forEach(p => { if(saldos[p.cuenta]!==undefined && p.metodo!=='Credito') saldos[p.cuenta]+=p.monto; });
+                    } else {
+                        (d.pagos||[]).forEach(p => { if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]-=p.monto; });
                     }
-                }
-                window.mostrarToast(`Rectificación mágica: ${exitos} registros corregidos.`);
-            }
+                    
+                    if(d.entrega?.costo>0 && d.entrega?.encargado==='HADES' && d.timestamp>=window.fechaCorteDomisHades) hDomis+=d.entrega.costo;
+                    
+                    // Contar pendientes (Badge)
+                    if(t==='Venta' && totalPagadoVenta < d.totalVenta) pendientesMonto++;
+                });
+
+                document.getElementById('dash-ventas').textContent=formatoMoneda.format(totV);
+                document.getElementById('dash-cruces-pendientes').textContent=formatoMoneda.format(totalCrucesPendientes);
+                
+                let sumCxCGlobal = 0; for(const v of Object.values(cxcActivo)) if(v>0) sumCxCGlobal+=v;
+                document.getElementById('dash-creditos').textContent=formatoMoneda.format(sumCxCGlobal);
+                document.getElementById('dash-admin-domis-hades').textContent=formatoMoneda.format(hDomis);
+                
+                ['CRIS','JHON','BODEGA','HADES'].forEach(c => { const el=document.getElementById(`dash-${c.toLowerCase()}`); if(el) el.textContent=formatoMoneda.format(saldos[c]); });
+
+                document.getElementById('dash-hades-ventas').textContent=formatoMoneda.format(hV);
+                let sumCxCHades = 0; for(const v of Object.values(hCxcActivo)) if(v>0) sumCxCHades+=v;
+                document.getElementById('dash-hades-creditos').textContent=formatoMoneda.format(sumCxCHades);
+                document.getElementById('dash-hades-domis').textContent=formatoMoneda.format(hDomis);
+
+                const badge = document.getElementById('badge-pendientes');
+                if(pendientesMonto > 0) { badge.textContent = pendientesMonto; badge.classList.remove('hidden'); }
+                else badge.classList.add('hidden');
+
+            } catch (e) { console.error("Error Dashboard:", e); }
         };
 
-        // 9. REPORTE DIARIO Y BUSCADOR
-        window.renderizarReporte = () => {
-            const contenedor = document.getElementById('contenedor-reporte');
-            const termino = document.getElementById('buscador-reporte').value.toLowerCase();
-            const filtroCat = document.getElementById('filtro-categoria').value;
-            
-            let html = '';
-            
-            window.movimientosGlobales.forEach(mov => {
-                // Filtro de Categoría
-                if(filtroCat !== 'Todos' && mov.categoria !== filtroCat) return;
-                
-                // Filtro de Texto
-                if(termino && !mov.cliente?.toLowerCase().includes(termino) && !mov.notas?.toLowerCase().includes(termino)) return;
-                
-                // Filtro Mágico de Hades (Solo mostrar totales menores a 1000)
-                if(window.filtroHadesDecenas && mov.total >= 1000) return;
-
-                // Color según categoría y estado
-                let bgBadge = 'bg-slate-100 text-slate-700';
-                if(mov.categoria === 'Venta') bgBadge = 'bg-emerald-100 text-emerald-700';
-                if(mov.categoria === 'Gasto' || mov.categoria === 'Compra') bgBadge = 'bg-red-100 text-red-700';
-                
-                let iconEstado = '';
-                if(mov.estado === 'Pendiente') iconEstado = `<i data-lucide="clock" class="w-4 h-4 text-amber-500 inline ml-1" title="Pendiente de Pago"></i>`;
-                if(mov.estado === 'Pendiente_Cruce') iconEstado = `<i data-lucide="truck" class="w-4 h-4 text-orange-500 inline ml-1" title="Pendiente Bodega"></i>`;
-
-                // Checkbox para Hades (solo si el valor es sospechosamente bajo)
-                let checkHades = '';
-                if(window.usuarioActual === 'hades@fercofarma.com' && mov.total < 1000) {
-                    checkHades = `<input type="checkbox" value="${mov.id}" class="check-rectificar w-4 h-4 text-pink-600 rounded border-slate-300">`;
-                }
-
-                const fecha = new Date(mov.fecha || mov.timestamp).toLocaleTimeString('es-CO', {hour: '2-digit', minute:'2-digit'});
-
-                html += `
-                    <div onclick="window.abrirDetalle('${mov.id}')" class="p-3 mb-2 bg-white border border-slate-100 rounded-xl hover:shadow-md hover:border-blue-200 cursor-pointer transition-all flex items-center justify-between group">
-                        <div class="flex items-center gap-3">
-                            ${checkHades}
+        // PEDIDOS PENDIENTES MODULE
+        window.abrirModalPendientes = () => {
+            const list = document.getElementById('lista-pedidos-pendientes'); list.innerHTML = '';
+            let hay = false;
+            window.movimientosCache.forEach(m => {
+                if(m.tipoMovimiento !== 'Venta') return;
+                const totPag = (m.pagos||[]).reduce((a,p)=>a+p.monto, 0);
+                if(totPag < m.totalVenta) {
+                    hay = true;
+                    list.insertAdjacentHTML('beforeend', `
+                        <div class="bg-brand-panel p-4 rounded-xl border border-brand-border flex flex-col md:flex-row justify-between items-center gap-4">
                             <div>
-                                <h4 class="font-bold text-slate-800 flex items-center gap-2">
-                                    ${mov.cliente || 'Sin nombre'} ${iconEstado}
-                                </h4>
-                                <div class="flex items-center gap-2 mt-1">
-                                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${bgBadge}">${mov.categoria}</span>
-                                    <span class="text-xs text-slate-500">${fecha}</span>
-                                </div>
+                                <p class="text-[9px] uppercase tracking-widest text-brand-textSec">${m.fecha}</p>
+                                <p class="text-sm font-bold uppercase">${m.cliente}</p>
+                                <p class="text-xs text-brand-warning font-mono mt-1">Saldo a Deber: ${formatoMoneda.format(m.totalVenta - totPag)}</p>
+                            </div>
+                            <div class="flex gap-2 w-full md:w-auto">
+                                <button onclick="window.imprimirRecibo('${m.id}')" class="w-full md:w-auto px-4 py-2 border border-brand-primary text-brand-primary rounded font-mono text-xs font-bold hover:bg-brand-primary hover:text-brand-bg transition-colors"><i data-lucide="printer" class="inline w-3 h-3 mr-1"></i> Imprimir</button>
+                                <button onclick="window.abrirModalSaldar('${m.id}', ${m.totalVenta - totPag})" class="w-full md:w-auto px-4 py-2 bg-brand-success text-brand-bg rounded font-mono text-xs font-bold hover:bg-brand-success/80 transition-colors"><i data-lucide="check-circle" class="inline w-3 h-3 mr-1"></i> Saldar</button>
                             </div>
                         </div>
-                        <div class="text-right">
-                            <div class="font-bold text-slate-800">$${window.formatMoneda(mov.total)}</div>
-                            <div class="text-xs text-slate-400 group-hover:text-blue-500 flex items-center justify-end gap-1">
-                                Ver <i data-lucide="chevron-right" class="w-3 h-3"></i>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            contenedor.innerHTML = html || '<div class="text-center p-8 text-slate-400 text-sm">No hay registros que coincidan.</div>';
-            lucide.createIcons();
-        };
-
-        // 10. INSPECTOR (Detalle, Edición y Saldado)
-        window.abrirDetalle = (id) => {
-            // Prevenir abrir si le dieron clic al checkbox de Hades
-            if(event && event.target.tagName === 'INPUT') return;
-
-            const mov = window.movimientosGlobales.find(m => m.id === id);
-            if(!mov) return;
-            
-            window.cerrarModalEdicion(); // Asegurar que no se solapen
-            
-            document.getElementById('det-titulo').textContent = `${mov.categoria} - ${mov.cliente}`;
-            
-            let htmlContent = `<div class="grid grid-cols-2 gap-4 mb-4">
-                <div class="bg-slate-50 p-3 rounded-lg"><span class="text-xs text-slate-500 block mb-1">Fecha</span><span class="font-semibold">${new Date(mov.fecha || mov.timestamp).toLocaleString()}</span></div>
-                <div class="bg-slate-50 p-3 rounded-lg"><span class="text-xs text-slate-500 block mb-1">Total Movimiento</span><span class="font-bold text-lg text-blue-700">$${window.formatMoneda(mov.total)}</span></div>
-            </div>`;
-
-            // Alertas de Estado (Pendiente)
-            if (mov.estado === 'Pendiente') {
-                htmlContent += `<div class="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg flex items-center gap-2 mb-4 text-sm font-semibold"><i data-lucide="alert-triangle" class="w-5 h-5"></i> ESTA OPERACIÓN AÚN TIENE SALDO PENDIENTE POR COBRAR.</div>`;
-            }
-            if (mov.estado === 'Pendiente_Cruce') {
-                htmlContent += `<div class="p-3 bg-orange-50 border border-orange-200 text-orange-800 rounded-lg flex items-center gap-2 mb-4 text-sm font-semibold"><i data-lucide="truck" class="w-5 h-5"></i> MERCANCÍA DE CRUCE EN TRANSITO - CONFIRMAR LLEGADA A BODEGA.</div>`;
-            }
-
-            // Logística
-            if (mov.entrega?.tipo) {
-                htmlContent += `
-                    <div class="mb-4">
-                        <h4 class="font-bold border-b pb-1 mb-2">Logística</h4>
-                        <div class="flex justify-between text-sm"><span>Tipo: ${mov.entrega.tipo}</span> <span class="font-semibold">${mov.entrega.encargado || '-'}</span></div>
-                        ${mov.entrega.costo ? `<div class="flex justify-between text-sm mt-1"><span>Costo Envío:</span> <span>$${window.formatMoneda(mov.entrega.costo)}</span></div>` : ''}
-                    </div>
-                `;
-            }
-
-            // Productos
-            if (mov.productos && mov.productos.length > 0) {
-                htmlContent += `<h4 class="font-bold border-b pb-1 mb-2">Conceptos</h4>`;
-                mov.productos.forEach(p => {
-                    htmlContent += `<div class="flex justify-between text-sm mb-1"><span>${p.cant}x ${p.nombre}</span> <span class="font-semibold">$${window.formatMoneda(p.subtotal)}</span></div>`;
-                });
-            }
-
-            // Pagos
-            if (mov.pagos && mov.pagos.length > 0) {
-                htmlContent += `<h4 class="font-bold border-b pb-1 mb-2 mt-4">Pagos Registrados</h4>`;
-                mov.pagos.forEach(p => {
-                    htmlContent += `<div class="flex justify-between text-sm mb-1"><span class="px-2 bg-slate-100 rounded text-xs font-medium">${p.metodo}</span> <span class="font-semibold text-green-700">$${window.formatMoneda(p.monto)}</span></div>`;
-                });
-            }
-
-            document.getElementById('det-contenido').innerHTML = htmlContent;
-            
-            // Acciones Dinámicas
-            let accionesHTML = '';
-            
-            // Botones de Saldado
-            if (mov.estado === 'Pendiente') {
-                accionesHTML += `<button onclick="window.saldarPendiente('${mov.id}')" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-bold flex items-center gap-1"><i data-lucide="check-circle" class="w-4 h-4"></i> Saldar Deuda</button>`;
-            }
-            if (mov.estado === 'Pendiente_Cruce') {
-                accionesHTML += `<button onclick="window.saldarCruce('${mov.id}')" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-bold flex items-center gap-1"><i data-lucide="box" class="w-4 h-4"></i> OK Bodega</button>`;
-            }
-
-            // Botones Estándar
-            accionesHTML += `
-                <div class="flex-1"></div>
-                <button onclick="window.imprimirRecibo('${mov.id}')" class="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-sm font-medium"><i data-lucide="printer" class="w-4 h-4"></i></button>
-                <button onclick="window.abrirModalEdicion('${mov.id}')" class="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-medium"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-                <button onclick="window.eliminarMovimiento('${mov.id}')" class="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-sm font-medium"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-            `;
-            
-            document.getElementById('det-acciones').innerHTML = accionesHTML;
-            document.getElementById('modal-detalle').classList.remove('hidden');
-            document.getElementById('modal-detalle').classList.add('flex');
-            lucide.createIcons();
-        };
-
-        window.cerrarDetalle = () => {
-            document.getElementById('modal-detalle').classList.add('hidden');
-            document.getElementById('modal-detalle').classList.remove('flex');
-        };
-
-        window.saldarPendiente = async (id) => {
-            const metodo = prompt("Ingrese el método de pago (Efectivo, Nequi, Bancolombia):", "Efectivo");
-            if(metodo) {
-                const mov = window.movimientosGlobales.find(m => m.id === id);
-                const abonado = (mov.pagos || []).reduce((s, p) => s + p.monto, 0);
-                const saldo = mov.total - abonado;
-                
-                try {
-                    const nuevosPagos = [...(mov.pagos || []), { id: Date.now().toString(), metodo: metodo, monto: saldo }];
-                    await updateDoc(doc(db, "movimientos", id), { 
-                        estado: 'Pagado',
-                        pagos: nuevosPagos
-                    });
-                    window.cerrarDetalle();
-                    window.mostrarToast(`Deuda saldada por $${window.formatMoneda(saldo)}`);
-                } catch(e) { console.error(e); }
-            }
-        };
-
-        window.saldarCruce = async (id) => {
-            if(confirm("¿Confirmas que la bodega ya recibió físicamente el producto de este cruce?")) {
-                try {
-                    await updateDoc(doc(db, "movimientos", id), { estado: 'Pagado' });
-                    window.cerrarDetalle();
-                    window.mostrarToast("Cruce verificado en bodega exitosamente");
-                } catch(e) { console.error(e); }
-            }
-        };
-
-        window.eliminarMovimiento = async (id) => {
-            if(confirm("¿Estás seguro de eliminar este registro PERMANENTEMENTE?")) {
-                try {
-                    await deleteDoc(doc(db, "movimientos", id));
-                    window.cerrarDetalle();
-                    window.mostrarToast("Registro eliminado");
-                } catch (error) { console.error(error); }
-            }
-        };
-
-        // 11. EDICIÓN BLINDADA
-        window.abrirModalEdicion = (id) => {
-            const mov = window.movimientosGlobales.find(m => m.id === id);
-            if(!mov) return;
-            
-            window.cerrarDetalle();
-            window.movimientoEditandoID = id;
-
-            // Optional Chaining: Extrae los datos aunque el registro sea muy viejo y le falten propiedades
-            document.getElementById('edit-cliente').value = mov.cliente || '';
-            window.cambiarCategoriaEdicion(mov.categoria || 'Venta');
-            
-            document.getElementById('edit-tipo-entrega').value = mov.entrega?.tipo || 'Recoge';
-            window.toggleDomiciliario('edit');
-            
-            document.getElementById('edit-domiciliario').value = (mov.entrega?.encargado || '').toUpperCase();
-            document.getElementById('edit-costo-envio').value = mov.entrega?.costo || '';
-            document.getElementById('edit-notas').value = mov.notas || '';
-            
-            // Carga de Arrays protegida
-            window.estadoListas.edit.productos = Array.isArray(mov.productos) ? JSON.parse(JSON.stringify(mov.productos)) : [];
-            window.estadoListas.edit.pagos = Array.isArray(mov.pagos) ? JSON.parse(JSON.stringify(mov.pagos)) : [];
-            
-            window.renderizarListas('edit');
-            
-            document.getElementById('modal-edicion').classList.remove('hidden');
-            document.getElementById('modal-edicion').classList.add('flex');
-            lucide.createIcons();
-        };
-
-        window.cerrarModalEdicion = () => {
-            document.getElementById('modal-edicion').classList.add('hidden');
-            document.getElementById('modal-edicion').classList.remove('flex');
-            window.movimientoEditandoID = null;
-        };
-
-        window.cambiarCategoriaEdicion = (cat) => {
-            document.getElementById('edit-categoria').value = cat;
-            const botones = ['Venta', 'Compra', 'Gasto', 'Abono'];
-            botones.forEach(b => {
-                const btn = document.getElementById(`ed-cat-${b}`);
-                if(b === cat) {
-                    btn.classList.replace('text-slate-500', 'text-slate-800');
-                    btn.classList.replace('hover:text-slate-700', 'shadow');
-                    btn.classList.add('bg-white');
-                } else {
-                    btn.classList.replace('text-slate-800', 'text-slate-500');
-                    btn.classList.replace('shadow', 'hover:text-slate-700');
-                    btn.classList.remove('bg-white');
+                    `);
                 }
             });
+            if(!hay) list.innerHTML = '<p class="text-center font-mono text-xs text-brand-textSec my-10">No hay pedidos pendientes de pago.</p>';
+            document.getElementById('modal-pedidos-pendientes').style.display = 'flex';
+            if(window.lucide) lucide.createIcons();
+        };
+        window.cerrarModalPendientes = () => document.getElementById('modal-pedidos-pendientes').style.display = 'none';
+
+        window.abrirModalSaldar = (id, monto) => {
+            window.saldandoId = id;
+            document.getElementById('saldar-monto-display').textContent = formatoMoneda.format(monto);
+            document.getElementById('modal-saldar-pedido').style.display = 'flex';
+            window.saldandoMontoExacto = monto;
+        };
+        window.cerrarModalSaldar = () => document.getElementById('modal-saldar-pedido').style.display = 'none';
+        
+        window.guardarSaldarPedido = async () => {
+            const met = document.getElementById('saldar-metodo').value;
+            const cta = document.getElementById('saldar-cuenta').value;
+            if(!met || !cta) return alert("Seleccione medio y caja.");
+            
+            try {
+                const mov = window.movimientosCache.find(m => m.id === window.saldandoId); if(!mov) return;
+                const nuevosPagos = [...(mov.pagos||[]), {metodo: met, cuenta: cta, monto: window.saldandoMontoExacto, estadoCruce: 'N/A'}];
+                
+                await updateDoc(doc(db, "ventas", window.saldandoId), { pagos: nuevosPagos });
+                alert("Pago ingresado y saldado con éxito.");
+                cerrarModalSaldar();
+                abrirModalPendientes(); // Recarga lista
+            } catch(e) { alert("Error saldando pedido."); }
         };
 
-
-        // 12. SISTEMA DE IMPRESIÓN (Personalización Hades y Pendientes)
-        window.imprimirRecibo = (id) => {
-            const mov = window.movimientosGlobales.find(m => m.id === id);
-            if(!mov) return;
-
-            // Personalización Hades
-            const isHades = mov.creador === 'hades@fercofarma.com';
-            document.getElementById('print-title').textContent = isHades ? 'HADES' : 'FERCO FARMA';
-
-            document.getElementById('print-info-basica').innerHTML = `
-                <b>Cliente:</b> ${mov.cliente}<br>
-                <b>Operación:</b> ${mov.categoria}<br>
-            `;
-
-            // Sellos Especiales de Estado
-            let selloHTML = '';
-            if(mov.estado === 'Pendiente') {
-                selloHTML = `<div style="border: 2px solid black; padding: 5px; text-align: center; font-weight: bold; margin-bottom: 10px;">ORDEN DE PEDIDO<br>PENDIENTE DE PAGO</div>`;
-            } else if (mov.estado === 'Pagado') {
-                selloHTML = `<div style="border: 2px dashed black; padding: 5px; text-align: center; font-weight: bold; font-size: 18px; letter-spacing: 2px; margin-bottom: 10px;">PAGADO</div>`;
+        // REPORTE DIARIO Y HERRAMIENTAS
+        window.toggleFiltroDecenas = () => {
+            window.filtroDecenasActivo = !window.filtroDecenasActivo;
+            const btn = document.getElementById('btn-filtro-decenas');
+            const bulk = document.getElementById('btn-rectificar-bulk');
+            if (window.filtroDecenasActivo) {
+                btn.classList.add('bg-brand-accent', 'text-brand-bg');
+                bulk.classList.remove('hidden');
+            } else {
+                btn.classList.remove('bg-brand-accent', 'text-brand-bg');
+                bulk.classList.add('hidden');
             }
-            document.getElementById('print-sello').innerHTML = selloHTML;
-
-            // Lista de Conceptos
-            const prodsHTML = (mov.productos || []).map(p => `
-                <tr>
-                    <td style="padding: 2px 0;">${p.cant}</td>
-                    <td style="padding: 2px 0;">${p.nombre}</td>
-                    <td style="padding: 2px 0; text-align: right;">$${window.formatMoneda(p.subtotal)}</td>
-                </tr>
-            `).join('');
-            document.getElementById('print-lista-items').innerHTML = prodsHTML;
-
-            // Logística
-            let logHTML = '';
-            if(mov.entrega?.tipo) {
-                logHTML = `<b>Entrega:</b> ${mov.entrega.tipo} (${mov.entrega.encargado || '-'})`;
-                if(mov.entrega.costo) logHTML += `<br><b>Domicilio:</b> $${window.formatMoneda(mov.entrega.costo)}`;
-            }
-            document.getElementById('print-logistica').innerHTML = logHTML;
-
-            document.getElementById('print-total').textContent = window.formatMoneda(mov.total);
-
-            // Resumen de Pagos y Saldo
-            const pagosHTML = (mov.pagos || []).map(p => `Abono (${p.metodo}): $${window.formatMoneda(p.monto)}`).join('<br>');
-            document.getElementById('print-pagos-detalle').innerHTML = pagosHTML;
-
-            // Calcular Saldo si es Crédito o está Pendiente
-            const totalPagado = (mov.pagos || []).reduce((s, p) => s + p.monto, 0);
-            let saldoHTML = '';
-            if(totalPagado < mov.total) {
-                saldoHTML = `SALDO PENDIENTE: $${window.formatMoneda(mov.total - totalPagado)}`;
-            }
-            document.getElementById('print-saldo-pendiente').innerHTML = saldoHTML;
-
-            document.getElementById('print-fecha-hora').textContent = new Date(mov.fecha || mov.timestamp).toLocaleString();
-
-            window.print();
+            window.filtrarReporte();
         };
 
-        // INICIALIZACIÓN
-        lucide.createIcons();
+        window.filtrarReporte = () => {
+            const term = document.getElementById('buscador-reporte').value.toLowerCase();
+            const tipoSeleccionado = document.getElementById('filtro-tipo-reporte').value;
+            
+            document.querySelectorAll('.registro-item').forEach(item => {
+                const dataRaw = item.getAttribute('data-search').toLowerCase();
+                const totalMonto = parseFloat(item.getAttribute('data-total')) || 0;
+                const tipoItem = item.getAttribute('data-tipo'); 
+                
+                let pasaTermino = dataRaw.includes(term);
+                let pasaDecenas = window.filtroDecenasActivo ? (totalMonto >= 10 && totalMonto <= 999) : true;
+                let pasaTipo = (tipoSeleccionado === "" || tipoItem === tipoSeleccionado);
+                
+                if (pasaTermino && pasaDecenas && pasaTipo) item.style.display = 'flex';
+                else item.style.display = 'none';
+            });
+        };
+
+        window.rectificarDecenas = async () => {
+            const checks = document.querySelectorAll('.check-rectificar:checked');
+            if (checks.length === 0) return alert("Selecciona al menos un registro para rectificar.");
+            if (!confirm(`Se multiplicarán por 1.000 los valores de ${checks.length} registros. ¿Proceder?`)) return;
+
+            const btn = document.getElementById('btn-rectificar-bulk'); btn.innerHTML = 'Procesando...';
+            try {
+                const batch = writeBatch(db);
+                checks.forEach(chk => {
+                    const mov = window.movimientosCache.find(m => m.id === chk.value);
+                    if (mov) {
+                        const newProds = (mov.productos||[]).map(p => ({ ...p, valorUnitario: p.valorUnitario * 1000, total: p.total * 1000 }));
+                        const newPagos = (mov.pagos||[]).map(p => ({ ...p, monto: p.monto * 1000 }));
+                        const newCostoEnvio = (mov.entrega?.costo) ? mov.entrega.costo * 1000 : 0;
+                        batch.update(doc(db, "ventas", chk.value), {
+                            productos: newProds, pagos: newPagos,
+                            entrega: { ...mov.entrega, costo: newCostoEnvio },
+                            totalVenta: mov.totalVenta * 1000
+                        });
+                    }
+                });
+                await batch.commit();
+                alert("Rectificación Exitosa.");
+                window.filtroDecenasActivo = false;
+                document.getElementById('btn-filtro-decenas').classList.remove('bg-brand-accent', 'text-brand-bg');
+                btn.classList.add('hidden');
+                abrirModalReporte();
+            } catch (error) { alert("Falla en rectificación masiva."); }
+            btn.innerHTML = 'Rectificar x1000';
+        };
+
+        window.abrirModalReporte = async () => {
+            const mod = document.getElementById('modal-reporte'), cont = document.getElementById('contenedor-reporte-dias');
+            mod.style.display = 'flex';
+            const dias = {};
+            
+            window.movimientosCache.forEach(d => {
+                if(window.currentUser?.email===HADES_EMAIL && d.creadoPor!==HADES_EMAIL) return;
+                const f = d.fecha||"UNTRACKED"; if(!dias[f]) dias[f]={m:[]}; dias[f].m.push(d);
+            });
+            
+            cont.innerHTML = '';
+            Object.keys(dias).sort((a,b)=>new Date(b)-new Date(a)).forEach(f => {
+                let html = `<div class="mb-4 bg-brand-panel p-4 rounded border border-brand-border"><h3 class="font-bold text-brand-primary mb-2">${f}</h3>`;
+                dias[f].m.sort((a,b)=>b.timestamp-a.timestamp).forEach(m => {
+                    const searchTags = `${m.cliente} ${m.tipoMovimiento} ${m.totalVenta}`;
+                    const isDecena = window.currentUser?.email === HADES_EMAIL && m.totalVenta > 0 && m.totalVenta < 1000;
+                    const checkHtml = isDecena ? `<input type="checkbox" class="check-rectificar mr-3" value="${m.id}" onclick="event.stopPropagation()">` : '';
+                    let col = m.tipoMovimiento==='Compra'?'text-brand-warning':(m.tipoMovimiento==='Gasto'?'text-brand-error':(m.tipoMovimiento==='Abono'?'text-brand-secondary':'text-brand-primary'));
+                    
+                    html += `<div onclick="window.abrirDetalleRegistro('${m.id}')" data-search="${searchTags}" data-tipo="${m.tipoMovimiento}" data-total="${m.totalVenta||0}" class="registro-item flex justify-between p-2 hover:bg-brand-card cursor-pointer border-b border-brand-border/50 transition-colors">
+                        <div class="flex items-center">${checkHtml}<span class="text-[10px] font-bold w-14 ${col} uppercase">${m.tipoMovimiento}</span> <span class="text-sm font-semibold uppercase truncate max-w-[200px]">${m.cliente}</span></div>
+                        <span class="font-mono text-sm">${formatoMoneda.format(m.totalVenta)}</span>
+                    </div>`;
+                });
+                cont.insertAdjacentHTML('beforeend', html + '</div>');
+            });
+        };
+        window.cerrarModalReporte = () => { document.getElementById('modal-reporte').style.display = 'none'; };
+
+        // MODAL DETALLES E IMPRESIÓN
+        window.abrirDetalleRegistro = (id) => {
+            const m = window.movimientosCache.find(x=>x.id===id); if(!m) return;
+            window.ventaEditandoId = id; window.tipoMovimientoEditando = m.tipoMovimiento || 'Venta';
+            
+            document.getElementById('detalle-cliente').textContent = m.cliente;
+            document.getElementById('detalle-tipo-badge').textContent = window.tipoMovimientoEditando;
+            document.getElementById('detalle-total').textContent = formatoMoneda.format(m.totalVenta);
+            
+            const ulP = document.getElementById('detalle-lista-productos'); ulP.innerHTML='';
+            (m.productos||[]).forEach(p => ulP.insertAdjacentHTML('beforeend', `<li>${p.cantidad}x ${p.concepto} = ${formatoMoneda.format(p.total)}</li>`));
+            
+            const ulPag = document.getElementById('detalle-lista-pagos'); ulPag.innerHTML='';
+            let tieneCrucePendiente = false;
+            (m.pagos||[]).forEach(p => {
+                let badge = '';
+                if (p.metodo === 'Cruce') {
+                    if (p.estadoCruce === 'Saldado') badge = '<span class="ml-2 px-1 text-[9px] bg-brand-success/20 text-brand-success border border-brand-success/30 rounded">OK BODEGA</span>';
+                    else { badge = '<span class="ml-2 px-1 text-[9px] bg-brand-warning/20 text-brand-warning border border-brand-warning/30 rounded animate-pulse">PENDIENTE</span>'; tieneCrucePendiente = true; }
+                }
+                ulPag.insertAdjacentHTML('beforeend', `<li>${p.metodo} -> ${p.cuenta} = ${formatoMoneda.format(p.monto)} ${badge}</li>`);
+            });
+
+            const bE = document.getElementById('btn-detalle-editar'), bD = document.getElementById('btn-detalle-borrar'), bC = document.getElementById('btn-detalle-saldar-cruce');
+            if(window.currentUser.email===ADMIN_EMAIL || window.currentUser.email===m.creadoPor) {
+                bE.onclick = window.abrirModalEdicion; bE.classList.remove('hidden'); bD.onclick = window.eliminarVenta; bD.classList.remove('hidden');
+            } else { bE.classList.add('hidden'); bD.classList.add('hidden'); }
+            
+            if (tieneCrucePendiente && (window.currentUser.email === ADMIN_EMAIL || window.currentUser.email === SUPERVISOR_EMAIL)) {
+                bC.classList.remove('hidden'); bC.onclick = () => window.confirmarCruceBodega(m.id);
+            } else bC.classList.add('hidden');
+            
+            document.getElementById('modal-detalle-registro').style.display='flex';
+        };
+        window.cerrarModalDetalle = () => document.getElementById('modal-detalle-registro').style.display='none';
+
+        window.confirmarCruceBodega = async (id) => {
+            if(!confirm("¿Confirmar ingreso a Bodega?")) return;
+            const mov = window.movimientosCache.find(x => x.id === id); if(!mov) return;
+            const nuevosPagos = mov.pagos.map(p => (p.metodo==='Cruce' && p.estadoCruce!=='Saldado') ? { ...p, estadoCruce: 'Saldado' } : p);
+            try {
+                await updateDoc(doc(db, "ventas", id), { pagos: nuevosPagos });
+                cerrarModalDetalle(); abrirModalReporte();
+            } catch(e) { alert("Error saldando cruce."); }
+        };
+        window.eliminarVenta = async () => { if(confirm("¿Eliminar bloque permanentemente?")) { await deleteDoc(doc(db, "ventas", window.ventaEditandoId)); cerrarModalDetalle(); abrirModalReporte(); } };
+
+        window.imprimirRecibo = (idImprimir = window.ventaEditandoId) => {
+            const mov = window.movimientosCache.find(m => m.id === idImprimir); if(!mov) return;
+            let subtotal = 0, itemsHtml = '';
+            (mov.productos || []).forEach(p => {
+                subtotal += (p.total || 0);
+                const nombrePrint = window.diccionarioProductos[p.concepto] ? window.diccionarioProductos[p.concepto] : p.concepto;
+                itemsHtml += `<tr><td style="padding: 4px 0; border-bottom: 1px dashed #ccc;">${p.cantidad}</td><td style="padding: 4px 0; border-bottom: 1px dashed #ccc;">${nombrePrint}</td><td style="padding: 4px 0; border-bottom: 1px dashed #ccc; text-align: right;">${formatoMoneda.format(p.total || 0)}</td></tr>`;
+            });
+            
+            let fee = 0, logisHtml = '';
+            if(mov.entrega?.medio === 'Domi') { 
+                fee = mov.entrega.costo||0; 
+                logisHtml = `<tr><td colspan="2">Envío</td><td style="text-align: right;">${formatoMoneda.format(fee)}</td></tr>`; 
+            }
+            
+            const total = subtotal + fee;
+            let totalPagado = 0; let pagadoConCredito = 0;
+            (mov.pagos || []).forEach(p => {
+                totalPagado += (p.monto || 0);
+                if (p.metodo === 'Credito') pagadoConCredito += (p.monto || 0);
+            });
+            
+            const saldoPendiente = total - totalPagado;
+            const estaPendiente = saldoPendiente > 0 && mov.tipoMovimiento === 'Venta';
+            
+            const esHades = (mov.creadoPor === HADES_EMAIL);
+            const logoHtml = esHades ? '' : `<img src="logo.jpg" style="max-width:180px; margin-bottom:10px;" onerror="this.style.display='none'">`;
+            let tituloRecibo = esHades ? `<h2 style="margin:0; font-size: 24px;">HADES</h2>` : `<h2 style="margin:0;">FERCO FARMA</h2>`;
+            
+            if(estaPendiente) tituloRecibo += `<h3 style="margin:5px 0; font-size: 14px; border:1px solid #000; padding:3px; text-align:center;">ORDEN DE PEDIDO<br>PENDIENTE DE PAGO</h3>`;
+
+            let marcaDeAgua = '';
+            if(!estaPendiente && mov.tipoMovimiento === 'Venta') marcaDeAgua = `<div style="position:absolute; top:40%; left:5%; font-size:50px; color:rgba(0,0,0,0.12); transform:rotate(-45deg); font-weight:bold; border: 5px solid rgba(0,0,0,0.12); padding:10px; z-index:0; pointer-events:none;">PAGADO</div>`;
+
+            let htmlSaldo = '';
+            if(saldoPendiente > 0 || pagadoConCredito > 0) {
+                htmlSaldo = `<div style="border-top: 1px dashed #000; padding-top: 5px; margin-top: 5px;">`;
+                htmlSaldo += `<div style="display:flex; justify-content:space-between; font-size:12px;"><span>Abonado:</span><span>${formatoMoneda.format(totalPagado)}</span></div>`;
+                let saldoReal = saldoPendiente > 0 ? saldoPendiente : pagadoConCredito;
+                let labelSaldo = saldoPendiente > 0 ? 'SALDO PENDIENTE' : 'SALDO EN CRÉDITO';
+                htmlSaldo += `<div style="display:flex; justify-content:space-between; font-weight:bold; font-size:14px; margin-top:5px;"><span>${labelSaldo}:</span><span>${formatoMoneda.format(saldoReal)}</span></div></div>`;
+            }
+
+            const printWindow = window.open('', 'PRINT', 'height=600,width=400');
+            printWindow.document.write(`
+                <html><head><style>body{font-family:monospace; font-size:12px; width:300px; color:#000; position:relative; margin:0; padding:10px;} table{width:100%; border-collapse:collapse; position:relative; z-index:1;} .content{position:relative; z-index:1;}</style></head>
+                <body>${marcaDeAgua}
+                <div class="content"><div style="text-align:center;">${logoHtml}${tituloRecibo}<p>ID: ${mov.id.substring(0,8)}<br>Fecha: ${mov.fecha}<br>Cliente: ${mov.cliente.toUpperCase()}</p></div>
+                <table><thead><tr><th style="text-align:left;">CANT</th><th style="text-align:left;">DESC</th><th style="text-align:right;">VALOR</th></tr></thead><tbody>${itemsHtml}${logisHtml}</tbody></table>
+                <div style="border-top:1px solid #000; padding-top:10px; margin-top:10px; display:flex; justify-content:space-between; font-size:16px; font-weight:bold;"><span>TOTAL</span><span>${formatoMoneda.format(total)}</span></div>
+                ${htmlSaldo}<br><p style="text-align:center;">--- FIN DOCUMENTO ---</p></div></body></html>`);
+            printWindow.document.close(); printWindow.focus(); 
+            setTimeout(() => { printWindow.print(); printWindow.close(); }, 800);
+        };
+
+        // MODAL FLOTANTE EDICIÓN ROBUSTA BLINDADA
+        window.manejarCambioTipoEdicion = () => {
+            window.tipoMovimientoEditando = document.querySelector('input[name="tipoMovimientoEdicion"]:checked').value;
+            document.getElementById('lbl-tipo-edicion').textContent = window.tipoMovimientoEditando;
+            const logis = document.getElementById('seccion-logistica-edicion');
+            if (window.tipoMovimientoEditando === 'Gasto' || window.tipoMovimientoEditando === 'Abono') logis.classList.add('hidden'); 
+            else logis.classList.remove('hidden');
+            calcularTotalesEdicion();
+        };
+
+        window.abrirModalEdicion = () => {
+            try {
+                const mov = window.movimientosCache.find(m => m.id === window.ventaEditandoId); 
+                if(!mov) return;
+                
+                cerrarModalDetalle(); 
+                document.getElementById('modal-editar-registro').style.display='flex';
+                
+                window.tipoMovimientoEditando = mov.tipoMovimiento || 'Venta';
+                const radioTipo = document.querySelector(`input[name="tipoMovimientoEdicion"][value="${window.tipoMovimientoEditando}"]`);
+                if(radioTipo) radioTipo.checked = true;
+                
+                document.getElementById('cliente-edicion').value = mov.cliente || ''; 
+                document.getElementById('fecha-edicion').value = mov.fecha || ''; 
+                document.getElementById('notas-edicion').value = mov.notas || '';
+                
+                window.manejarCambioTipoEdicion(); 
+                
+                // Set Logística Blindado
+                const medioE = mov.entrega?.medio || '';
+                document.getElementById('medio-entrega-edicion').value = (window.tipoMovimientoEditando!=='Gasto' && window.tipoMovimientoEditando!=='Abono') ? medioE : "";
+                window.manejarCambioEntregaEdicion();
+                
+                if(medioE === 'Domi') { 
+                    document.getElementById('encargado-domi-edicion').value = (mov.entrega?.encargado || "").toUpperCase(); 
+                    document.getElementById('costo-envio-edicion').value = mov.entrega?.costo || 0; 
+                }
+                
+                // Set Productos & Pagos Blindados
+                document.getElementById('productos-container-edicion').innerHTML = ''; contadorProductosEd = 0;
+                if(mov.productos && Array.isArray(mov.productos) && mov.productos.length > 0) {
+                    mov.productos.forEach(p => window.agregarFilaProductoEdicion(p));
+                } else {
+                    window.agregarFilaProductoEdicion();
+                }
+
+                document.getElementById('pagos-container-edicion').innerHTML = ''; contadorPagosEd = 0;
+                if(mov.pagos && Array.isArray(mov.pagos) && mov.pagos.length > 0) {
+                    mov.pagos.forEach(p => window.agregarFilaPagoEdicion(p));
+                } // Si está vacío, se deja vacío para no estorbar.
+
+                window.calcularTotalesEdicion();
+            } catch(e) { 
+                console.error("Error cargando edición:", e); 
+                alert("Error cargando los datos. Hubo una falla de lectura interna."); 
+            }
+        };
+        window.cerrarModalEdicion = () => document.getElementById('modal-editar-registro').style.display = 'none';
+
+        window.manejarCambioEntregaEdicion = () => {
+            if(document.getElementById('medio-entrega-edicion').value==='Domi') { document.getElementById('div-encargado-edicion').classList.remove('hidden'); document.getElementById('div-costo-envio-edicion').classList.remove('hidden'); }
+            else { document.getElementById('div-encargado-edicion').classList.add('hidden'); document.getElementById('div-costo-envio-edicion').classList.add('hidden'); document.getElementById('costo-envio-edicion').value="0"; }
+            calcularTotalesEdicion();
+        };
+
+        window.agregarFilaProductoEdicion = (d = null) => {
+            contadorProductosEd++; const id = contadorProductosEd;
+            const c = d?.concepto||''; const esO = d && !window.diccionarioProductos[c];
+            let opt = `<option value="">Select Item...</option>`;
+            Object.keys(window.diccionarioProductos).sort().forEach(p => { opt += `<option value="${p}" ${c===p?'selected':''}>${p} - ${window.diccionarioProductos[p]}</option>`; });
+            opt += `<option value="OTRO" class="font-bold" ${esO?'selected':''}>MANUAL INPUT</option>`;
+            
+            document.getElementById('productos-container-edicion').insertAdjacentHTML('beforeend', `
+                <div id="prode-${id}" class="flex gap-2 items-center bg-brand-bg p-2 rounded border border-brand-border mb-2">
+                    <div class="w-1/3"><select class="inp-prod w-full p-2 rounded bg-brand-panel text-xs" onchange="verifEd(${id})">${opt}</select>
+                    <input type="text" id="prode-man-${id}" class="${esO?'':'hidden'} w-full mt-1 p-1 rounded bg-brand-primary/10 text-xs" value="${esO?c:''}" oninput="calcularTotalesEdicion()"></div>
+                    <div class="w-1/4"><input type="number" class="inp-cant w-full p-2 rounded bg-brand-panel text-xs text-center" value="${d?.cantidad||1}" oninput="calcularTotalesEdicion()"></div>
+                    <div class="w-1/4"><input type="number" class="inp-val w-full p-2 rounded bg-brand-panel text-xs" value="${d?.valorUnitario||0}" oninput="calcularTotalesEdicion()"></div>
+                    <div class="w-1/12"><button onclick="document.getElementById('prode-${id}').remove(); window.calcularTotalesEdicion();" class="text-brand-error"><i data-lucide="trash-2"></i></button></div>
+                </div>
+            `);
+            if(window.lucide) lucide.createIcons();
+        };
+
+        window.verifEd = (id) => { const s=document.querySelector(`#prode-${id} .inp-prod`), m=document.getElementById(`prode-man-${id}`); if(s.value==='OTRO') m.classList.remove('hidden'); else m.classList.add('hidden'); calcularTotalesEdicion(); };
+
+        window.agregarFilaPagoEdicion = (d = null) => {
+            contadorPagosEd++; const id = contadorPagosEd;
+            document.getElementById('pagos-container-edicion').insertAdjacentHTML('beforeend', `
+                <div id="page-${id}" class="flex gap-2 items-center bg-brand-bg p-2 rounded border border-brand-border mb-2">
+                    <div class="w-1/3"><select class="inp-met w-full p-2 rounded bg-brand-panel text-xs"><option value="Transferencia" ${d?.metodo==='Transferencia'?'selected':''}>Transf</option><option value="Efectivo" ${d?.metodo==='Efectivo'?'selected':''}>Efect</option><option value="Credito" ${d?.metodo==='Credito'?'selected':''}>Crédito</option><option value="Cruce" ${d?.metodo==='Cruce'?'selected':''}>Cruce</option><option value="Bold" ${d?.metodo==='Bold'?'selected':''}>Bold</option></select></div>
+                    <div class="w-1/3"><select class="inp-cta w-full p-2 rounded bg-brand-panel text-xs"><option value="CRIS" ${d?.cuenta==='CRIS'?'selected':''}>CRIS</option><option value="JHON" ${d?.cuenta==='JHON'?'selected':''}>JHON</option><option value="HADES" ${d?.cuenta==='HADES'?'selected':''}>HADES</option><option value="BODEGA" ${d?.cuenta==='BODEGA'?'selected':''}>BODEGA</option></select></div>
+                    <div class="w-1/4"><input type="number" class="inp-mnt w-full p-2 rounded bg-brand-panel text-xs text-brand-success" value="${d?.monto||0}" oninput="calcularTotalesEdicion()"></div>
+                    <div class="w-1/12"><button onclick="document.getElementById('page-${id}').remove(); window.calcularTotalesEdicion();" class="text-brand-error"><i data-lucide="trash-2"></i></button></div>
+                </div>
+            `);
+            if(window.lucide) lucide.createIcons();
+        };
+
+        window.calcularTotalesEdicion = () => {
+            let tp = 0, tpag = 0;
+            document.querySelectorAll('#productos-container-edicion > div').forEach(f => { const s=f.querySelector('.inp-prod').value, m=f.querySelector('input[type="text"]').value, c=parseFloat(f.querySelector('.inp-cant').value)||0, v=parseFloat(f.querySelector('.inp-val').value)||0; if(s==='OTRO'?m:s) tp += (c*v); });
+            const env = (window.tipoMovimientoEditando!=='Gasto' && window.tipoMovimientoEditando!=='Abono') ? parseFloat(document.getElementById('costo-envio-edicion').value)||0 : 0;
+            const tc = tp + env;
+            document.querySelectorAll('#pagos-container-edicion > div').forEach(f => tpag += parseFloat(f.querySelector('.inp-mnt').value)||0);
+            
+            document.getElementById('txt-total-cobrar-edicion').textContent = formatoMoneda.format(tc);
+            document.getElementById('txt-total-pagado-edicion').textContent = formatoMoneda.format(tpag);
+            
+            const btn = document.getElementById('btn-guardar-edicion'), al = document.getElementById('alerta-descuadre-edicion');
+            
+            btn.disabled = !(tc > 0 || tpag > 0);
+
+            al.classList.remove('hidden');
+            if (tc > tpag && window.tipoMovimientoEditando === 'Venta') { al.className = "text-brand-warning bg-brand-warning/10 px-2 py-1 rounded border border-brand-warning/30 font-bold uppercase text-[10px]"; al.innerHTML = `Pte Pago: ${formatoMoneda.format(tc - tpag)}`; } 
+            else if (tc < tpag) { al.className = "text-brand-error bg-brand-error/10 px-2 py-1 rounded border border-brand-error/30 font-bold uppercase text-[10px]"; al.innerHTML = `Exceso: ${formatoMoneda.format(tpag - tc)}`; } 
+            else if (tc > 0) { al.className = "text-brand-success bg-brand-success/10 px-2 py-1 rounded border border-brand-success/30 font-bold uppercase text-[10px]"; al.innerHTML = "Saldado OK"; } 
+            else { al.classList.add('hidden'); }
+        };
+
+        window.guardarMovimientoEdicion = async () => {
+            const cli = document.getElementById('cliente-edicion').value.trim().toUpperCase(); if(!cli) return alert("Falta cliente");
+            const nuevoTipo = document.querySelector('input[name="tipoMovimientoEdicion"]:checked').value;
+            
+            const btn = document.getElementById('btn-guardar-edicion'); btn.innerHTML = 'Wait...'; btn.disabled = true;
+            try {
+                const prods = [], pags = []; let tc = 0;
+                document.querySelectorAll('#productos-container-edicion > div').forEach(f => {
+                    const s = f.querySelector('.inp-prod').value, m = f.querySelector('input[type="text"]').value.trim(), c = parseFloat(f.querySelector('.inp-cant').value)||0, v = parseFloat(f.querySelector('.inp-val').value)||0;
+                    if((s==='OTRO'?m:s) && c>0 && v>=0) prods.push({concepto: s==='OTRO'?m:s, esDiccionario: !!window.diccionarioProductos[s], cantidad: c, valorUnitario: v, total: c*v});
+                });
+                const mE = document.getElementById('medio-entrega-edicion').value;
+                const ent = (nuevoTipo!=='Gasto'&&nuevoTipo!=='Abono') ? {medio:mE||"Recoge", encargado:mE==='Domi'?document.getElementById('encargado-domi-edicion').value.toUpperCase():"N/A", costo:mE==='Domi'?parseFloat(document.getElementById('costo-envio-edicion').value)||0:0} : {medio:"N/A",encargado:"N/A",costo:0};
+                tc = prods.reduce((acc, p) => acc + p.total, 0) + ent.costo;
+
+                document.querySelectorAll('#pagos-container-edicion > div').forEach(f => {
+                    const mt=f.querySelector('.inp-met').value, ct=f.querySelector('.inp-cta').value, mn=parseFloat(f.querySelector('.inp-mnt').value)||0;
+                    if(mt&&ct&&mn>0) pags.push({metodo:mt, cuenta:ct, monto:mn, estadoCruce: mt==='Cruce'?'Pendiente':'N/A'});
+                });
+
+                await updateDoc(doc(db, "ventas", window.ventaEditandoId), { 
+                    tipoMovimiento: nuevoTipo, cliente: cli, fecha: document.getElementById('fecha-edicion').value, notas: document.getElementById('notas-edicion').value, 
+                    productos: prods, entrega: ent, pagos: pags, totalVenta: tc, modificadoPor: window.currentUser.email, fechaModificacion: Date.now() 
+                });
+                
+                cerrarModalEdicion(); 
+                btn.innerHTML = 'Guardar Cambios'; btn.disabled = false;
+            } catch(e) { console.error(e); alert("Error guardando cambios."); btn.innerHTML = 'Guardar Cambios'; btn.disabled = false; }
+        };
+        
+        // Modal GLOSARIO, CREDITOS...
+        window.abrirDiccionario = () => document.getElementById('modal-diccionario').style.display = 'flex';
+        window.cerrarDiccionario = () => document.getElementById('modal-diccionario').style.display = 'none';
+        window.abrirModalCreditos = () => document.getElementById('modal-creditos').style.display = 'flex';
+        window.cerrarModalCreditos = () => document.getElementById('modal-creditos').style.display = 'none';
     </script>
 </body>
 </html>
