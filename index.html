@@ -264,11 +264,11 @@
                         </div>
                         
                         <div class="flex flex-col items-end w-full md:w-auto gap-2">
-                            <div id="alerta-descuadre" class="text-brand-error font-mono text-xs hidden animate-pulse bg-brand-error/10 px-3 py-1.5 rounded border border-brand-error/30 tracking-widest uppercase flex items-center gap-2">
-                                <i data-lucide="alert-triangle" class="w-3 h-3"></i> Descuadre: <span id="txt-descuadre">$0</span>
+                            <div id="alerta-descuadre" class="text-brand-secondary font-mono text-xs hidden animate-pulse bg-brand-secondary/10 px-3 py-1.5 rounded border border-brand-secondary/30 tracking-widest uppercase flex items-center gap-2">
+                                <i data-lucide="info" class="w-3 h-3"></i> Descuadre por Faltante: <span id="txt-descuadre">$0</span>
                             </div>
                             <button id="btn-guardar" onclick="guardarMovimiento()" disabled class="w-full md:w-auto bg-brand-primary hover:bg-brand-primaryHover disabled:bg-brand-card disabled:text-brand-textSec disabled:border-brand-border disabled:shadow-none disabled:cursor-not-allowed text-brand-bg border border-transparent px-8 py-3 rounded-lg font-display font-bold transition-all shadow-[0_0_15px_rgba(0,245,255,0.3)] hover:shadow-[0_0_25px_rgba(0,245,255,0.5)] flex items-center justify-center gap-2 tracking-wide uppercase text-sm">
-                                <i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">Ejecutar</span>
+                                <i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">Guardar</span>
                             </button>
                         </div>
                     </div>
@@ -337,12 +337,12 @@
                                 <p id="dash-admin-domis-hades" class="font-mono text-lg font-bold text-brand-warning drop-shadow-[0_0_5px_rgba(255,213,0,0.3)]">$ 0</p>
                             </div>
                             <button id="btn-liquidar-hades" onclick="liquidarDomisHades()" class="bg-brand-warning/10 hover:bg-brand-warning border border-brand-warning hover:text-brand-bg text-brand-warning px-3 py-2 rounded-lg font-mono text-[10px] uppercase font-bold transition-all shadow-[0_0_10px_rgba(255,213,0,0.1)] flex items-center gap-1">
-                                <i data-lucide="check-square" class="w-3 h-3"></i> CUT
+                                <i data-lucide="check-square" class="w-3 h-3"></i> Saldar
                             </button>
                         </div>
                     </div>
                     <button onclick="abrirModalReporte()" class="mt-6 w-full bg-brand-card hover:bg-brand-cardHover border border-brand-border text-brand-text px-4 py-3 rounded-lg font-display font-bold uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2">
-                        <i data-lucide="terminal" class="w-4 h-4 text-brand-primary"></i> Analítica Global
+                        <i data-lucide="terminal" class="w-4 h-4 text-brand-primary"></i> Informe de registros por dia
                     </button>
                 </div>
 
@@ -406,7 +406,7 @@
                 <div class="bg-brand-panel p-6 rounded-xl shadow-lg border border-brand-border mt-6">
                     <div class="mb-2">
                         <h3 class="text-sm font-display font-bold text-brand-text mb-4 flex items-center gap-2 uppercase tracking-widest">
-                            <i data-lucide="download-cloud" class="w-4 h-4 text-brand-success"></i> Export Datasets
+                            <i data-lucide="download-cloud" class="w-4 h-4 text-brand-success"></i> Exportar Informe
                         </h3>
                         <div class="grid grid-cols-2 gap-3 mb-4">
                             <div>
@@ -1005,6 +1005,7 @@
             calcularTotales();
         };
 
+        // CÁLCULO FLEXIBLE ACTUALIZADO
         window.calcularTotales = () => {
             let totP = 0, totPag = 0;
             document.querySelectorAll('#productos-container > div').forEach(f => {
@@ -1022,8 +1023,21 @@
             document.getElementById('txt-total-pagado').textContent = formatoMoneda.format(totPag);
 
             const btn = document.getElementById('btn-guardar'), alerta = document.getElementById('alerta-descuadre');
-            if (totCobrar >= 0 && totCobrar === totPag) { btn.disabled = false; alerta.classList.add('hidden'); } 
-            else { btn.disabled = true; if (totCobrar>=0) { alerta.classList.remove('hidden'); document.getElementById('txt-descuadre').textContent = formatoMoneda.format(Math.abs(totCobrar - totPag)); } }
+            
+            if (totCobrar >= 0 && totPag <= totCobrar) {
+                btn.disabled = false;
+                const diferencia = totCobrar - totPag;
+                if (diferencia > 0) {
+                    alerta.classList.remove('hidden');
+                    document.getElementById('txt-descuadre').textContent = formatoMoneda.format(diferencia);
+                } else {
+                    alerta.classList.add('hidden');
+                }
+            } else {
+                btn.disabled = true;
+                alerta.classList.remove('hidden');
+                document.getElementById('txt-descuadre').textContent = "PAGO EXCEDE TOTAL";
+            }
         };
 
         window.guardarMovimiento = async () => {
@@ -1033,7 +1047,8 @@
             
             if (!cliente) return alert("Falta el cliente.");
             
-            const prods = [], pags = []; let tot = 0;
+            const prods = [], pags = []; let totCobrar = 0, totPag = 0;
+            
             document.querySelectorAll('#productos-container > div').forEach(f => {
                 const s = f.querySelector('.input-prod-select').value, m = f.querySelector('.input-prod-manual').value.trim();
                 const c = parseFloat(f.querySelector('.input-cant').value)||0, v = parseFloat(f.querySelector('.input-val').value)||0;
@@ -1041,28 +1056,38 @@
                 if((s==='OTRO'?m:s) && c>0 && v>=0) prods.push({ concepto: s==='OTRO'?m:s, esDiccionario: !!window.diccionarioProductos[s], origen: o, cantidad: c, valorUnitario: v, total: c*v });
             });
             
+            let subtotal = prods.reduce((acc, p) => acc + p.total, 0);
             const medioE = document.getElementById('medio-entrega').value;
-            const entrega = (tipo!=='Gasto'&&tipo!=='Abono') ? { medio: medioE||"Recoge", encargado: medioE==='Domi'?document.getElementById('encargado-domi').value.toUpperCase():"N/A", costo: medioE==='Domi'?parseFloat(document.getElementById('costo-envio').value)||0:0 } : { medio:"N/A", encargado:"N/A", costo:0 };
+            const costoEnvio = (tipo!=='Gasto'&&tipo!=='Abono') ? parseFloat(document.getElementById('costo-envio').value)||0 : 0;
+            totCobrar = subtotal + costoEnvio;
+
+            const entrega = (tipo!=='Gasto'&&tipo!=='Abono') ? { medio: medioE||"Recoge", encargado: medioE==='Domi'?document.getElementById('encargado-domi').value.toUpperCase():"N/A", costo: costoEnvio } : { medio:"N/A", encargado:"N/A", costo:0 };
 
             document.querySelectorAll('#pagos-container > div').forEach(f => {
                 const mt = f.querySelector('.input-metodo').value, ct = f.querySelector('.input-cuenta').value, mn = parseFloat(f.querySelector('.input-monto').value)||0;
-                if(mt&&ct&&mn>=0) { pags.push({ metodo: mt, cuenta: ct, monto: mn }); tot+=mn; }
+                if(mt&&ct&&mn>=0) { pags.push({ metodo: mt, cuenta: ct, monto: mn }); totPag+=mn; }
             });
 
             if (pags.length===0 || prods.length===0) return alert("Faltan productos o pagos.");
+
+            // Inyección automática de la diferencia como Crédito (CxC)
+            const diferenciaCredito = totCobrar - totPag;
+            if (diferenciaCredito > 0) {
+                pags.push({ metodo: 'Credito', cuenta: 'CREDITO', monto: diferenciaCredito });
+            }
 
             try {
                 const btn = document.getElementById('btn-guardar'); 
                 btn.innerHTML = 'PUSHING...';
                 
-                await addDoc(collection(db, "ventas"), { tipoMovimiento: tipo, fecha, cliente, notas, productos: prods, entrega, pagos: pags, totalVenta: tot, creadoPor: window.currentUser.email, timestamp: Date.now() });
+                await addDoc(collection(db, "ventas"), { tipoMovimiento: tipo, fecha, cliente, notas, productos: prods, entrega, pagos: pags, totalVenta: totCobrar, creadoPor: window.currentUser.email, timestamp: Date.now() });
                 
                 // Ejecutamos la limpieza total y actualizamos los gráficos
                 window.limpiarFormulario();
                 calcularDashboard(); 
                 
                 // Restauramos el botón
-                btn.innerHTML = '<i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">Ejecutar</span>';
+                btn.innerHTML = '<i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">Guardar</span>';
                 lucide.createIcons();
                 
             } catch (e) { alert("Error guardando."); }
@@ -1186,7 +1211,7 @@
         window.filtrarReporte = () => {
             const term = document.getElementById('buscador-reporte').value.toLowerCase();
             const selectorFiltroTipo = document.getElementById('filtro-tipo-reporte');
-            const tipoSeleccionado = selectorFiltroType ? selectorFiltroType.value : "";
+            const tipoSeleccionado = selectorFiltroTipo ? selectorFiltroTipo.value : "";
             
             document.querySelectorAll('.registro-item').forEach(item => {
                 const dataRaw = item.getAttribute('data-search').toLowerCase();
@@ -1474,28 +1499,39 @@
             document.getElementById('txt-total-cobrar-edicion').textContent = formatoMoneda.format(tc);
             document.getElementById('txt-total-pagado-edicion').textContent = formatoMoneda.format(tpag);
             const btn = document.getElementById('btn-guardar-edicion'), al = document.getElementById('alerta-descuadre-edicion');
-            if(tc>=0 && tc===tpag) { btn.disabled=false; al.classList.add('hidden'); } else { btn.disabled=true; al.classList.remove('hidden'); }
+            if(tc>=0 && tpag<=tc) { btn.disabled=false; al.classList.add('hidden'); } else { btn.disabled=true; al.classList.remove('hidden'); }
         };
 
         window.guardarMovimientoEdicion = async () => {
             const cli = document.getElementById('cliente-edicion').value.trim().toUpperCase(); if(!cli) return;
             const nuevoTipo = document.querySelector('input[name="tipoMovimientoEdicion"]:checked').value; // Toma el nuevo tipo
             
-            const prods = [], pags = []; let tot = 0;
+            const prods = [], pags = []; let totCobrar = 0, totPag = 0;
             document.querySelectorAll('#productos-container-edicion > div').forEach(f => {
                 const s = f.querySelector('.inp-prod').value, m = f.querySelector('input[type="text"]').value.trim(), c = parseFloat(f.querySelector('.inp-cant').value)||0, v = parseFloat(f.querySelector('.inp-val').value)||0;
                 if((s==='OTRO'?m:s) && c>0 && v>=0) prods.push({concepto: s==='OTRO'?m:s, esDiccionario: !!window.diccionarioProductos[s], origen: "Ferco Farma", cantidad: c, valorUnitario: v, total: c*v});
             });
+            
+            let subtotal = prods.reduce((acc, p) => acc + p.total, 0);
             const mE = document.getElementById('medio-entrega-edicion').value;
-            const ent = (window.tipoMovimientoEditando!=='Gasto'&&window.tipoMovimientoEditando!=='Abono') ? {medio:mE||"Recoge", encargado:mE==='Domi'?document.getElementById('encargado-domi-edicion').value.toUpperCase():"N/A", costo:mE==='Domi'?parseFloat(document.getElementById('costo-envio-edicion').value)||0:0} : {medio:"N/A",encargado:"N/A",costo:0};
+            const costoEnvioEd = (window.tipoMovimientoEditando!=='Gasto'&&window.tipoMovimientoEditando!=='Abono') ? parseFloat(document.getElementById('costo-envio-edicion').value)||0 : 0;
+            totCobrar = subtotal + costoEnvioEd;
+
+            const ent = (window.tipoMovimientoEditando!=='Gasto'&&window.tipoMovimientoEditando!=='Abono') ? {medio:mE||"Recoge", encargado:mE==='Domi'?document.getElementById('encargado-domi-edicion').value.toUpperCase():"N/A", costo:costoEnvioEd} : {medio:"N/A",encargado:"N/A",costo:0};
+            
             document.querySelectorAll('#pagos-container-edicion > div').forEach(f => {
                 const mt=f.querySelector('.inp-met').value, ct=f.querySelector('.inp-cta').value, mn=parseFloat(f.querySelector('.inp-mnt').value)||0;
-                if(mt&&ct&&mn>=0){ pags.push({metodo:mt, cuenta:ct, monto:mn}); tot+=mn; }
+                if(mt&&ct&&mn>=0){ pags.push({metodo:mt, cuenta:ct, monto:mn}); totPag+=mn; }
             });
+
+            const diferenciaCredito = totCobrar - totPag;
+            if (diferenciaCredito > 0) {
+                pags.push({ metodo: 'Credito', cuenta: 'CREDITO', monto: diferenciaCredito });
+            }
 
             try {
                 document.getElementById('btn-guardar-edicion').innerHTML = 'WAIT...';
-                await updateDoc(doc(db, "ventas", window.ventaEditandoId), { tipoMovimiento: nuevoTipo, cliente: cli, fecha: document.getElementById('fecha-edicion').value, notas: document.getElementById('notas-edicion').value, productos: prods, entrega: ent, pagos: pags, totalVenta: tot, modificadoPor: window.currentUser.email, fechaModificacion: Date.now() });
+                await updateDoc(doc(db, "ventas", window.ventaEditandoId), { tipoMovimiento: nuevoTipo, cliente: cli, fecha: document.getElementById('fecha-edicion').value, notas: document.getElementById('notas-edicion').value, productos: prods, entrega: ent, pagos: pags, totalVenta: totCobrar, modificadoPor: window.currentUser.email, fechaModificacion: Date.now() });
                 cerrarModalEdicion(); abrirModalReporte(); calcularDashboard(); document.getElementById('btn-guardar-edicion').innerHTML = 'Guardar Cambios';
             } catch(e) { alert("Error guardando"); }
         };
