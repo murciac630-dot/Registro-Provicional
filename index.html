@@ -317,6 +317,14 @@
                             <p class="font-mono text-[9px] text-brand-success uppercase tracking-widest mb-0.5 opacity-80">Caja Bodega</p>
                             <p id="dash-bodega" class="font-mono text-sm font-bold text-brand-text">$ 0</p>
                         </div>
+                        <div class="bg-brand-warning/5 p-2.5 rounded border border-brand-warning/20">
+                            <p class="font-mono text-[9px] text-brand-warning uppercase tracking-widest mb-0.5 opacity-80">Total Compras</p>
+                            <p id="dash-compras-global" class="font-mono text-sm font-bold text-brand-text">$ 0</p>
+                        </div>
+                        <div class="bg-brand-error/5 p-2.5 rounded border border-brand-error/20">
+                            <p class="font-mono text-[9px] text-brand-error uppercase tracking-widest mb-0.5 opacity-80">Total Gastos</p>
+                            <p id="dash-gastos-global" class="font-mono text-sm font-bold text-brand-text">$ 0</p>
+                        </div>
                     </div>
 
                     <p class="font-mono text-[10px] text-brand-textSec uppercase tracking-widest mb-3 border-b border-brand-border pb-2">Costos Logísticos Generados</p>
@@ -1067,15 +1075,30 @@
                 const snap = await getDocs(collection(db, "ventas"));
                 let totV = 0, deudores = {}, saldos = {"CRIS":0, "JHON":0, "BODEGA":0, "HADES":0}, domis = {};
                 let hV = 0, hC = 0, hG = 0, hDomis = 0, hDeud = {};
+                let totalComprasGlobal = 0;
+                let totalGastosGlobal = 0;
 
                 snap.forEach(doc => {
-                    const d = doc.data(); const t = d.tipoMovimiento||'Venta', esH = d.creadoPor===HADES_EMAIL, mt = d.totalVenta||0, cli = (d.cliente||"").toUpperCase();
-                    if(t==='Venta') {
-                        totV+=mt; (d.pagos||[]).forEach(p => { if(p.metodo==='Credito') deudores[cli]=(deudores[cli]||0)+p.monto; else if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]+=p.monto; });
-                    } else if(t==='Abono') {
-                        deudores[cli]=(deudores[cli]||0)-mt; (d.pagos||[]).forEach(p => { if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]+=p.monto; });
-                    } else {
-                        (d.pagos||[]).forEach(p => { if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]-=p.monto; });
+                    const d = doc.data();
+                    const t = d.tipoMovimiento||'Venta';
+                    const esH = d.creadoPor===HADES_EMAIL;
+                    const mt = d.totalVenta||0;
+                    const cli = (d.cliente||"").toUpperCase();
+
+        if(t==='Venta') {
+            totV+=mt; 
+            (d.pagos||[]).forEach(p => { if(p.metodo==='Credito') deudores[cli]=(deudores[cli]||0)+p.monto; else if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]+=p.monto; });
+        } else if(t==='Abono') {
+            deudores[cli]=(deudores[cli]||0)-mt; 
+            (d.pagos||[]).forEach(p => { if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]+=p.monto; });
+        } else if(t==='Compra') {
+            totalComprasGlobal += mt; // <--- Acumula compras globales
+            (d.pagos||[]).forEach(p => { if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]-=p.monto; });
+        } else if(t==='Gasto') {
+            totalGastosGlobal += mt;  // <--- Acumula gastos globales
+            (d.pagos||[]).forEach(p => { if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]-=p.monto; });
+        }
+        // ... resto de la lógica de entregas y Hades
                     }
                     if(d.entrega?.costo>0 && d.entrega?.encargado) domis[d.entrega.encargado.toUpperCase()] = (domis[d.entrega.encargado.toUpperCase()]||0) + d.entrega.costo;
                     
@@ -1101,6 +1124,8 @@
                 } else {
                     document.getElementById('dash-ventas').textContent=formatoMoneda.format(totV); document.getElementById('dash-creditos').textContent=formatoMoneda.format(cAct);
                     document.getElementById('dash-admin-domis-hades').textContent=formatoMoneda.format(hDomis);
+                    document.getElementById('dash-compras-global').textContent = formatoMoneda.format(totalComprasGlobal);
+                    document.getElementById('dash-gastos-global').textContent = formatoMoneda.format(totalGastosGlobal);
                     ['CRIS','JHON','BODEGA','HADES'].forEach(c => { const el=document.getElementById(`dash-${c.toLowerCase()}`); if(el) el.textContent=formatoMoneda.format(saldos[c]||0); });
                     const divD = document.getElementById('div-costos-domis-global'); divD.innerHTML='';
                     for(const[e,t] of Object.entries(domis)) divD.insertAdjacentHTML('beforeend', `<div class="bg-brand-card p-3 rounded border border-brand-border"><p class="text-[9px] uppercase tracking-widest text-brand-textSec">${e}</p><p class="text-sm font-bold text-brand-text">${formatoMoneda.format(t)}</p></div>`);
