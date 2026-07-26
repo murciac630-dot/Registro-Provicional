@@ -1462,6 +1462,19 @@
         window.cerrarDiccionario = () => document.getElementById('modal-diccionario').style.display = 'none';
         window.abrirModalCreditos = () => document.getElementById('modal-creditos').style.display = 'flex';
         window.cerrarModalCreditos = () => document.getElementById('modal-creditos').style.display = 'none';
+
+        window.liquidarDomisHades = () => {
+            window.pedirConfirmacion("¿Confirmar CUT (Corte) de Domicilios para Hades? Esto pondrá la cuenta en $0.", async () => {
+                try {
+                    await setDoc(doc(db, "configuracion", "hades_domis"), { ultimaLiquidacion: Date.now() }, { merge: true });
+                    window.fechaCorteDomisHades = Date.now();
+                    window.calcularDashboard();
+                    window.mostrarAlerta("Corte aplicado con éxito. Contador en $0.", "success");
+                } catch (e) {
+                    window.mostrarAlerta("Error al aplicar el corte.", "error");
+                }
+            });
+        };
     </script>
 </body>
 </html>
