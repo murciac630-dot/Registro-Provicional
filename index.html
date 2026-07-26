@@ -1493,6 +1493,60 @@
                 }
             });
         };
+        // ==========================================
+        // REPARACIÓN: FUNCIONES FALTANTES
+        // ==========================================
+        
+        async function cargarDiccionario() {
+            try {
+                // Buscamos el diccionario en Firebase
+                const docSnap = await getDoc(doc(db, "configuracion", "diccionario"));
+                if (docSnap.exists()) {
+                    window.diccionarioProductos = docSnap.data().items || {};
+                } else {
+                    window.diccionarioProductos = {};
+                }
+            } catch (e) {
+                console.error("Error cargando diccionario:", e);
+                window.diccionarioProductos = {}; // Previene fallos si falla internet
+            }
+        }
+
+        window.agregarNuevaSigla = () => {
+            const id = document.getElementById('nueva-sigla-id').value.trim().toUpperCase();
+            const val = document.getElementById('nueva-sigla-val').value.trim().toUpperCase();
+            if (!id || !val) return window.mostrarAlerta("Ingresa ID y Valor para el glosario.", "error");
+            
+            window.diccionarioProductos[id] = val;
+            
+            const grid = document.getElementById('grid-diccionario');
+            if(grid) {
+                 grid.insertAdjacentHTML('beforeend', `<div class="p-2 border-b border-brand-border flex justify-between"><span class="font-bold text-brand-primary">${id}</span><span class="text-xs text-brand-textSec">${val}</span></div>`);
+            }
+            
+            document.getElementById('nueva-sigla-id').value = '';
+            document.getElementById('nueva-sigla-val').value = '';
+            window.mostrarAlerta("Sigla agregada. Recuerda hacer clic en Guardar.", "info");
+        };
+
+        window.guardarDiccionario = async () => {
+            try {
+                await setDoc(doc(db, "configuracion", "diccionario"), { items: window.diccionarioProductos });
+                window.mostrarAlerta("Glosario guardado correctamente en la base de datos.", "success");
+                window.cerrarDiccionario();
+            } catch (error) {
+                console.error("Error al guardar diccionario:", error);
+                window.mostrarAlerta("Error al intentar guardar el glosario.", "error");
+            }
+        };
+
+        // Funciones preventivas para el modal de abonos que estaba en el HTML
+        window.cerrarModalAbonoRapido = () => { 
+            if(document.getElementById('modal-abono-rapido')) document.getElementById('modal-abono-rapido').style.display = 'none'; 
+        };
+        window.procesarAbonoRapido = () => { 
+            window.mostrarAlerta("La función de abono rápido está en construcción.", "info"); 
+        };
     </script>
 </body>
 </html>
