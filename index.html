@@ -281,7 +281,7 @@
                 <div id="panel-financiero" class="hidden bg-brand-panel p-6 rounded-xl shadow-lg border border-brand-border fade-in">
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-sm font-display font-bold text-brand-text flex items-center gap-2 uppercase tracking-widest">
-                            <i data-lucide="bar-chart-3" class="w-4 h-4 text-brand-primary"></i> Métrica Global
+                            <i data-lucide="bar-chart-3" class="w-4 h-4 text-brand-primary"></i> Dashboard Global
                         </h2>
                         <button onclick="calcularDashboard()" class="text-xs bg-brand-card hover:bg-brand-cardHover border border-brand-border p-1.5 rounded transition-colors text-brand-textSec">
                             <i data-lucide="refresh-cw" class="w-3 h-3"></i>
@@ -522,7 +522,7 @@
         <div class="glass-modal w-full max-w-4xl h-[90vh] flex flex-col rounded-2xl m-4 relative overflow-hidden">
             <div class="p-5 border-b border-brand-border flex justify-between items-center bg-brand-panel rounded-t-2xl">
                 <h2 class="text-md font-display font-bold uppercase tracking-widest flex items-center gap-2 text-brand-text">
-                    <i data-lucide="terminal" class="text-brand-primary w-4 h-4"></i> Data Viewer: Reportes
+                    <i data-lucide="terminal" class="text-brand-primary w-4 h-4"></i> Reportes: Diario
                 </h2>
                 <button onclick="cerrarModalReporte()" class="p-2 hover:bg-brand-card border border-transparent hover:border-brand-border rounded-lg transition-colors text-brand-textSec">
                     <i data-lucide="x" class="w-4 h-4"></i>
@@ -554,7 +554,7 @@
             <div class="p-5 border-b border-brand-border flex justify-between items-start bg-brand-panel rounded-t-2xl">
                 <div>
                     <h2 class="text-md font-display font-bold text-brand-text uppercase tracking-widest flex items-center gap-2 mb-2">
-                        <i data-lucide="file-code" class="text-brand-primary w-4 h-4"></i> Inspector de Bloque
+                        <i data-lucide="file-code" class="text-brand-primary w-4 h-4"></i> Inspector de Registro
                     </h2>
                     <p class="text-[10px] text-brand-textSec font-mono tracking-widest" id="detalle-fecha-creador"></p>
                 </div>
@@ -624,6 +624,29 @@
                 </button>
             </div>
             <div class="p-6 overflow-y-auto flex-1 bg-brand-panel space-y-6">
+                <!-- 0. TIPO DE MOVIMIENTO EDICIÓN -->
+                <div class="mb-6 bg-brand-bg/50 p-4 rounded-xl border border-brand-border">
+                    <label class="block text-xs font-mono text-brand-textSec mb-3 uppercase tracking-wider">Clasificación de Operación</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="tipoMovimientoEdicion" value="Venta" class="peer sr-only" onchange="manejarCambioTipoEdicion()">
+                            <div class="rounded-lg border border-brand-border bg-brand-panel p-3 text-center text-brand-textSec hover:bg-brand-cardHover peer-checked:border-brand-primary peer-checked:bg-brand-primary/10 peer-checked:text-brand-primary transition-all font-bold shadow-sm font-display tracking-wide">Venta</div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="tipoMovimientoEdicion" value="Compra" class="peer sr-only" onchange="manejarCambioTipoEdicion()">
+                            <div class="rounded-lg border border-brand-border bg-brand-panel p-3 text-center text-brand-textSec hover:bg-brand-cardHover peer-checked:border-brand-warning peer-checked:bg-brand-warning/10 peer-checked:text-brand-warning transition-all font-bold shadow-sm font-display tracking-wide">Compra</div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="tipoMovimientoEdicion" value="Gasto" class="peer sr-only" onchange="manejarCambioTipoEdicion()">
+                            <div class="rounded-lg border border-brand-border bg-brand-panel p-3 text-center text-brand-textSec hover:bg-brand-cardHover peer-checked:border-brand-error peer-checked:bg-brand-error/10 peer-checked:text-brand-error transition-all font-bold shadow-sm font-display tracking-wide">Gasto</div>
+                        </label>
+                        <!-- Abono oculto -->
+                        <label id="label-tipo-abono-edicion" class="hidden cursor-pointer">
+                            <input type="radio" name="tipoMovimientoEdicion" value="Abono" class="peer sr-only" onchange="manejarCambioTipoEdicion()">
+                            <div class="rounded-lg border border-brand-border bg-brand-panel p-3 text-center text-brand-textSec peer-checked:border-brand-secondary peer-checked:bg-brand-secondary/10 peer-checked:text-brand-secondary transition-all font-bold shadow-sm font-display tracking-wide">Abono</div>
+                        </label>
+                    </div>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-mono text-brand-textSec mb-1 uppercase tracking-wider">Cliente / Proveedor</label>
@@ -675,7 +698,7 @@
                 <div class="bg-brand-bg/50 p-4 rounded-xl border border-brand-border">
                     <h3 class="text-sm font-display font-bold text-brand-text mb-3 flex items-center gap-2 uppercase tracking-wide"><i data-lucide="wallet" class="w-4 h-4 text-brand-success"></i> Transacciones</h3>
                     <div id="pagos-container-edicion" class="space-y-3"></div>
-                    <button onclick="agregarFilaPagoEdicion()" class="mt-4 w-full md:w-auto bg-brand-card hover:bg-brand-cardHover text-brand-text px-4 py-2 rounded-lg text-sm font-bold font-mono flex items-center justify-center gap-2 transition-colors border border-brand-border"><i data-lucide="plus" class="w-4 h-4 text-brand-success"></i> Agregar Pago</button>
+                    <button onclick="agregarFilaPagoEdicion()" class="mt-4 w-full md:w-auto bg-brand-card hover:bg-brand-cardHover text-brand-text px-4 py-2 rounded-lg text-sm font-bold font-mono flex items-center justify-center gap-2 transition-colors border border-brand-border"><i data-lucide="plus" class="w-4 h-4 text-brand-success"></i> Agregar Medio de Pago</button>
                 </div>
                 <div>
                     <label class="block text-xs font-mono text-brand-textSec mb-1 flex items-center gap-2 uppercase tracking-wider"><i data-lucide="terminal-square" class="w-3 h-3 text-brand-textSec"></i> Notas Adicionales</label>
@@ -897,8 +920,8 @@
             const logis = document.getElementById('seccion-logistica');
             if (tipo === 'Venta') {
                 document.getElementById('lbl-cliente').textContent = "Cliente";
-                document.getElementById('lbl-productos').innerHTML = '<i data-lucide="package" class="w-4 h-4 text-brand-primary"></i> Items (Venta)';
-                document.getElementById('txt-lbl-pagos').textContent = "Estructura de Ingreso";
+                document.getElementById('lbl-productos').innerHTML = '<i data-lucide="package" class="w-4 h-4 text-brand-primary"></i> Productos (Venta)';
+                document.getElementById('txt-lbl-pagos').textContent = "Info del Pago";
                 logis.classList.remove('hidden');
             } else if (tipo === 'Compra' || tipo === 'Gasto') {
                 document.getElementById('lbl-cliente').textContent = tipo === 'Compra' ? "Proveedor" : "Beneficiario / Concepto";
@@ -1059,7 +1082,9 @@
                     if(esH) {
                         if(t==='Venta') { hV+=mt; (d.pagos||[]).forEach(p=>{ if(p.metodo==='Credito') hDeud[cli]=(hDeud[cli]||0)+p.monto; }); }
                         if(t==='Compra') hC+=mt; if(t==='Gasto') hG+=mt; if(t==='Abono') hDeud[cli]=(hDeud[cli]||0)-mt;
-                        if(d.entrega?.costo>0 && d.entrega?.encargado!=='DELIVERY APP' && d.timestamp>=window.fechaCorteDomisHades) hDomis+=d.entrega.costo;
+                        const encargadoDomi = (d.entrega?.encargado || '').toUpperCase().trim();
+                        const equipoInterno = ['CRIS', 'VALENTINO ROSSI', 'DAVID', 'JF', 'MONO'];
+                        if (d.entrega?.costo > 0 && equipoInterno.includes(encargadoDomi) && d.timestamp >= window.fechaCorteDomisHades) {hDomis += d.entrega.costo;}
                     }
                 });
 
@@ -1215,9 +1240,11 @@
                         const isDecena = window.currentUser?.email === HADES_EMAIL && m.totalVenta > 0 && m.totalVenta < 1000;
                         const checkHtml = isDecena ? `<input type="checkbox" class="check-rectificar mr-3" value="${m.id}" onclick="event.stopPropagation()">` : '';
                         
-                        // NOTA: Se agregó data-tipo para que el nuevo filtro pueda leer la categoría
+                        // Añadimos un pequeño badge estético para mostrar el creador de forma abreviada
+                        const badgeCreador = `<span class="text-[9px] font-mono text-brand-textSec opacity-60 ml-2">(${m.creadoPor || 'S/N'})</span>`;
+
                         html += `<div onclick="abrirDetalleRegistro('${m.id}')" data-search="${searchTags}" data-tipo="${m.tipoMovimiento}" data-total="${m.totalVenta||0}" class="registro-item flex justify-between p-2 hover:bg-brand-card cursor-pointer border-b border-brand-border">
-                            <div class="flex items-center">${checkHtml}<span class="text-xs font-bold w-12">${m.tipoMovimiento}</span> <span class="text-sm uppercase">${m.cliente}</span></div>
+                            <div class="flex items-center">${checkHtml}<span class="text-xs font-bold w-12">${m.tipoMovimiento}</span> <span class="text-sm uppercase">${m.cliente}</span> ${badgeCreador}</div>
                             <span class="font-mono text-sm">${formatoMoneda.format(m.totalVenta)}</span>
                         </div>`;
                     });
@@ -1232,6 +1259,10 @@
         window.abrirDetalleRegistro = (id) => {
             const m = window.movimientosCache.find(x=>x.id===id); if(!m) return;
             window.ventaEditandoId = id; window.tipoMovimientoEditando = m.tipoMovimiento || 'Venta';
+            
+            // Inyectamos la fecha y el usuario creador en el inspector de bloques
+            document.getElementById('detalle-fecha-creador').textContent = `FECHA: ${m.fecha} | CREADO POR: ${m.creadoPor || 'S/N'}`;
+
             document.getElementById('detalle-cliente').textContent = m.cliente;
             document.getElementById('detalle-tipo-badge').textContent = window.tipoMovimientoEditando;
             document.getElementById('detalle-total').textContent = formatoMoneda.format(m.totalVenta);
