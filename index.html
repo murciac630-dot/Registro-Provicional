@@ -629,6 +629,7 @@
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, inMemoryPersistence } 
         from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
+        // CREDENCIALES EXACTAS PROPORCIONADAS
         const firebaseConfig = {
             apiKey: "AIzaSyB8Ei-GTiqedjsFy09XVujGb94mzkBmVOU",
             authDomain: "ferco-farma.firebaseapp.com",
@@ -758,7 +759,7 @@
             errorTxt.classList.add('hidden');
 
             signInWithEmailAndPassword(auth, email, pass).catch((error) => {
-                errorTxt.textContent = "ERROR: " + error.code;
+                errorTxt.textContent = "ERROR: " + error.code; // Error real de Firebase expuesto
                 errorTxt.classList.remove('hidden');
                 btn.innerHTML = 'Ingresar al Sistema <i data-lucide="log-in" class="w-5 h-5"></i>';
                 if(window.lucide) lucide.createIcons();
@@ -771,6 +772,13 @@
             try { const docSnap = await getDoc(doc(db, "configuracion", "hades_domis")); if (docSnap.exists()) window.fechaCorteDomisHades = docSnap.data().ultimaLiquidacion || 0; } catch (e) { }
         }
 
+        async function cargarDiccionario() {
+            try {
+                const snap = await getDoc(doc(db, "configuracion", "diccionario"));
+                if (snap.exists()) { window.diccionarioProductos = snap.data().productos || {}; }
+            } catch (e) { console.error("Error diccionario:", e); }
+        }
+
         function inicializarApp() {
             if(window.lucide) lucide.createIcons();
             window.limpiarFormulario();
@@ -778,12 +786,15 @@
             calcularDashboard();
         }
 
+        // FUNCIÓN "ESCOBA" CORREGIDA PARA LIMPIAR TODO EL FORMULARIO
         window.limpiarFormulario = () => {
             try {
                 document.getElementById('cliente').value = '';
                 document.getElementById('notas').value = '';
                 document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
-                document.querySelector('input[name="tipoMovimiento"][value="Venta"]').checked = true;
+                
+                const radioVenta = document.querySelector('input[name="tipoMovimiento"][value="Venta"]');
+                if(radioVenta) radioVenta.checked = true;
                 
                 document.getElementById('medio-entrega').value = '';
                 document.getElementById('encargado-domi').value = '';
@@ -794,9 +805,9 @@
                 contadorProductos = 0; contadorPagos = 0;
                 
                 window.manejarCambioTipo();
-                agregarFilaProducto();
-                agregarFilaPago(); 
-                calcularTotales();
+                window.agregarFilaProducto();
+                window.agregarFilaPago(); 
+                window.calcularTotales();
             } catch(e) { console.error("Error limpiando form:", e); }
         };
 
@@ -890,6 +901,7 @@
 
             const btn = document.getElementById('btn-guardar'), alerta = document.getElementById('alerta-descuadre');
             
+            // EL BOTON AHORA SE ENCIENDE AUNQUE NO HAYA PAGOS (PARA PERMITIR GUARDAR PENDIENTES)
             if (totCobrar > 0 || totPag > 0) { btn.disabled = false; } else { btn.disabled = true; }
 
             alerta.classList.remove('hidden');
@@ -905,11 +917,15 @@
             } else { alerta.classList.add('hidden'); }
         };
 
+        // GUARDADO AISLADO PARA EVITAR ALERTAS GRISES INNECESARIAS
         window.guardarMovimiento = async () => {
             const cliente = document.getElementById('cliente').value.trim().toUpperCase();
             if (!cliente) return window.mostrarAlerta("Falta ingresar el Cliente.", "error");
             
-            const btn = document.getElementById('btn-guardar'); btn.innerHTML = 'Guardando...';
+            const btn = document.getElementById('btn-guardar'); 
+            const originalText = document.getElementById('txt-btn-guardar').innerText;
+            btn.innerHTML = 'Guardando... <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>';
+            btn.disabled = true;
             
             try {
                 const tipo = document.querySelector('input[name="tipoMovimiento"]:checked').value;
@@ -925,27 +941,39 @@
                 const entrega = (tipo!=='Gasto'&&tipo!=='Abono') ? { medio: medioE||"Recoge", encargado: medioE==='Domi'?document.getElementById('encargado-domi').value.toUpperCase():"N/A", costo: medioE==='Domi'?parseFloat(document.getElementById('costo-envio').value)||0:0 } : { medio:"N/A", encargado:"N/A", costo:0 };
                 let totCobrar = prods.reduce((acc, p) => acc + p.total, 0) + entrega.costo;
 
+                // Captura inteligente de pagos para habilitar Cruces Pendientes
                 document.querySelectorAll('#pagos-container > div').forEach(f => {
                     const mt = f.querySelector('.input-metodo').value, ct = f.querySelector('.input-cuenta').value, mn = parseFloat(f.querySelector('.input-monto').value)||0;
                     if(mt&&ct&&mn>0) { pags.push({ metodo: mt, cuenta: ct, monto: mn, estadoCruce: mt==='Cruce'?'Pendiente':'N/A' }); totPag+=mn; }
                 });
 
-                if (prods.length===0 && pags.length===0) { btn.innerHTML='Ejecutar'; return window.mostrarAlerta("No hay datos para guardar.", "error"); }
+                if (prods.length===0 && pags.length===0) { 
+                    btn.innerHTML = `<i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">${originalText}</span>`; 
+                    btn.disabled = false;
+                    if(window.lucide) lucide.createIcons();
+                    return window.mostrarAlerta("No hay datos para guardar.", "error"); 
+                }
 
+                // Guardar en la base de datos
                 await addDoc(collection(db, "ventas"), { 
                     tipoMovimiento: tipo, fecha: document.getElementById('fecha').value, cliente, notas: document.getElementById('notas').value.trim(), 
                     productos: prods, entrega, pagos: pags, totalVenta: totCobrar, creadoPor: window.currentUser.email, timestamp: Date.now() 
                 });
                 
                 window.mostrarAlerta("Registro guardado con éxito.", "success");
+                
+                // Limpiar todo después de un guardado exitoso
                 window.limpiarFormulario();
+                
                 btn.innerHTML = '<i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">Ejecutar</span>';
+                btn.disabled = false;
                 if(window.lucide) lucide.createIcons();
                 
             } catch (e) {
                 console.error("Error crítico al guardar:", e);
                 window.mostrarAlerta("Fallo al guardar: Verifica tu conexión.", "error");
                 btn.innerHTML = '<i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">Ejecutar</span>';
+                btn.disabled = false;
                 if(window.lucide) lucide.createIcons();
             }
         };
@@ -970,6 +998,7 @@
                 window.movimientosCache.forEach(d => {
                     const t = d.tipoMovimiento||'Venta', esH = d.creadoPor===HADES_EMAIL, cli = (d.cliente||"").toUpperCase();
                     
+                    // Cálculo de Cruces para alertar a Bodega
                     (d.pagos||[]).forEach(p => { if(p.metodo==='Cruce' && p.estadoCruce!=='Saldado') totalCrucesPendientes += p.monto; });
 
                     let totalPagadoVenta = 0;
@@ -997,6 +1026,7 @@
                     
                     if(d.entrega?.costo>0 && d.entrega?.encargado==='HADES' && d.timestamp>=window.fechaCorteDomisHades) hDomis+=d.entrega.costo;
                     
+                    // Conteo de pedidos pendientes de pago
                     if(t==='Venta' && totalPagadoVenta < d.totalVenta) pendientesMonto++;
                 });
 
@@ -1219,6 +1249,7 @@
             });
         };
 
+        // RECIBOS DINÁMICOS
         window.imprimirRecibo = (idImprimir = window.ventaEditandoId) => {
             const mov = window.movimientosCache.find(m => m.id === idImprimir); if(!mov) return;
             let subtotal = 0, itemsHtml = '';
@@ -1229,24 +1260,37 @@
             });
             
             let fee = 0, logisHtml = '';
-            if(mov.entrega?.medio === 'Domi') { fee = mov.entrega.costo||0; logisHtml = `<tr><td colspan="2">Envío</td><td style="text-align: right;">${formatoMoneda.format(fee)}</td></tr>`; }
+            if((mov.entrega?.medio || '') === 'Domi') { 
+                fee = mov.entrega?.costo || 0; 
+                logisHtml = `<tr><td colspan="2">Envío</td><td style="text-align: right;">${formatoMoneda.format(fee)}</td></tr>`; 
+            }
             
             const total = subtotal + fee;
-            let totalPagado = 0; (mov.pagos || []).forEach(p => totalPagado += (p.monto || 0));
+            let totalPagado = 0; 
+            (mov.pagos || []).forEach(p => totalPagado += (p.monto || 0));
             const saldoPendiente = total - totalPagado;
             const estaPendiente = saldoPendiente > 0 && mov.tipoMovimiento === 'Venta';
             
+            // VERIFICACIÓN DE HADES PARA QUITAR LOGO
             const esHades = (mov.creadoPor === HADES_EMAIL);
             const logoHtml = esHades ? '' : `<img src="logo.jpg" style="max-width:180px; margin-bottom:10px;" onerror="this.style.display='none'">`;
             let tituloRecibo = esHades ? `<h2 style="margin:0; font-size: 24px;">HADES</h2>` : `<h2 style="margin:0;">FERCO FARMA</h2>`;
             
-            if(estaPendiente) tituloRecibo += `<h3 style="margin:5px 0; font-size: 14px; border:1px solid #000; padding:3px;">ORDEN DE PEDIDO<br>PENDIENTE DE PAGO</h3>`;
+            // AVISO PENDIENTE
+            if(estaPendiente) {
+                tituloRecibo += `<h3 style="margin:5px 0; font-size: 14px; border:1px solid #000; padding:3px;">ORDEN DE PEDIDO<br>PENDIENTE DE PAGO</h3>`;
+            }
 
+            // SELLO DE PAGADO
             let marcaDeAgua = '';
-            if(!estaPendiente && mov.tipoMovimiento === 'Venta') marcaDeAgua = `<div style="position:absolute; top:40%; left:5%; font-size:45px; color:rgba(0,0,0,0.15); transform:rotate(-45deg); font-weight:bold; border: 5px solid rgba(0,0,0,0.15); padding:10px; z-index:-1;">PAGADO</div>`;
+            if(!estaPendiente && mov.tipoMovimiento === 'Venta' && totalPagado >= total && total > 0) {
+                marcaDeAgua = `<div style="position:absolute; top:40%; left:5%; font-size:45px; color:rgba(0,0,0,0.15); transform:rotate(-45deg); font-weight:bold; border: 5px solid rgba(0,0,0,0.15); padding:10px; z-index:-1;">PAGADO</div>`;
+            }
 
             let htmlSaldo = '';
-            if(saldoPendiente > 0) htmlSaldo = `<div style="border-top: 1px dashed #000; padding-top: 5px; margin-top: 5px;"><div style="display:flex; justify-content:space-between; font-size:12px;"><span>Abonado:</span><span>${formatoMoneda.format(totalPagado)}</span></div><div style="display:flex; justify-content:space-between; font-weight:bold; font-size:14px; margin-top:5px;"><span>SALDO PENDIENTE:</span><span>${formatoMoneda.format(saldoPendiente)}</span></div></div>`;
+            if(saldoPendiente > 0) {
+                htmlSaldo = `<div style="border-top: 1px dashed #000; padding-top: 5px; margin-top: 5px;"><div style="display:flex; justify-content:space-between; font-size:12px;"><span>Abonado:</span><span>${formatoMoneda.format(totalPagado)}</span></div><div style="display:flex; justify-content:space-between; font-weight:bold; font-size:14px; margin-top:5px;"><span>SALDO PENDIENTE:</span><span>${formatoMoneda.format(saldoPendiente)}</span></div></div>`;
+            }
 
             const printWindow = window.open('', 'PRINT', 'height=600,width=400');
             printWindow.document.write(`
@@ -1267,10 +1311,12 @@
             calcularTotalesEdicion();
         };
 
+        // CARGA BLINDADA DEL MODAL DE EDICIÓN
         window.abrirModalEdicion = () => {
             try {
                 const mov = window.movimientosCache.find(m => m.id === window.ventaEditandoId); if(!mov) return;
-                cerrarModalDetalle(); document.getElementById('modal-editar-registro').style.display='flex';
+                cerrarModalDetalle(); 
+                document.getElementById('modal-editar-registro').style.display='flex';
                 
                 window.tipoMovimientoEditando = mov.tipoMovimiento || 'Venta';
                 const radioTipo = document.querySelector(`input[name="tipoMovimientoEdicion"][value="${window.tipoMovimientoEditando}"]`);
@@ -1282,10 +1328,11 @@
                 
                 window.manejarCambioTipoEdicion(); 
                 
+                // Salvavidas logístico
                 document.getElementById('medio-entrega-edicion').value = (window.tipoMovimientoEditando!=='Gasto' && window.tipoMovimientoEditando!=='Abono') ? (mov.entrega?.medio || "Recoge") : "";
                 window.manejarCambioEntregaEdicion();
                 
-                if(mov.entrega?.medio==='Domi') { 
+                if((mov.entrega?.medio || '') === 'Domi') { 
                     document.getElementById('encargado-domi-edicion').value = mov.entrega?.encargado ? mov.entrega.encargado.toUpperCase() : ""; 
                     document.getElementById('costo-envio-edicion').value = mov.entrega?.costo || 0; 
                 } else {
@@ -1293,16 +1340,27 @@
                     document.getElementById('costo-envio-edicion').value = 0;
                 }
                 
+                // Salvavidas de lectura de Arrays para Conceptos
                 document.getElementById('productos-container-edicion').innerHTML = ''; contadorProductosEd = 0;
-                if(mov.productos && Array.isArray(mov.productos) && mov.productos.length > 0) mov.productos.forEach(p => window.agregarFilaProductoEdicion(p));
-                else window.agregarFilaProductoEdicion();
+                if(mov.productos && Array.isArray(mov.productos) && mov.productos.length > 0) {
+                    mov.productos.forEach(p => window.agregarFilaProductoEdicion(p));
+                } else {
+                    window.agregarFilaProductoEdicion();
+                }
 
+                // Salvavidas de lectura de Arrays para Pagos
                 document.getElementById('pagos-container-edicion').innerHTML = ''; contadorPagosEd = 0;
-                if(mov.pagos && Array.isArray(mov.pagos) && mov.pagos.length > 0) mov.pagos.forEach(p => window.agregarFilaPagoEdicion(p));
-                else window.agregarFilaPagoEdicion();
+                if(mov.pagos && Array.isArray(mov.pagos) && mov.pagos.length > 0) {
+                    mov.pagos.forEach(p => window.agregarFilaPagoEdicion(p));
+                } else {
+                    window.agregarFilaPagoEdicion();
+                }
 
                 window.calcularTotalesEdicion();
-            } catch(e) { console.error("Error cargando edición:", e); window.mostrarAlerta("Error cargando los datos. Ver consola.", "error"); }
+            } catch(e) { 
+                console.error("Error cargando edición:", e); 
+                window.mostrarAlerta("Error cargando los datos. Ver consola.", "error"); 
+            }
         };
         window.cerrarModalEdicion = () => document.getElementById('modal-editar-registro').style.display = 'none';
 
