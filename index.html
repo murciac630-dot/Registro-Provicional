@@ -951,15 +951,20 @@
         };
 
         function cargarVentasFirebase() {
-            onSnapshot(collection(db, "ventas"), (snap) => {
-                window.movimientosCache = [];
-                snap.forEach(d => { const data = d.data(); data.id = d.id; window.movimientosCache.push(data); });
-                window.movimientosCache.sort((a,b)=>b.timestamp-a.timestamp);
-                calcularDashboard();
-                if(document.getElementById('modal-reporte').style.display === 'flex') window.abrirModalReporte(); 
-            });
-        }
-
+    // 1. Escuchamos la colección "ventas" en tiempo real
+    onSnapshot(collection(db, "ventas"), (snap) => {
+        window.movimientosCache = []; // 2. Vaciamos la memoria temporal
+        snap.forEach(d => { 
+            const data = d.data(); 
+            data.id = d.id; 
+            // 3. Llenamos la memoria con los datos de Firebase
+            window.movimientosCache.push(data); 
+        });
+        window.movimientosCache.sort((a,b)=>b.timestamp-a.timestamp);
+        calcularDashboard();
+        // ...
+    });
+}
         window.calcularDashboard = () => {
             if(!window.currentUser) return;
             try {
