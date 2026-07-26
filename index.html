@@ -1085,22 +1085,21 @@
                     const mt = d.totalVenta||0;
                     const cli = (d.cliente||"").toUpperCase();
 
-        if(t==='Venta') {
-            totV+=mt; 
-            (d.pagos||[]).forEach(p => { if(p.metodo==='Credito') deudores[cli]=(deudores[cli]||0)+p.monto; else if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]+=p.monto; });
-        } else if(t==='Abono') {
-            deudores[cli]=(deudores[cli]||0)-mt; 
-            (d.pagos||[]).forEach(p => { if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]+=p.monto; });
-        } else if(t==='Compra') {
-            totalComprasGlobal += mt; // <--- Acumula compras globales
-            (d.pagos||[]).forEach(p => { if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]-=p.monto; });
-        } else if(t==='Gasto') {
-            totalGastosGlobal += mt;  // <--- Acumula gastos globales
-            (d.pagos||[]).forEach(p => { if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]-=p.monto; });
-        }
-        // ... resto de la lógica de entregas y Hades
+                    if(t==='Venta') {
+                        totV+=mt; 
+                        (d.pagos||[]).forEach(p => { if(p.metodo==='Credito') deudores[cli]=(deudores[cli]||0)+p.monto; else if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]+=p.monto; });
+                    } else if(t==='Abono') {
+                        deudores[cli]=(deudores[cli]||0)-mt; 
+                        (d.pagos||[]).forEach(p => { if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]+=p.monto; });
+                    } else if(t==='Compra') {
+                        totalComprasGlobal += mt; 
+                        (d.pagos||[]).forEach(p => { if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]-=p.monto; });
+                    } else if(t==='Gasto') {
+                        totalGastosGlobal += mt;  
+                        (d.pagos||[]).forEach(p => { if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]-=p.monto; });
                     }
-                    if(d.entrega?.costo>0 && d.entrega?.encargado) domis[d.entrega.encargado.toUpperCase()] = (domis[d.entrega.encargado.toUpperCase()]||0) + d.entrega.costo;
+
+                    if(d.entrega?.costo>0 && d.entrega?.encargado) domis[d.entrega.encargado.toUpperCase()] = (domis[d.entrega.encargado.toUpperCase()]||0) + d.entrega.costo;  
                     
                     if(esH) {
                         if(t==='Venta') { hV+=mt; (d.pagos||[]).forEach(p=>{ if(p.metodo==='Credito') hDeud[cli]=(hDeud[cli]||0)+p.monto; }); }
@@ -1186,7 +1185,8 @@
 
         window.filtrarReporte = () => {
             const term = document.getElementById('buscador-reporte').value.toLowerCase();
-            const tipoSeleccionado = document.getElementById('filtro-tipo-reporte').value;
+            const selectorFiltroTipo = document.getElementById('filtro-tipo-reporte');
+            const tipoSeleccionado = selectorFiltroType ? selectorFiltroType.value : "";
             
             document.querySelectorAll('.registro-item').forEach(item => {
                 const dataRaw = item.getAttribute('data-search').toLowerCase();
