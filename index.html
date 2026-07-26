@@ -88,7 +88,6 @@
                 <p class="text-[10px] text-brand-error mt-2 font-mono">* La sesión expira al recargar</p>
             </div>
             
-            <!-- Seguro anti-recarga en el HTML (event.preventDefault) -->
             <form id="login-form" onsubmit="event.preventDefault(); if(window.iniciarSesion) window.iniciarSesion();" class="space-y-5 relative z-10">
                 <div>
                     <label class="block text-xs font-mono mb-1 text-brand-textSec uppercase">Correo Electrónico</label>
@@ -131,7 +130,6 @@
             </div>
         </header>
 
-        <!-- Cuadrícula Principal - Z-Index Removido -->
         <div class="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-3 gap-6 relative">
             
             <!-- COLUMNA IZQUIERDA: FORMULARIO PRINCIPAL -->
@@ -162,7 +160,6 @@
                                 <input type="radio" name="tipoMovimiento" value="Gasto" class="peer sr-only" onchange="manejarCambioTipo()">
                                 <div class="rounded-lg border border-brand-border bg-brand-card p-3 text-center text-brand-textSec hover:bg-brand-cardHover peer-checked:border-brand-error peer-checked:bg-brand-error/10 peer-checked:text-brand-error transition-all font-bold shadow-sm font-display tracking-wide">Gasto</div>
                             </label>
-                            <!-- Abono oculto en UI estándar -->
                             <label id="label-tipo-abono" class="hidden cursor-pointer">
                                 <input type="radio" name="tipoMovimiento" value="Abono" class="peer sr-only" onchange="manejarCambioTipo()">
                                 <div class="rounded-lg border border-brand-border bg-brand-card p-3 text-center text-brand-textSec peer-checked:border-brand-secondary peer-checked:bg-brand-secondary/10 peer-checked:text-brand-secondary transition-all font-bold shadow-sm font-display tracking-wide">Abono a Cartera</div>
@@ -763,7 +760,7 @@
         const HADES_EMAIL = 'hades@fercofarma.com';
         const USUARIOS_PERMITIDOS = [ADMIN_EMAIL, SUPERVISOR_EMAIL, HADES_EMAIL];
 
-        // VARIABLES GLOBALES (ESENCIAL PARA EL MODAL EDITAR)
+        // VARIABLES GLOBALES
         window.currentUser = null;
         window.ventaEditandoId = null;
         window.tipoMovimientoEditando = 'Venta'; 
@@ -810,7 +807,7 @@
                 } else if (correo === HADES_EMAIL) {
                     document.getElementById('panel-financiero').classList.add('hidden');
                     document.getElementById('panel-hades').classList.remove('hidden');
-                    document.getElementById('hades-tools').classList.remove('hidden'); // Herramientas de decenas
+                    document.getElementById('hades-tools').classList.remove('hidden'); 
                 }
 
                 await cargarConfiguracionHades();
@@ -825,7 +822,7 @@
             }
         });
 
-        // INICIO DE SESIÓN DEFENSIVO (Muestra el error real)
+        // INICIO DE SESIÓN DEFENSIVO
         window.iniciarSesion = () => {
             const email = document.getElementById('login-email').value.trim().toLowerCase();
             const pass = document.getElementById('login-pass').value;
@@ -921,6 +918,15 @@
             manejarCambioTipo(); 
             calcularDashboard();
         }
+
+        // FUNCIÓN GLOBAL PARA LIMPIAR EL FORMULARIO
+        window.limpiarFormulario = () => {
+            document.getElementById('cliente').value = '';
+            document.getElementById('notas').value = '';
+            document.getElementById('costo-envio').value = '0';
+            document.getElementById('medio-entrega').value = '';
+            inicializarApp();
+        };
 
         // FORMULARIO PRINCIPAL (CREAR)
         window.manejarCambioTipo = () => {
@@ -1076,21 +1082,27 @@
                 pags.push({ metodo: 'Credito', cuenta: 'CREDITO', monto: diferenciaCredito });
             }
 
+            const datosRegistro = { tipoMovimiento: tipo, fecha, cliente, notas, productos: prods, entrega, pagos: pags, totalVenta: totCobrar, creadoPor: window.currentUser.email, timestamp: Date.now() };
+            console.log("Enviando a Firebase:", datosRegistro);
+
             try {
                 const btn = document.getElementById('btn-guardar'); 
                 btn.innerHTML = 'PUSHING...';
                 
-                await addDoc(collection(db, "ventas"), { tipoMovimiento: tipo, fecha, cliente, notas, productos: prods, entrega, pagos: pags, totalVenta: totCobrar, creadoPor: window.currentUser.email, timestamp: Date.now() });
+                await addDoc(collection(db, "ventas"), datosRegistro);
                 
                 // Ejecutamos la limpieza total y actualizamos los gráficos
-                window.limpiarFormulario();
+                if(window.limpiarFormulario) window.limpiarFormulario(); else inicializarApp();
                 calcularDashboard(); 
                 
                 // Restauramos el botón
                 btn.innerHTML = '<i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">Guardar</span>';
                 lucide.createIcons();
                 
-            } catch (e) { alert("Error guardando."); }
+            } catch (e) { 
+                alert("Error guardando: " + e.message); 
+                console.error(e); 
+            }
         };
 
         // DASHBOARD
@@ -1533,7 +1545,7 @@
                 document.getElementById('btn-guardar-edicion').innerHTML = 'WAIT...';
                 await updateDoc(doc(db, "ventas", window.ventaEditandoId), { tipoMovimiento: nuevoTipo, cliente: cli, fecha: document.getElementById('fecha-edicion').value, notas: document.getElementById('notas-edicion').value, productos: prods, entrega: ent, pagos: pags, totalVenta: totCobrar, modificadoPor: window.currentUser.email, fechaModificacion: Date.now() });
                 cerrarModalEdicion(); abrirModalReporte(); calcularDashboard(); document.getElementById('btn-guardar-edicion').innerHTML = 'Guardar Cambios';
-            } catch(e) { alert("Error guardando"); }
+            } catch(e) { alert("Error guardando: " + e.message); console.error(e); }
         };
 
         window.exportarCSV = () => { alert("Export feature standing by in new build."); };
