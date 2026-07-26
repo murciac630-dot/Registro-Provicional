@@ -262,7 +262,7 @@
                         
                         <div class="flex flex-col items-end w-full md:w-auto gap-2">
                             <div id="alerta-descuadre" class="text-brand-secondary font-mono text-xs hidden animate-pulse bg-brand-secondary/10 px-3 py-1.5 rounded border border-brand-secondary/30 tracking-widest uppercase flex items-center gap-2">
-                                <i data-lucide="info" class="w-3 h-3"></i> Se irá a CxC: <span id="txt-descuadre">$0</span>
+                                <i data-lucide="info" class="w-3 h-3"></i> Faltante (Quedará Pendiente): <span id="txt-descuadre">$0</span>
                             </div>
                             <button id="btn-guardar" onclick="guardarMovimiento()" disabled class="w-full md:w-auto bg-brand-primary hover:bg-brand-primaryHover disabled:bg-brand-card disabled:text-brand-textSec disabled:border-brand-border disabled:shadow-none disabled:cursor-not-allowed text-brand-bg border border-transparent px-8 py-3 rounded-lg font-display font-bold transition-all shadow-[0_0_15px_rgba(0,245,255,0.3)] hover:shadow-[0_0_25px_rgba(0,245,255,0.5)] flex items-center justify-center gap-2 tracking-wide uppercase text-sm">
                                 <i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">Guardar</span>
@@ -344,7 +344,7 @@
                             <i data-lucide="terminal" class="w-4 h-4 text-brand-primary"></i> Registros por día
                         </button>
                         <button onclick="abrirModalReporte('pendientes')" class="w-full bg-brand-warning/10 hover:bg-brand-warning border border-brand-warning text-brand-warning hover:text-brand-bg px-4 py-3 rounded-lg font-display font-bold uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,213,0,0.1)]">
-                            <i data-lucide="clock" class="w-4 h-4"></i> PENDIENTES X PAGAR
+                            <i data-lucide="clock" class="w-4 h-4"></i> Pendientes x Pagar
                         </button>
                     </div>
                 </div>
@@ -527,7 +527,7 @@
                         </select>
                     </div>
                 </div>
-                <button id="btn-procesar-abono" onclick="procesarAbonoRapido()" class="w-full mt-2 bg-brand-secondary hover:bg-brand-secondary/80 text-brand-text px-4 py-3 rounded-lg font-display font-bold uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(139,92,246,0.4)]">
+                <button id="btn-procesar-abono" onclick="procesarAbonoRapido()" class="w-full mt-2 bg-brand-secondary hover:bg-brand-secondary/80 text-brand-text px-4 py-3 rounded-lg font-mono font-bold uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(139,92,246,0.4)]">
                     <i data-lucide="check-circle" class="w-4 h-4"></i> Confirmar Transacción
                 </button>
             </div>
@@ -554,7 +554,7 @@
                 
                 <div class="flex-shrink-0 flex gap-2">
                     <button id="btn-filtro-pendientes" onclick="toggleFiltroPendientes()" class="bg-brand-warning/10 border border-brand-warning text-brand-warning px-4 py-2.5 rounded-lg font-mono text-xs uppercase tracking-widest hover:bg-brand-warning hover:text-brand-bg transition-colors flex items-center gap-2">
-                        <i data-lucide="clock" class="w-3 h-3"></i> Pendientes
+                        <i data-lucide="clock" class="w-3 h-3"></i> PENDIENTES
                     </button>
                 </div>
 
@@ -1005,12 +1005,24 @@
                 <div id="pago-${id}" class="flex flex-col md:flex-row gap-3 items-start md:items-center bg-brand-bg p-4 md:p-3 rounded-xl border border-brand-border">
                     <div class="w-full md:w-4/12">
                         <select class="input-metodo w-full p-2.5 border border-brand-border rounded-lg bg-brand-panel text-xs outline-none">
-                            <option value="">Metodo...</option><option value="Transferencia">Transferencia</option><option value="Efectivo">Efectivo</option><option value="Credito">Crédito (CxC)</option><option value="Cruce">Cruce</option><option value="Bold">Bold</option>
+                            <option value="">Metodo...</option>
+                            <option value="Transferencia">Transferencia</option>
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Credito">Crédito (CxC)</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Cruce">Cruce</option>
+                            <option value="Bold">Bold</option>
                         </select>
                     </div>
                     <div class="w-full md:w-4/12">
                         <select class="input-cuenta w-full p-2.5 border border-brand-border rounded-lg bg-brand-panel text-xs outline-none">
-                            <option value="">Caja...</option><option value="CRIS">CRIS</option><option value="JHON">JHON</option><option value="HADES">HADES</option><option value="BODEGA">BODEGA</option><option value="CREDITO">POR COBRAR</option>
+                            <option value="">Caja...</option>
+                            <option value="CRIS">CRIS</option>
+                            <option value="JHON">JHON</option>
+                            <option value="HADES">HADES</option>
+                            <option value="BODEGA">BODEGA</option>
+                            <option value="CREDITO">POR COBRAR</option>
+                            <option value="PENDIENTE">PENDIENTE</option>
                         </select>
                     </div>
                     <div class="w-full md:w-3/12"><input type="number" class="input-monto w-full p-2.5 border border-brand-border rounded-lg bg-brand-panel text-sm outline-none text-brand-success" placeholder="Monto" oninput="calcularTotales()"></div>
@@ -1031,7 +1043,6 @@
             calcularTotales();
         };
 
-        // CÁLCULO FLEXIBLE ACTUALIZADO
         window.calcularTotales = () => {
             let totP = 0, totPag = 0;
             document.querySelectorAll('#productos-container > div').forEach(f => {
@@ -1096,14 +1107,13 @@
 
             if (prods.length===0) return alert("Falta agregar conceptos o productos.");
 
-            // Inyección automática de la diferencia como Crédito (CxC)
+            // Inyección automática de la diferencia como PENDIENTE X PAGAR
             const diferenciaCredito = totCobrar - totPag;
             if (diferenciaCredito > 0) {
-                pags.push({ metodo: 'Credito', cuenta: 'CREDITO', monto: diferenciaCredito });
+                pags.push({ metodo: 'Pendiente', cuenta: 'PENDIENTE', monto: diferenciaCredito });
             }
 
             const datosRegistro = { tipoMovimiento: tipo, fecha, cliente, notas, productos: prods, entrega, pagos: pags, totalVenta: totCobrar, creadoPor: window.currentUser.email, timestamp: Date.now() };
-            console.log("Enviando a Firebase:", datosRegistro);
 
             try {
                 const btn = document.getElementById('btn-guardar'); 
@@ -1255,17 +1265,21 @@
 
         window.filtrarReporte = () => {
             const term = document.getElementById('buscador-reporte').value.toLowerCase();
+            const selectorFiltroTipo = document.getElementById('filtro-tipo-reporte');
+            const tipoSeleccionado = selectorFiltroTipo ? selectorFiltroTipo.value : "";
             
             document.querySelectorAll('.registro-item').forEach(item => {
                 const dataRaw = item.getAttribute('data-search').toLowerCase();
                 const totalMonto = parseFloat(item.getAttribute('data-total')) || 0;
+                const tipoItem = item.getAttribute('data-tipo'); 
                 const isPendiente = item.getAttribute('data-pendiente') === 'true';
                 
                 let pasaTermino = dataRaw.includes(term);
                 let pasaDecenas = window.filtroDecenasActivo ? (totalMonto >= 10 && totalMonto <= 999) : true;
+                let pasaTipo = (tipoSeleccionado === "" || tipoItem === tipoSeleccionado);
                 let pasaPendientes = window.filtroPendientesActivo ? isPendiente : true;
                 
-                if (pasaTermino && pasaDecenas && pasaPendientes) item.style.display = 'flex';
+                if (pasaTermino && pasaDecenas && pasaTipo && pasaPendientes) item.style.display = 'flex';
                 else item.style.display = 'none';
             });
         };
@@ -1316,7 +1330,6 @@
             const mod = document.getElementById('modal-reporte'), cont = document.getElementById('contenedor-reporte-dias');
             mod.style.display = 'flex'; cont.innerHTML = '<p class="text-center">Cargando...</p>'; window.movimientosCache = [];
             
-            // Configurar el estado del filtro inicial
             window.filtroPendientesActivo = (filtroInicial === 'pendientes');
             const btnPend = document.getElementById('btn-filtro-pendientes');
             if(window.filtroPendientesActivo) {
@@ -1345,11 +1358,12 @@
                         const isDecena = window.currentUser?.email === HADES_EMAIL && m.totalVenta > 0 && m.totalVenta < 1000;
                         const checkHtml = isDecena ? `<input type="checkbox" class="check-rectificar mr-3" value="${m.id}" onclick="event.stopPropagation()">` : '';
                         
-                        const tieneCredito = m.pagos && m.pagos.some(p => p.metodo === 'Credito' && p.monto > 0);
-                        const badgePendiente = tieneCredito ? `<span class="bg-brand-warning text-brand-bg px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ml-2">Pendiente</span>` : '';
+                        // Lógica para detectar si está pendiente
+                        const tienePendiente = m.pagos && m.pagos.some(p => p.metodo === 'Pendiente' && p.monto > 0);
+                        const badgePendiente = tienePendiente ? `<span class="bg-brand-warning text-brand-bg px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ml-2">Pendiente</span>` : '';
                         const badgeCreador = `<span class="text-[9px] font-mono text-brand-textSec opacity-60 ml-2">(${m.creadoPor || 'S/N'})</span>`;
 
-                        html += `<div onclick="abrirDetalleRegistro('${m.id}')" data-search="${searchTags}" data-tipo="${m.tipoMovimiento}" data-total="${m.totalVenta||0}" data-pendiente="${tieneCredito}" class="registro-item flex justify-between p-2 hover:bg-brand-card cursor-pointer border-b border-brand-border">
+                        html += `<div onclick="abrirDetalleRegistro('${m.id}')" data-search="${searchTags}" data-tipo="${m.tipoMovimiento}" data-total="${m.totalVenta||0}" data-pendiente="${tienePendiente}" class="registro-item flex justify-between p-2 hover:bg-brand-card cursor-pointer border-b border-brand-border">
                             <div class="flex items-center">${checkHtml}<span class="text-xs font-bold w-12">${m.tipoMovimiento}</span> <span class="text-sm uppercase">${m.cliente}</span> ${badgePendiente} ${badgeCreador}</div>
                             <span class="font-mono text-sm">${formatoMoneda.format(m.totalVenta)}</span>
                         </div>`;
@@ -1447,7 +1461,7 @@
             
             const total = subtotal + fee;
             let abonoCredito = 0;
-            (mov.pagos || []).forEach(p => { if (p.metodo === 'Credito') abonoCredito += (p.monto || 0); });
+            (mov.pagos || []).forEach(p => { if (p.metodo === 'Credito' || p.metodo === 'Pendiente') abonoCredito += (p.monto || 0); });
             const htmlSaldo = abonoCredito > 0 ? `<div style="border-top: 1px dashed #000; padding-top: 5px; margin-top: 5px;"><div style="display:flex; justify-content:space-between; font-size:12px;"><span>Abono/Anticipo:</span><span>${formatoMoneda.format(total - abonoCredito)}</span></div><div style="display:flex; justify-content:space-between; font-weight:bold; font-size:14px; margin-top:5px;"><span>SALDO PENDIENTE:</span><span>${formatoMoneda.format(abonoCredito)}</span></div></div>` : '';
 
             // Lógica de personalización para Hades
@@ -1537,8 +1551,8 @@
             contadorPagosEd++; const id = contadorPagosEd;
             document.getElementById('pagos-container-edicion').insertAdjacentHTML('beforeend', `
                 <div id="page-${id}" class="flex gap-2 items-center bg-brand-bg p-2 rounded border border-brand-border mb-2">
-                    <div class="w-1/3"><select class="inp-met w-full p-2 rounded bg-brand-panel text-xs outline-none"><option value="Transferencia" ${d?.metodo==='Transferencia'?'selected':''}>Transf</option><option value="Efectivo" ${d?.metodo==='Efectivo'?'selected':''}>Efect</option><option value="Credito" ${d?.metodo==='Credito'?'selected':''}>Crédito</option><option value="Cruce" ${d?.metodo==='Cruce'?'selected':''}>Cruce</option><option value="Bold" ${d?.metodo==='Bold'?'selected':''}>Bold</option></select></div>
-                    <div class="w-1/3"><select class="inp-cta w-full p-2 rounded bg-brand-panel text-xs outline-none"><option value="CRIS" ${d?.cuenta==='CRIS'?'selected':''}>CRIS</option><option value="JHON" ${d?.cuenta==='JHON'?'selected':''}>JHON</option><option value="HADES" ${d?.cuenta==='HADES'?'selected':''}>HADES</option><option value="BODEGA" ${d?.cuenta==='BODEGA'?'selected':''}>BODEGA</option><option value="CREDITO" ${d?.cuenta==='CREDITO'?'selected':''}>POR COBRAR</option></select></div>
+                    <div class="w-1/3"><select class="inp-met w-full p-2 rounded bg-brand-panel text-xs outline-none"><option value="Transferencia" ${d?.metodo==='Transferencia'?'selected':''}>Transf</option><option value="Efectivo" ${d?.metodo==='Efectivo'?'selected':''}>Efect</option><option value="Credito" ${d?.metodo==='Credito'?'selected':''}>Crédito</option><option value="Pendiente" ${d?.metodo==='Pendiente'?'selected':''}>Pendiente</option><option value="Cruce" ${d?.metodo==='Cruce'?'selected':''}>Cruce</option><option value="Bold" ${d?.metodo==='Bold'?'selected':''}>Bold</option></select></div>
+                    <div class="w-1/3"><select class="inp-cta w-full p-2 rounded bg-brand-panel text-xs outline-none"><option value="CRIS" ${d?.cuenta==='CRIS'?'selected':''}>CRIS</option><option value="JHON" ${d?.cuenta==='JHON'?'selected':''}>JHON</option><option value="HADES" ${d?.cuenta==='HADES'?'selected':''}>HADES</option><option value="BODEGA" ${d?.cuenta==='BODEGA'?'selected':''}>BODEGA</option><option value="CREDITO" ${d?.cuenta==='CREDITO'?'selected':''}>POR COBRAR</option><option value="PENDIENTE" ${d?.cuenta==='PENDIENTE'?'selected':''}>PENDIENTE</option></select></div>
                     <div class="w-1/4"><input type="number" class="inp-mnt w-full p-2 rounded bg-brand-panel text-xs text-brand-success outline-none" value="${d?.monto||0}" oninput="calcularTotalesEdicion()"></div>
                     <div class="w-1/12"><button onclick="document.getElementById('page-${id}').remove(); calcularTotalesEdicion();" class="text-brand-error p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>
                 </div>
@@ -1581,9 +1595,10 @@
                 if(mt&&ct&&mn>=0){ pags.push({metodo:mt, cuenta:ct, monto:mn}); totPag+=mn; }
             });
 
+            // Inyección automática de la diferencia como PENDIENTE X PAGAR al editar
             const diferenciaCredito = totCobrar - totPag;
             if (diferenciaCredito > 0) {
-                pags.push({ metodo: 'Credito', cuenta: 'CREDITO', monto: diferenciaCredito });
+                pags.push({ metodo: 'Pendiente', cuenta: 'PENDIENTE', monto: diferenciaCredito });
             }
 
             try {
