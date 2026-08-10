@@ -348,10 +348,10 @@
                         </button>
                     </div>
 
-                    <!-- TARJETAS DE ACUMULADO DIARIO -->
+                    <!-- TARJETA DE ACUMULADO DEL DÍA ACTUAL -->
                     <div class="mt-6 fade-in">
                         <p class="font-mono text-[10px] text-brand-textSec uppercase tracking-widest mb-3 border-b border-brand-border pb-2">Acumulado de Ventas por Día</p>
-                        <div id="contenedor-acumulado-diario" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                        <div id="contenedor-acumulado-diario" class="grid grid-cols-2 gap-4">
                             <!-- Dinámico JS -->
                         </div>
                     </div>
@@ -1254,35 +1254,32 @@
                     for(const[e,t] of Object.entries(domis)) divD.insertAdjacentHTML('beforeend', `<div class="bg-brand-card p-3 rounded border border-brand-border"><p class="text-[9px] uppercase tracking-widest text-brand-textSec">${e}</p><p class="text-sm font-bold text-brand-text">${formatoMoneda.format(t)}</p></div>`);
                     for(const[c,v] of Object.entries(deudAct)) lD.insertAdjacentHTML('beforeend', getDeudorCardHTML(c,v));
 
-                    // Llenar tarjetas de acumulados diarios
+                    // Llenar tarjeta de acumulado SOLO DEL DÍA ACTUAL
                     const contenedorAcumulado = document.getElementById('contenedor-acumulado-diario');
                     if(contenedorAcumulado) {
                         contenedorAcumulado.innerHTML = '';
                         
-                        // Array maestro de meses para traducción
-                        const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+                        // 1. Obtener la fecha exacta de hoy en formato YYYY-MM-DD
+                        const hoy = new Date();
+                        const yyyy = hoy.getFullYear();
+                        const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+                        const dd = String(hoy.getDate()).padStart(2, '0');
+                        const fechaHoyStr = `${yyyy}-${mm}-${dd}`;
                         
-                        Object.keys(ventasPorDia).sort((a,b) => new Date(b) - new Date(a)).forEach(fecha => {
-                            let fechaFormateada = fecha;
-                            
-                            // Lógica de conversión de fecha
-                            if(fecha !== 'S/F') {
-                                const partes = fecha.split('-'); 
-                                if(partes.length === 3) {
-                                    const dia = parseInt(partes[2], 10);
-                                    const mes = meses[parseInt(partes[1], 10) - 1]; 
-                                    fechaFormateada = `${dia} de ${mes}`;
-                                }
-                            }
-                            
-                            // Inyección de la tarjeta HTML
-                            contenedorAcumulado.insertAdjacentHTML('beforeend', `
-                                <div class="bg-brand-bg/50 p-3 rounded-xl border border-brand-border card-dash">
-                                    <p class="font-mono text-[9px] uppercase tracking-widest text-brand-textSec mb-1">${fechaFormateada}</p>
-                                    <p class="font-mono text-lg font-bold text-brand-primary drop-shadow-[0_0_5px_rgba(0,245,255,0.3)]">${formatoMoneda.format(ventasPorDia[fecha])}</p>
-                                </div>
-                            `);
-                        });
+                        // 2. Extraer solo el valor de hoy
+                        const totalHoy = ventasPorDia[fechaHoyStr] || 0;
+
+                        // 3. Formatear la fecha
+                        const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+                        const fechaFormateada = `${hoy.getDate()} de ${meses[hoy.getMonth()]}`;
+                        
+                        // 4. Inyectar la tarjeta única
+                        contenedorAcumulado.insertAdjacentHTML('beforeend', `
+                            <div class="bg-brand-bg/50 p-4 rounded-xl border border-brand-border card-dash">
+                                <p class="font-mono text-[9px] uppercase tracking-widest text-brand-primary mb-1 whitespace-nowrap overflow-hidden text-ellipsis">${fechaFormateada}</p>
+                                <p class="font-mono text-xl font-bold text-brand-text drop-shadow-[0_0_5px_rgba(0,245,255,0.3)] truncate">${formatoMoneda.format(totalHoy)}</p>
+                            </div>
+                        `);
                     }
                 }
             } catch (e) { console.error(e); }
