@@ -287,7 +287,7 @@
 
                     <div class="grid grid-cols-2 gap-3 mb-6">
                         <div class="bg-brand-bg/50 p-4 rounded-xl border border-brand-border card-dash">
-                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-primary mb-1">Volumen Ventas</p>
+                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-primary mb-1">Volumen Ventas (Mes)</p>
                             <p id="dash-ventas" class="font-mono text-xl font-bold text-brand-text drop-shadow-[0_0_5px_rgba(0,245,255,0.3)]">$ 0</p>
                         </div>
                         <div onclick="abrirModalCreditos()" class="bg-brand-secondary/5 border border-brand-secondary/20 p-4 rounded-xl card-dash cursor-pointer hover:bg-brand-secondary/10 transition-all">
@@ -315,11 +315,11 @@
                             <p id="dash-bodega" class="font-mono text-sm font-bold text-brand-text">$ 0</p>
                         </div>
                         <div class="bg-brand-warning/5 p-2.5 rounded border border-brand-warning/20">
-                            <p class="font-mono text-[9px] text-brand-warning uppercase tracking-widest mb-0.5 opacity-80">Total Compras</p>
+                            <p class="font-mono text-[9px] text-brand-warning uppercase tracking-widest mb-0.5 opacity-80">Total Compras (Semana)</p>
                             <p id="dash-compras-global" class="font-mono text-sm font-bold text-brand-text">$ 0</p>
                         </div>
                         <div class="bg-brand-error/5 p-2.5 rounded border border-brand-error/20">
-                            <p class="font-mono text-[9px] text-brand-error uppercase tracking-widest mb-0.5 opacity-80">Total Gastos</p>
+                            <p class="font-mono text-[9px] text-brand-error uppercase tracking-widest mb-0.5 opacity-80">Total Gastos (Semana)</p>
                             <p id="dash-gastos-global" class="font-mono text-sm font-bold text-brand-text">$ 0</p>
                         </div>
                     </div>
@@ -347,6 +347,15 @@
                             <i data-lucide="clock" class="w-4 h-4"></i> Pendientes x Pagar
                         </button>
                     </div>
+
+                    <!-- TARJETAS DE ACUMULADO DIARIO -->
+                    <div class="mt-6 fade-in">
+                        <p class="font-mono text-[10px] text-brand-textSec uppercase tracking-widest mb-3 border-b border-brand-border pb-2">Acumulado de Ventas por Día</p>
+                        <div id="contenedor-acumulado-diario" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                            <!-- Dinámico JS -->
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- PANEL HADES -->
@@ -361,7 +370,7 @@
                     </div>
                     <div class="grid grid-cols-2 gap-3 mb-4">
                         <div class="bg-brand-primary/5 p-3 rounded-lg border border-brand-primary/20">
-                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-primary opacity-80 mb-1">Mis Ventas</p>
+                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-primary opacity-80 mb-1">Mis Ventas (Semana)</p>
                             <p id="dash-hades-ventas" class="font-mono text-lg font-bold text-brand-primary">$ 0</p>
                         </div>
                         <div onclick="abrirModalCreditos()" class="bg-brand-secondary/5 border border-brand-secondary/20 p-3 rounded-lg cursor-pointer hover:bg-brand-secondary/20 transition-colors">
@@ -371,11 +380,11 @@
                     </div>
                     <div class="grid grid-cols-2 gap-3 mb-6">
                         <div class="bg-brand-warning/5 p-3 rounded-lg border border-brand-warning/20">
-                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-warning opacity-80 mb-1">Compras</p>
+                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-warning opacity-80 mb-1">Compras (Semana)</p>
                             <p id="dash-hades-compras" class="font-mono text-sm font-bold text-brand-warning">$ 0</p>
                         </div>
                         <div class="bg-brand-error/5 p-3 rounded-lg border border-brand-error/20">
-                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-error opacity-80 mb-1">Gastos</p>
+                            <p class="font-mono text-[9px] uppercase tracking-widest text-brand-error opacity-80 mb-1">Gastos (Semana)</p>
                             <p id="dash-hades-gastos" class="font-mono text-sm font-bold text-brand-error">$ 0</p>
                         </div>
                     </div>
@@ -514,6 +523,7 @@
                             <option value="Efectivo">Efectivo</option>
                             <option value="Cruce">Cruce</option>
                             <option value="Bold">Bold</option>
+                            <option value="PayPal">PayPal</option>
                         </select>
                     </div>
                     <div>
@@ -524,6 +534,7 @@
                             <option value="JHON">JHON</option>
                             <option value="HADES">HADES</option>
                             <option value="BODEGA">BODEGA</option>
+                            <option value="HOSTEL">CUENTA HOSTEL</option>
                         </select>
                     </div>
                 </div>
@@ -1012,6 +1023,7 @@
                             <option value="Pendiente">Pendiente</option>
                             <option value="Cruce">Cruce</option>
                             <option value="Bold">Bold</option>
+                            <option value="PayPal">PayPal</option>
                         </select>
                     </div>
                     <div class="w-full md:w-4/12">
@@ -1021,6 +1033,7 @@
                             <option value="JHON">JHON</option>
                             <option value="HADES">HADES</option>
                             <option value="BODEGA">BODEGA</option>
+                            <option value="HOSTEL">CUENTA HOSTEL</option>
                             <option value="CREDITO">POR COBRAR</option>
                             <option value="PENDIENTE">PENDIENTE</option>
                         </select>
@@ -1135,15 +1148,40 @@
             }
         };
 
-        // DASHBOARD
+        // DASHBOARD ACTUALIZADO CON FILTROS POR FECHA
         window.calcularDashboard = async () => {
             if(!window.currentUser) return;
             try {
                 const snap = await getDocs(collection(db, "ventas"));
-                let totV = 0, deudores = {}, saldos = {"CRIS":0, "JHON":0, "BODEGA":0, "HADES":0}, domis = {};
-                let hV = 0, hC = 0, hG = 0, hDomis = 0, hDeud = {};
-                let totalComprasGlobal = 0;
-                let totalGastosGlobal = 0;
+                
+                // --- 1. LÓGICA DE FECHAS ---
+                const ahora = new Date();
+                
+                // Timestamp de inicio de mes (Día 1 a las 00:00:00)
+                const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+                inicioMes.setHours(0,0,0,0);
+                const msInicioMes = inicioMes.getTime();
+
+                // Timestamp de inicio de semana (Lunes a las 00:00:00)
+                const diaSemana = ahora.getDay(); // 0 es Domingo, 1 es Lunes...
+                const diasAlLunes = ahora.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1);
+                const inicioSemana = new Date(ahora.getFullYear(), ahora.getMonth(), diasAlLunes);
+                inicioSemana.setHours(0,0,0,0);
+                const msInicioSemana = inicioSemana.getTime();
+                // -----------------------------------
+
+                // Variables históricas
+                let deudores = {}, saldos = {"CRIS":0, "JHON":0, "BODEGA":0, "HADES":0, "HOSTEL":0}, domis = {};
+                let hDomis = 0, hDeud = {};
+                
+                // Variables filtradas para el Dashboard
+                let ventasMesGlobal = 0;
+                let comprasSemanaGlobal = 0;
+                let gastosSemanaGlobal = 0;
+                let hVSemana = 0, hCSemana = 0, hGSemana = 0;
+                
+                // Acumulador para la tabla diaria
+                let ventasPorDia = {}; 
 
                 snap.forEach(doc => {
                     const d = doc.data();
@@ -1151,26 +1189,41 @@
                     const esH = d.creadoPor===HADES_EMAIL;
                     const mt = d.totalVenta||0;
                     const cli = (d.cliente||"").toUpperCase();
+                    const timestamp = d.timestamp; 
+                    const f = d.fecha || "S/F";
+
+                    const esDeEsteMes = timestamp >= msInicioMes;
+                    const esDeEstaSemana = timestamp >= msInicioSemana;
 
                     if(t==='Venta') {
-                        totV+=mt; 
+                        if(esDeEsteMes) ventasMesGlobal += mt; 
+                        
+                        // Guardar acumulado por fecha para la tabla
+                        ventasPorDia[f] = (ventasPorDia[f] || 0) + mt;
+                        
                         (d.pagos||[]).forEach(p => { if(p.metodo==='Credito') deudores[cli]=(deudores[cli]||0)+p.monto; else if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]+=p.monto; });
                     } else if(t==='Abono') {
                         deudores[cli]=(deudores[cli]||0)-mt; 
                         (d.pagos||[]).forEach(p => { if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]+=p.monto; });
                     } else if(t==='Compra') {
-                        totalComprasGlobal += mt; 
+                        if(esDeEstaSemana) comprasSemanaGlobal += mt; 
                         (d.pagos||[]).forEach(p => { if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]-=p.monto; });
                     } else if(t==='Gasto') {
-                        totalGastosGlobal += mt;  
+                        if(esDeEstaSemana) gastosSemanaGlobal += mt;  
                         (d.pagos||[]).forEach(p => { if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]-=p.monto; });
                     }
 
                     if(d.entrega?.costo>0 && d.entrega?.encargado) domis[d.entrega.encargado.toUpperCase()] = (domis[d.entrega.encargado.toUpperCase()]||0) + d.entrega.costo;  
                     
                     if(esH) {
-                        if(t==='Venta') { hV+=mt; (d.pagos||[]).forEach(p=>{ if(p.metodo==='Credito') hDeud[cli]=(hDeud[cli]||0)+p.monto; }); }
-                        if(t==='Compra') hC+=mt; if(t==='Gasto') hG+=mt; if(t==='Abono') hDeud[cli]=(hDeud[cli]||0)-mt;
+                        if(t==='Venta') { 
+                            if(esDeEstaSemana) hVSemana += mt; 
+                            (d.pagos||[]).forEach(p=>{ if(p.metodo==='Credito') hDeud[cli]=(hDeud[cli]||0)+p.monto; }); 
+                        }
+                        if(t==='Compra' && esDeEstaSemana) hCSemana += mt; 
+                        if(t==='Gasto' && esDeEstaSemana) hGSemana += mt; 
+                        if(t==='Abono') hDeud[cli]=(hDeud[cli]||0)-mt;
+                        
                         const encargadoDomi = (d.entrega?.encargado || '').toUpperCase().trim();
                         const equipoInterno = ['CRIS', 'VALENTINO ROSSI', 'DAVID', 'JF', 'MONO'];
                         if (d.entrega?.costo > 0 && equipoInterno.includes(encargadoDomi) && d.timestamp >= window.fechaCorteDomisHades) {hDomis += d.entrega.costo;}
@@ -1183,21 +1236,56 @@
                 const lD = document.getElementById('lista-deudores'); lD.innerHTML='';
 
                 if(window.currentUser.email===HADES_EMAIL) {
-                    document.getElementById('dash-hades-ventas').textContent=formatoMoneda.format(hV); document.getElementById('dash-hades-compras').textContent=formatoMoneda.format(hC);
-                    document.getElementById('dash-hades-gastos').textContent=formatoMoneda.format(hG); document.getElementById('dash-hades-creditos').textContent=formatoMoneda.format(hAct);
+                    document.getElementById('dash-hades-ventas').textContent=formatoMoneda.format(hVSemana); 
+                    document.getElementById('dash-hades-compras').textContent=formatoMoneda.format(hCSemana);
+                    document.getElementById('dash-hades-gastos').textContent=formatoMoneda.format(hGSemana); 
+                    document.getElementById('dash-hades-creditos').textContent=formatoMoneda.format(hAct);
                     document.getElementById('dash-hades-domis').textContent=formatoMoneda.format(hDomis);
                     for(const[c,v] of Object.entries(hdAct)) lD.insertAdjacentHTML('beforeend', getDeudorCardHTML(c,v));
                 } else {
-                    document.getElementById('dash-ventas').textContent=formatoMoneda.format(totV); document.getElementById('dash-creditos').textContent=formatoMoneda.format(cAct);
+                    document.getElementById('dash-ventas').textContent=formatoMoneda.format(ventasMesGlobal);
+                    document.getElementById('dash-creditos').textContent=formatoMoneda.format(cAct);
                     document.getElementById('dash-admin-domis-hades').textContent=formatoMoneda.format(hDomis);
-                    document.getElementById('dash-compras-global').textContent = formatoMoneda.format(totalComprasGlobal);
-                    document.getElementById('dash-gastos-global').textContent = formatoMoneda.format(totalGastosGlobal);
+                    document.getElementById('dash-compras-global').textContent = formatoMoneda.format(comprasSemanaGlobal);
+                    document.getElementById('dash-gastos-global').textContent = formatoMoneda.format(gastosSemanaGlobal); 
+                    
                     ['CRIS','JHON','BODEGA','HADES'].forEach(c => { const el=document.getElementById(`dash-${c.toLowerCase()}`); if(el) el.textContent=formatoMoneda.format(saldos[c]||0); });
                     const divD = document.getElementById('div-costos-domis-global'); divD.innerHTML='';
                     for(const[e,t] of Object.entries(domis)) divD.insertAdjacentHTML('beforeend', `<div class="bg-brand-card p-3 rounded border border-brand-border"><p class="text-[9px] uppercase tracking-widest text-brand-textSec">${e}</p><p class="text-sm font-bold text-brand-text">${formatoMoneda.format(t)}</p></div>`);
                     for(const[c,v] of Object.entries(deudAct)) lD.insertAdjacentHTML('beforeend', getDeudorCardHTML(c,v));
+
+                    // Llenar tarjetas de acumulados diarios
+                    const contenedorAcumulado = document.getElementById('contenedor-acumulado-diario');
+                    if(contenedorAcumulado) {
+                        contenedorAcumulado.innerHTML = '';
+                        
+                        // Array maestro de meses para traducción
+                        const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+                        
+                        Object.keys(ventasPorDia).sort((a,b) => new Date(b) - new Date(a)).forEach(fecha => {
+                            let fechaFormateada = fecha;
+                            
+                            // Lógica de conversión de fecha
+                            if(fecha !== 'S/F') {
+                                const partes = fecha.split('-'); 
+                                if(partes.length === 3) {
+                                    const dia = parseInt(partes[2], 10);
+                                    const mes = meses[parseInt(partes[1], 10) - 1]; 
+                                    fechaFormateada = `${dia} de ${mes}`;
+                                }
+                            }
+                            
+                            // Inyección de la tarjeta HTML
+                            contenedorAcumulado.insertAdjacentHTML('beforeend', `
+                                <div class="bg-brand-bg/50 p-3 rounded-xl border border-brand-border card-dash">
+                                    <p class="font-mono text-[9px] uppercase tracking-widest text-brand-textSec mb-1">${fechaFormateada}</p>
+                                    <p class="font-mono text-lg font-bold text-brand-primary drop-shadow-[0_0_5px_rgba(0,245,255,0.3)]">${formatoMoneda.format(ventasPorDia[fecha])}</p>
+                                </div>
+                            `);
+                        });
+                    }
                 }
-            } catch (e) { }
+            } catch (e) { console.error(e); }
         };
 
         function getDeudorCardHTML(c, v) {
@@ -1551,8 +1639,28 @@
             contadorPagosEd++; const id = contadorPagosEd;
             document.getElementById('pagos-container-edicion').insertAdjacentHTML('beforeend', `
                 <div id="page-${id}" class="flex gap-2 items-center bg-brand-bg p-2 rounded border border-brand-border mb-2">
-                    <div class="w-1/3"><select class="inp-met w-full p-2 rounded bg-brand-panel text-xs outline-none"><option value="Transferencia" ${d?.metodo==='Transferencia'?'selected':''}>Transf</option><option value="Efectivo" ${d?.metodo==='Efectivo'?'selected':''}>Efect</option><option value="Credito" ${d?.metodo==='Credito'?'selected':''}>Crédito</option><option value="Pendiente" ${d?.metodo==='Pendiente'?'selected':''}>Pendiente</option><option value="Cruce" ${d?.metodo==='Cruce'?'selected':''}>Cruce</option><option value="Bold" ${d?.metodo==='Bold'?'selected':''}>Bold</option></select></div>
-                    <div class="w-1/3"><select class="inp-cta w-full p-2 rounded bg-brand-panel text-xs outline-none"><option value="CRIS" ${d?.cuenta==='CRIS'?'selected':''}>CRIS</option><option value="JHON" ${d?.cuenta==='JHON'?'selected':''}>JHON</option><option value="HADES" ${d?.cuenta==='HADES'?'selected':''}>HADES</option><option value="BODEGA" ${d?.cuenta==='BODEGA'?'selected':''}>BODEGA</option><option value="CREDITO" ${d?.cuenta==='CREDITO'?'selected':''}>POR COBRAR</option><option value="PENDIENTE" ${d?.cuenta==='PENDIENTE'?'selected':''}>PENDIENTE</option></select></div>
+                    <div class="w-1/3">
+                        <select class="inp-met w-full p-2 rounded bg-brand-panel text-xs outline-none">
+                            <option value="Transferencia" ${d?.metodo==='Transferencia'?'selected':''}>Transf</option>
+                            <option value="Efectivo" ${d?.metodo==='Efectivo'?'selected':''}>Efect</option>
+                            <option value="Credito" ${d?.metodo==='Credito'?'selected':''}>Crédito</option>
+                            <option value="Pendiente" ${d?.metodo==='Pendiente'?'selected':''}>Pendiente</option>
+                            <option value="Cruce" ${d?.metodo==='Cruce'?'selected':''}>Cruce</option>
+                            <option value="Bold" ${d?.metodo==='Bold'?'selected':''}>Bold</option>
+                            <option value="PayPal" ${d?.metodo==='PayPal'?'selected':''}>PayPal</option>
+                        </select>
+                    </div>
+                    <div class="w-1/3">
+                        <select class="inp-cta w-full p-2 rounded bg-brand-panel text-xs outline-none">
+                            <option value="CRIS" ${d?.cuenta==='CRIS'?'selected':''}>CRIS</option>
+                            <option value="JHON" ${d?.cuenta==='JHON'?'selected':''}>JHON</option>
+                            <option value="HADES" ${d?.cuenta==='HADES'?'selected':''}>HADES</option>
+                            <option value="BODEGA" ${d?.cuenta==='BODEGA'?'selected':''}>BODEGA</option>
+                            <option value="HOSTEL" ${d?.cuenta==='HOSTEL'?'selected':''}>CUENTA HOSTEL</option>
+                            <option value="CREDITO" ${d?.cuenta==='CREDITO'?'selected':''}>POR COBRAR</option>
+                            <option value="PENDIENTE" ${d?.cuenta==='PENDIENTE'?'selected':''}>PENDIENTE</option>
+                        </select>
+                    </div>
                     <div class="w-1/4"><input type="number" class="inp-mnt w-full p-2 rounded bg-brand-panel text-xs text-brand-success outline-none" value="${d?.monto||0}" oninput="calcularTotalesEdicion()"></div>
                     <div class="w-1/12"><button onclick="document.getElementById('page-${id}').remove(); calcularTotalesEdicion();" class="text-brand-error p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>
                 </div>
@@ -1575,7 +1683,7 @@
 
         window.guardarMovimientoEdicion = async () => {
             const cli = document.getElementById('cliente-edicion').value.trim().toUpperCase(); if(!cli) return;
-            const nuevoTipo = document.querySelector('input[name="tipoMovimientoEdicion"]:checked').value; // Toma el nuevo tipo
+            const nuevoTipo = document.querySelector('input[name="tipoMovimientoEdicion"]:checked').value; 
             
             const prods = [], pags = []; let totCobrar = 0, totPag = 0;
             document.querySelectorAll('#productos-container-edicion > div').forEach(f => {
