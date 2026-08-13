@@ -1741,7 +1741,7 @@
 
         window.exportarCSV = () => { alert("Export feature standing by in new build."); };
 
-        // ==================== HISTORIAL DE CLIENTE (DRILL-DOWN) ====================
+// ==================== HISTORIAL DE CLIENTE (DRILL-DOWN) ====================
         window.abrirHistorialCliente = async (cliente, saldoActual) => {
             const modal = document.getElementById('modal-historial-cliente');
             const contenedor = document.getElementById('contenedor-historial-cliente');
@@ -1796,16 +1796,34 @@
                         else if (m.afectacion < 0) txtAfectacion = `<span class="text-[10px] text-brand-success font-mono font-bold uppercase tracking-widest">- ${formatoMoneda.format(Math.abs(m.afectacion))} abonado</span>`;
                         else txtAfectacion = `<span class="text-[10px] text-brand-textSec/50 font-mono uppercase tracking-widest">Sin impacto a crédito</span>`;
 
+                        // NUEVA LÓGICA: Extraer, traducir y formatear los productos
+                        let resumenProductos = '';
+                        if (m.productos && m.productos.length > 0) {
+                            // Mapeamos el array para crear un string como: "2x Paracetamol | 1x Jeringa"
+                            const listaProds = m.productos.map(p => {
+                                const nombre = window.diccionarioProductos[p.concepto] ? window.diccionarioProductos[p.concepto] : p.concepto;
+                                return `${p.cantidad}x ${nombre}`;
+                            }).join(' | ');
+                            
+                            // Lo encapsulamos en un párrafo con límite de ancho y truncamiento
+                            // Agregamos el atributo 'title' para que al pasar el mouse encima (hover) se vea la lista completa si es muy larga
+                            resumenProductos = `<p class="text-[9px] text-brand-textSec/70 mt-2 font-mono truncate max-w-[200px] md:max-w-xs" title="${listaProds}">
+                                <i data-lucide="package" class="w-3 h-3 inline align-text-bottom mr-1"></i>${listaProds}
+                            </p>`;
+                        }
+
+                        // Inyectamos la tarjeta modificada
                         contenedor.insertAdjacentHTML('beforeend', `
                             <div class="bg-brand-bg p-4 rounded-xl border border-brand-border flex justify-between items-center hover:bg-brand-card transition-colors cursor-pointer" onclick="abrirDetalleRegistro('${m.id}')">
-                                <div>
+                                <div class="overflow-hidden pr-4">
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest rounded border ${colorBadge}">${m.tipoMovimiento}</span>
                                         <span class="text-[10px] text-brand-textSec font-mono">${m.fecha}</span>
                                     </div>
                                     ${txtAfectacion}
+                                    ${resumenProductos}
                                 </div>
-                                <div class="text-right flex flex-col items-end">
+                                <div class="text-right flex flex-col items-end flex-shrink-0">
                                     <span class="block font-mono text-sm font-bold text-brand-text">${formatoMoneda.format(m.totalVenta)}</span>
                                     <span class="text-[8px] text-brand-textSec uppercase tracking-widest">Total Operación</span>
                                 </div>
