@@ -348,7 +348,7 @@
                         </button>
                     </div>
 
-                    <!-- TARJETA DE ACUMULADO DEL DÍA ACTUAL -->
+                    <!-- TARJETA DE ACUMULADO DEL DÍA ACTUAL (Clickeable) -->
                     <div class="mt-6 fade-in">
                         <p class="font-mono text-[10px] text-brand-textSec uppercase tracking-widest mb-3 border-b border-brand-border pb-2">Acumulado de Ventas por Día</p>
                         <div id="contenedor-acumulado-diario" class="grid grid-cols-2 gap-4">
@@ -787,6 +787,30 @@
         </div>
     </div>
 
+    <!-- MODAL: CONSULTA DIARIA -->
+    <div id="modal-consulta-diaria" class="fixed inset-0 z-[70] hidden items-center justify-center bg-brand-bg/90 backdrop-blur-sm transition-opacity">
+        <div class="glass-modal w-full max-w-sm flex flex-col rounded-2xl m-4 shadow-[0_0_50px_rgba(0,245,255,0.15)] border-brand-primary/50">
+            <div class="p-5 border-b border-brand-border flex justify-between items-center bg-brand-panel rounded-t-2xl">
+                <h2 class="text-md font-display font-bold uppercase tracking-widest flex items-center gap-2 text-brand-primary">
+                    <i data-lucide="calendar-search" class="w-4 h-4"></i> Consulta por Fecha
+                </h2>
+                <button onclick="cerrarModalConsultaDiaria()" class="p-2 hover:bg-brand-card rounded-lg transition-colors text-brand-textSec">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div class="p-6 bg-brand-bg rounded-b-2xl space-y-5 text-center">
+                <div>
+                    <label class="block text-[10px] font-mono text-brand-textSec mb-2 uppercase tracking-widest">Selecciona el día a consultar</label>
+                    <input type="date" id="input-fecha-consulta" onchange="consultarVentasPorFecha()" class="w-full p-3 font-mono text-center text-sm bg-brand-card border border-brand-primary/30 text-brand-text rounded-lg outline-none cursor-pointer focus:border-brand-primary transition-colors">
+                </div>
+                <div class="pt-4 border-t border-brand-border/50">
+                    <p class="text-[10px] font-mono uppercase text-brand-textSec mb-1">Total de Ventas</p>
+                    <p id="resultado-ventas-fecha" class="text-3xl font-mono font-bold text-brand-primary drop-shadow-[0_0_8px_rgba(0,245,255,0.4)]">$ 0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ==================== SCRIPTS LÓGICOS ==================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -825,6 +849,7 @@
         window.fechaCorteDomisHades = 0;
         window.filtroDecenasActivo = false;
         window.filtroPendientesActivo = false;
+        window.ventasPorDiaGlobal = {}; // Memoria global para búsquedas rápidas
         
         let contadorProductos = 0; let contadorPagos = 0;
         let contadorProductosEd = 0; let contadorPagosEd = 0;
@@ -1285,6 +1310,9 @@
                     if(contenedorAcumulado) {
                         contenedorAcumulado.innerHTML = '';
                         
+                        // [ESCALABILIDAD]: Guardamos el objeto de ventas calculado en la memoria global de la ventana (Window)
+                        window.ventasPorDiaGlobal = ventasPorDia;
+                        
                         // 1. Obtener la fecha exacta de hoy en formato YYYY-MM-DD
                         const hoy = new Date();
                         const yyyy = hoy.getFullYear();
@@ -1295,14 +1323,14 @@
                         // 2. Extraer solo el valor de hoy
                         const totalHoy = ventasPorDia[fechaHoyStr] || 0;
 
-                        // 3. Formatear la fecha
+                        // 3. Formatear la fecha amigablemente
                         const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
                         const fechaFormateada = `${hoy.getDate()} de ${meses[hoy.getMonth()]}`;
                         
-                        // 4. Inyectar la tarjeta única
+                        // 4. Inyectar la tarjeta única (Ahora con funcionalidad de botón y hover)
                         contenedorAcumulado.insertAdjacentHTML('beforeend', `
-                            <div class="bg-brand-bg/50 p-4 rounded-xl border border-brand-border card-dash">
-                                <p class="font-mono text-[9px] uppercase tracking-widest text-brand-primary mb-1 whitespace-nowrap overflow-hidden text-ellipsis">${fechaFormateada}</p>
+                            <div onclick="abrirModalConsultaDiaria()" class="bg-brand-bg/50 p-4 rounded-xl border border-brand-border card-dash cursor-pointer hover:bg-brand-panel hover:border-brand-primary/50 transition-all shadow-sm hover:shadow-[0_0_15px_rgba(0,245,255,0.15)]">
+                                <p class="font-mono text-[9px] uppercase tracking-widest text-brand-primary mb-1 whitespace-nowrap overflow-hidden text-ellipsis">${fechaFormateada} <i data-lucide="calendar-search" class="w-3 h-3 inline align-text-bottom ml-1 opacity-70"></i></p>
                                 <p class="font-mono text-xl font-bold text-brand-text drop-shadow-[0_0_5px_rgba(0,245,255,0.3)] truncate">${formatoMoneda.format(totalHoy)}</p>
                             </div>
                         `);
@@ -1741,7 +1769,7 @@
 
         window.exportarCSV = () => { alert("Export feature standing by in new build."); };
 
-// ==================== HISTORIAL DE CLIENTE (DRILL-DOWN) ====================
+        // ==================== HISTORIAL DE CLIENTE (DRILL-DOWN) ====================
         window.abrirHistorialCliente = async (cliente, saldoActual) => {
             const modal = document.getElementById('modal-historial-cliente');
             const contenedor = document.getElementById('contenedor-historial-cliente');
@@ -1799,14 +1827,11 @@
                         // NUEVA LÓGICA: Extraer, traducir y formatear los productos
                         let resumenProductos = '';
                         if (m.productos && m.productos.length > 0) {
-                            // Mapeamos el array para crear un string como: "2x Paracetamol | 1x Jeringa"
                             const listaProds = m.productos.map(p => {
                                 const nombre = window.diccionarioProductos[p.concepto] ? window.diccionarioProductos[p.concepto] : p.concepto;
                                 return `${p.cantidad}x ${nombre}`;
                             }).join(' | ');
                             
-                            // Lo encapsulamos en un párrafo con límite de ancho y truncamiento
-                            // Agregamos el atributo 'title' para que al pasar el mouse encima (hover) se vea la lista completa si es muy larga
                             resumenProductos = `<p class="text-[9px] text-brand-textSec/70 mt-2 font-mono truncate max-w-[200px] md:max-w-xs" title="${listaProds}">
                                 <i data-lucide="package" class="w-3 h-3 inline align-text-bottom mr-1"></i>${listaProds}
                             </p>`;
@@ -1840,6 +1865,37 @@
         };
 
         window.cerrarHistorialCliente = () => { document.getElementById('modal-historial-cliente').style.display = 'none'; };
+
+        // ==================== CONSULTA DIARIA POR FECHA ====================
+        window.abrirModalConsultaDiaria = () => {
+            // 1. Calculamos la fecha de hoy para ponérsela por defecto al calendario
+            const hoy = new Date();
+            const yyyy = hoy.getFullYear();
+            const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+            const dd = String(hoy.getDate()).padStart(2, '0');
+            const fechaHoyStr = `${yyyy}-${mm}-${dd}`;
+
+            // 2. Insertamos la fecha en el input y abrimos la ventana
+            const inputFecha = document.getElementById('input-fecha-consulta');
+            inputFecha.value = fechaHoyStr; 
+            document.getElementById('modal-consulta-diaria').style.display = 'flex';
+            
+            // 3. Forzamos el cálculo inicial visual
+            window.consultarVentasPorFecha(); 
+        };
+
+        window.cerrarModalConsultaDiaria = () => {
+            document.getElementById('modal-consulta-diaria').style.display = 'none';
+        };
+
+        window.consultarVentasPorFecha = () => {
+            // Lee la fecha seleccionada en el input del usuario y busca ese String exacto en la caché
+            const fechaSeleccionada = document.getElementById('input-fecha-consulta').value;
+            const total = window.ventasPorDiaGlobal[fechaSeleccionada] || 0;
+            
+            // Actualiza el DOM con la moneda formateada
+            document.getElementById('resultado-ventas-fecha').textContent = formatoMoneda.format(total);
+        };
     </script>
 </body>
 </html>
