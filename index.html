@@ -70,6 +70,14 @@
         }
         
         ::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+        .admin-only { display:none !important; }
+        .admin-only.admin-visible { display:block !important; }
+        .admin-only.admin-visible.admin-flex { display:flex !important; }
+        .sim-only { display:none !important; }
+        .sim-only.sim-visible { display:flex !important; }
+        .simulation-banner { display:none; }
+        body.role-simulated #btn-guardar, body.role-simulated [onclick="abrirCajaMenor()"], body.role-simulated [onclick="finalizarTurno()"] { opacity:.45; pointer-events:none; }
+        body.role-simulated .simulation-banner { display:flex; }
     </style>
 </head>
 <body class="font-sans antialiased min-h-screen selection:bg-brand-primary selection:text-brand-bg">
@@ -118,11 +126,26 @@
                 <span id="timer-indicator" class="hidden md:inline-block text-[10px] text-brand-success font-mono bg-brand-success/10 px-2 py-1 rounded border border-brand-success/30 mr-2 flex items-center gap-1">
                     <span class="w-2 h-2 rounded-full bg-brand-success animate-pulse"></span> SYS_ACTIVE
                 </span>
+                <button onclick="abrirCajaMenor()" class="flex-shrink-0 flex items-center gap-2 px-3 py-2 bg-brand-success/10 text-brand-success border border-brand-success/30 rounded-lg hover:bg-brand-success/20 transition-colors text-sm font-semibold">
+                    <i data-lucide="wallet-cards" class="w-4 h-4"></i> Caja Menor
+                </button>
                 <button onclick="abrirDiccionario()" class="flex-shrink-0 flex items-center gap-2 px-3 py-2 bg-brand-secondary/10 text-brand-secondary border border-brand-secondary/30 rounded-lg hover:bg-brand-secondary/20 transition-colors text-sm font-semibold">
                     <i data-lucide="database" class="w-4 h-4"></i> Glosario
                 </button>
-                <button onclick="cerrarSesionUsuario()" class="flex-shrink-0 flex items-center gap-2 px-4 py-2 bg-brand-error/10 text-brand-error border border-brand-error/30 rounded-lg hover:bg-brand-error/20 transition-colors text-sm font-bold">
-                    <i data-lucide="power" class="w-4 h-4"></i> Terminar
+                <button id="btn-inventario-admin" onclick="abrirInventarioAdmin()" class="admin-only admin-flex flex-shrink-0 items-center gap-2 px-3 py-2 bg-brand-accent/10 text-brand-accent border border-brand-accent/30 rounded-lg hover:bg-brand-accent/20 transition-colors text-sm font-semibold">
+                    <i data-lucide="boxes" class="w-4 h-4"></i> Inventario
+                </button>
+                <div id="admin-vista-roles" class="admin-only admin-flex items-center gap-1 px-1 py-1 bg-brand-card border border-brand-border rounded-lg">
+                    <button onclick="cambiarVistaRol('admin')" class="px-2 py-1 rounded text-[9px] font-mono uppercase text-brand-primary hover:bg-brand-primary/10">Admin</button>
+                    <button onclick="cambiarVistaRol('hades')" class="px-2 py-1 rounded text-[9px] font-mono uppercase text-brand-accent hover:bg-brand-accent/10">Hades</button>
+                    <button onclick="cambiarVistaRol('supervisor')" class="px-2 py-1 rounded text-[9px] font-mono uppercase text-brand-warning hover:bg-brand-warning/10">Supervisor</button>
+                </div>
+                <div id="simulation-banner" class="simulation-banner flex-shrink-0 items-center gap-2 px-2 py-1 rounded border border-brand-accent/40 bg-brand-accent/10 text-brand-accent text-[9px] font-mono uppercase">
+                    <i data-lucide="eye" class="w-3 h-3"></i><span id="simulation-banner-text">Vista simulada</span>
+                    <button onclick="cambiarVistaRol('admin')" class="underline ml-1">Volver</button>
+                </div>
+                <button onclick="finalizarTurno()" class="flex-shrink-0 flex items-center gap-2 px-4 py-2 bg-brand-error/10 text-brand-error border border-brand-error/30 rounded-lg hover:bg-brand-error/20 transition-colors text-sm font-bold">
+                    <i data-lucide="square" class="w-4 h-4"></i> Finalizar Turno
                 </button>
             </div>
         </header>
@@ -362,6 +385,28 @@
                         </div>
                     </div>
 
+                </div>
+
+                <!-- PANEL ADMINISTRADOR: CONTROL DE CAJA, INVENTARIO Y DOMICILIOS -->
+                <div id="panel-admin-operacion" class="admin-only bg-brand-panel p-6 rounded-xl shadow-lg border border-brand-border fade-in">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-sm font-display font-bold text-brand-text flex items-center gap-2 uppercase tracking-widest"><i data-lucide="shield-check" class="w-4 h-4 text-brand-accent"></i> Control Administrativo</h2>
+                        <button onclick="calcularDashboardAdmin()" class="text-xs bg-brand-card hover:bg-brand-cardHover border border-brand-border p-1.5 rounded transition-colors text-brand-textSec"><i data-lucide="refresh-cw" class="w-3 h-3"></i></button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 mb-5">
+                        <div class="bg-brand-primary/5 p-3 rounded-lg border border-brand-primary/20"><p class="font-mono text-[9px] text-brand-primary uppercase tracking-widest mb-1">Caja Inicial Turno</p><p id="admin-caja-inicial" class="font-mono text-lg font-bold">$ 0</p></div>
+                        <div class="bg-brand-success/5 p-3 rounded-lg border border-brand-success/20"><p class="font-mono text-[9px] text-brand-success uppercase tracking-widest mb-1">Caja Esperada</p><p id="admin-caja-esperada" class="font-mono text-lg font-bold text-brand-success">$ 0</p></div>
+                        <div class="bg-brand-secondary/5 p-3 rounded-lg border border-brand-secondary/20"><p class="font-mono text-[9px] text-brand-secondary uppercase tracking-widest mb-1">Utilidad Acumulada</p><p id="admin-utilidad" class="font-mono text-lg font-bold text-brand-secondary">$ 0</p></div>
+                        <div class="bg-brand-warning/5 p-3 rounded-lg border border-brand-warning/20"><p class="font-mono text-[9px] text-brand-warning uppercase tracking-widest mb-1">Valor Inventario</p><p id="admin-valor-inventario" class="font-mono text-lg font-bold text-brand-warning">$ 0</p></div>
+                    </div>
+                    <p class="font-mono text-[10px] text-brand-textSec uppercase tracking-widest mb-3 border-b border-brand-border pb-2">Acumulado por Medio de Entrega</p>
+                    <div id="admin-medios-entrega" class="grid grid-cols-2 gap-2 mb-5"></div>
+                    <p class="font-mono text-[10px] text-brand-textSec uppercase tracking-widest mb-3 border-b border-brand-border pb-2">Domicilios por Encargado</p>
+                    <div id="admin-domis-encargados" class="grid grid-cols-2 gap-2 mb-5"></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="abrirInventarioAdmin()" class="bg-brand-accent/10 hover:bg-brand-accent border border-brand-accent text-brand-accent hover:text-brand-bg px-4 py-3 rounded-lg font-display font-bold uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2"><i data-lucide="boxes" class="w-4 h-4"></i> Gestionar Inventario</button>
+                        <button onclick="exportarCSV()" class="bg-brand-success/10 hover:bg-brand-success border border-brand-success text-brand-success hover:text-brand-bg px-4 py-3 rounded-lg font-display font-bold uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2"><i data-lucide="download" class="w-4 h-4"></i> Informe Completo</button>
+                    </div>
                 </div>
 
                 <!-- PANEL HADES -->
@@ -877,6 +922,44 @@
         </div>
     </div>
 
+
+    <div id="modal-apertura-turno" class="fixed inset-0 z-[200] hidden items-center justify-center bg-brand-bg/95 backdrop-blur-md">
+        <div class="glass-modal w-full max-w-md rounded-2xl m-4 border border-brand-primary/40">
+            <div class="p-6 border-b border-brand-border bg-brand-panel rounded-t-2xl"><p class="text-[10px] font-mono uppercase tracking-widest text-brand-primary">Control obligatorio</p><h2 class="text-xl font-display font-bold text-brand-text flex items-center gap-2"><i data-lucide="key-round" class="w-5 h-5 text-brand-primary"></i> Apertura de Turno</h2><p class="text-xs text-brand-textSec mt-2">Indica el efectivo disponible en caja antes de iniciar el registro.</p></div>
+            <div class="p-6 space-y-5"><div class="bg-brand-card border border-brand-border rounded-xl p-4"><p class="text-[10px] font-mono text-brand-textSec uppercase">Usuario</p><p id="apertura-usuario" class="font-mono font-bold text-brand-primary"></p></div><div><label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase tracking-widest">Efectivo disponible en caja</label><input type="number" id="apertura-efectivo" min="0" step="1" class="w-full p-3 rounded-lg font-mono text-xl text-center" placeholder="0"></div><button id="btn-iniciar-turno" onclick="confirmarAperturaTurno()" class="w-full bg-brand-primary hover:bg-brand-primaryHover text-brand-bg px-4 py-3 rounded-lg font-display font-bold uppercase tracking-widest flex items-center justify-center gap-2"><i data-lucide="play" class="w-4 h-4"></i> Iniciar Turno</button></div>
+        </div>
+    </div>
+    <div id="modal-caja-menor" class="fixed inset-0 z-[120] hidden items-center justify-center bg-brand-bg/90 backdrop-blur-md">
+        <div class="glass-modal w-full max-w-lg max-h-[90vh] flex flex-col rounded-2xl m-4 border border-brand-success/40"><div class="p-5 border-b border-brand-border flex justify-between items-center bg-brand-panel rounded-t-2xl"><div><p class="text-[10px] font-mono uppercase tracking-widest text-brand-success">Turno activo</p><h2 class="text-md font-display font-bold uppercase tracking-widest text-brand-success"><i data-lucide="wallet-cards" class="w-4 h-4 inline"></i> Caja Menor</h2></div><button onclick="cerrarCajaMenor()" class="p-2 text-brand-textSec"><i data-lucide="x" class="w-4 h-4"></i></button></div>
+            <div class="p-6 bg-brand-bg space-y-4 overflow-y-auto"><div class="grid grid-cols-2 gap-3"><div><label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase">Fecha</label><input id="caja-menor-fecha" type="date" class="w-full p-2.5 rounded-lg font-mono" readonly></div><div><label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase">Hora</label><input id="caja-menor-hora" type="time" class="w-full p-2.5 rounded-lg font-mono" readonly></div></div><div class="grid grid-cols-2 gap-3"><div><label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase">Tipo</label><select id="caja-menor-tipo" class="w-full p-2.5 rounded-lg font-mono"><option value="Gasto">Gasto</option><option value="Compra">Compra</option></select></div><div><label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase">Medio</label><select id="caja-menor-medio" class="w-full p-2.5 rounded-lg font-mono"><option>Efectivo</option><option>Transferencia</option><option>Nequi</option><option>Daviplata</option><option>Bold</option><option>Cruce</option><option>Otro</option></select></div></div><div><label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase">Concepto obligatorio</label><input id="caja-menor-concepto" type="text" class="w-full p-2.5 rounded-lg font-mono" placeholder="Ej. Papelería, transporte, insumos..."></div><div><label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase">Monto</label><input id="caja-menor-monto" type="number" min="0" step="1" class="w-full p-3 rounded-lg font-mono text-xl text-center" placeholder="0"></div><button onclick="guardarMovimientoCajaMenor()" class="w-full bg-brand-success hover:bg-brand-success/80 text-brand-bg px-4 py-3 rounded-lg font-mono font-bold uppercase tracking-widest flex items-center justify-center gap-2"><i data-lucide="save" class="w-4 h-4"></i> Registrar Movimiento</button><div class="pt-4 border-t border-brand-border"><p class="text-[10px] font-mono text-brand-textSec uppercase tracking-widest mb-2">Movimientos del turno</p><div id="lista-caja-menor" class="space-y-2 max-h-60 overflow-y-auto"></div></div></div>
+        </div>
+    </div>
+    <div id="modal-cierre-turno" class="fixed inset-0 z-[210] hidden items-center justify-center bg-brand-bg/95 backdrop-blur-md"><div class="glass-modal w-full max-w-3xl max-h-[92vh] flex flex-col rounded-2xl m-4 border border-brand-warning/40"><div class="p-5 border-b border-brand-border bg-brand-panel rounded-t-2xl flex justify-between items-center"><div><p class="text-[10px] font-mono uppercase tracking-widest text-brand-warning">Arqueo</p><h2 class="text-xl font-display font-bold text-brand-text flex items-center gap-2"><i data-lucide="circle-stop" class="w-5 h-5 text-brand-warning"></i> Cierre de Turno</h2></div><button onclick="cerrarModalCierreTurno()" class="p-2 text-brand-textSec"><i data-lucide="x" class="w-4 h-4"></i></button></div><div class="p-6 overflow-y-auto space-y-5" id="contenido-cierre-turno"></div><div class="p-5 border-t border-brand-border bg-brand-panel rounded-b-2xl flex gap-3 justify-end"><button onclick="cancelarCierreTurno()" class="px-5 py-2.5 rounded-lg border border-brand-border text-brand-textSec font-mono font-bold">Volver</button><button onclick="confirmarCierreTurno()" class="px-5 py-2.5 rounded-lg bg-brand-warning hover:bg-brand-warning/80 text-brand-bg font-mono font-bold">Confirmar Cierre</button></div></div></div>
+    <div id="modal-inventario-admin" class="fixed inset-0 z-[125] hidden items-center justify-center bg-brand-bg/95 backdrop-blur-md">
+        <div class="glass-modal w-full max-w-6xl max-h-[94vh] flex flex-col rounded-2xl m-4 border border-brand-accent/40">
+            <div class="p-5 border-b border-brand-border flex justify-between items-center bg-brand-panel rounded-t-2xl">
+                <div><p class="text-[10px] font-mono uppercase tracking-widest text-brand-accent">Solo Administrador</p><h2 class="text-md font-display font-bold uppercase tracking-widest text-brand-accent"><i data-lucide="boxes" class="w-4 h-4 inline"></i> Inventario Maestro</h2><p class="text-[10px] text-brand-textSec mt-1">Este inventario solo puede ser modificado por el Administrador. Los movimientos registrados por Hades o Supervisor no alteran estas existencias.</p></div>
+                <button onclick="cerrarInventarioAdmin()" class="p-2 text-brand-textSec"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-5">
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <div class="bg-brand-card p-3 rounded-lg border border-brand-border"><p class="text-[9px] font-mono text-brand-textSec uppercase">Productos</p><p id="inv-total-items" class="text-xl font-mono font-bold">0</p></div>
+                    <div class="bg-brand-card p-3 rounded-lg border border-brand-border"><p class="text-[9px] font-mono text-brand-textSec uppercase">Unidades</p><p id="inv-total-unidades" class="text-xl font-mono font-bold">0</p></div>
+                    <div class="bg-brand-card p-3 rounded-lg border border-brand-border"><p class="text-[9px] font-mono text-brand-textSec uppercase">Costo</p><p id="inv-total-costo" class="text-xl font-mono font-bold text-brand-warning">$ 0</p></div>
+                    <div class="bg-brand-card p-3 rounded-lg border border-brand-border"><p class="text-[9px] font-mono text-brand-textSec uppercase">Venta Potencial</p><p id="inv-total-venta" class="text-xl font-mono font-bold text-brand-success">$ 0</p></div>
+                    <div class="bg-brand-card p-3 rounded-lg border border-brand-accent/30"><p class="text-[9px] font-mono text-brand-accent uppercase">Control</p><p class="text-xs font-mono font-bold text-brand-accent">ADMIN</p></div>
+                </div>
+                <div class="flex flex-col lg:flex-row gap-3">
+                    <button onclick="guardarInventarioAdmin()" class="flex-1 bg-brand-accent hover:bg-brand-accent/80 text-brand-bg px-4 py-3 rounded-lg font-mono font-bold uppercase tracking-widest flex items-center justify-center gap-2"><i data-lucide="save" class="w-4 h-4"></i> Guardar cambios del inventario</button>
+                    <button onclick="agregarProductoInventarioAdmin()" class="lg:w-auto bg-brand-card border border-brand-border hover:bg-brand-cardHover text-brand-text px-4 py-3 rounded-lg font-mono font-bold uppercase tracking-widest flex items-center justify-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Agregar producto</button>
+                    <div class="lg:w-auto bg-brand-card border border-brand-border rounded-lg p-2 flex items-center gap-2"><input type="file" id="archivo-inventario" accept=".csv,text/csv" class="w-full text-xs"><button onclick="importarInventarioCSV()" class="px-3 py-2 bg-brand-secondary text-brand-text rounded font-mono font-bold text-xs">Importar CSV</button></div>
+                </div>
+                <div id="tabla-inventario-admin" class="overflow-x-auto"></div>
+            </div>
+        </div>
+    </div>
+
+
     <!-- ==================== SCRIPTS LÓGICOS ==================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -917,6 +1000,11 @@
         window.filtroPendientesActivo = false;
         window.ventasPorDiaGlobal = {}; 
         window.deudaActualHades = 0; // NUEVO ESTADO GLOBAL
+        window.turnoActual = null;
+        window.inventarioCache = {};
+        window.turnoPendienteCierre = null;
+        window.adminDashboardCache = {};
+        window.vistaRol = null; // Solo el Administrador puede simular vistas; no cambia el usuario autenticado.
         
         let contadorProductos = 0; let contadorPagos = 0;
         let contadorProductosEd = 0; let contadorPagosEd = 0;
@@ -941,7 +1029,6 @@
                 window.currentUser = user;
                 document.getElementById('current-user-email').textContent = correo;
                 loginScreen.classList.add('hidden');
-                appScreen.classList.remove('hidden');
                 
                 if (correo === ADMIN_EMAIL || correo === SUPERVISOR_EMAIL) {
                     document.getElementById('panel-financiero').classList.remove('hidden');
@@ -954,14 +1041,22 @@
                     document.getElementById('panel-hades').classList.remove('hidden');
                     document.getElementById('hades-tools').classList.remove('hidden'); 
                 }
+                const ap=document.getElementById('panel-admin-operacion'); const ib=document.getElementById('btn-inventario-admin');
+                if(correo===ADMIN_EMAIL){ ap?.classList.add('admin-visible'); ib?.classList.add('admin-visible'); if(ib) ib.style.display='flex'; } else { ap?.classList.remove('admin-visible'); ib?.classList.remove('admin-visible'); if(ib) ib.style.display='none'; }
 
                 await cargarConfiguracionHades();
-                await cargarDiccionario(); 
-                inicializarApp();
+                await cargarDiccionario();
+                await asegurarInventarioInicial();
+                await cargarInventario();
+                aplicarVistaRol();
+                const continuar=await asegurarTurnoActivo();
+                if(continuar){ appScreen.classList.remove('hidden'); inicializarApp(); await calcularDashboardAdmin(); }
             } else {
                 window.currentUser = null;
+                window.turnoActual = null;
                 loginScreen.classList.remove('hidden');
                 appScreen.classList.add('hidden');
+                document.getElementById('modal-apertura-turno')?.style.setProperty('display','none');
             }
         });
 
@@ -980,7 +1075,113 @@
             });
         };
 
-        window.cerrarSesionUsuario = () => { if(confirm("SYS_WARN: Terminar Sesión?")) signOut(auth); };
+        window.cerrarSesionUsuario = () => finalizarTurno();
+
+
+        const numeroSeguro=(v)=>{if(typeof v==='number'&&Number.isFinite(v))return v;if(v==null)return 0;const n=Number(String(v).replace(/[^0-9.-]/g,''));return Number.isFinite(n)?n:0;};
+        const fechaHoyLocal=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+        const horaHoyLocal=()=>{const d=new Date();return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;};
+        const esAdmin=()=>window.currentUser?.email===ADMIN_EMAIL;
+        const rolInterfaz=()=>window.vistaRol || window.currentUser?.email || '';
+        const vistaEsHades=()=>rolInterfaz()===HADES_EMAIL;
+        const vistaEsSupervisor=()=>rolInterfaz()===SUPERVISOR_EMAIL;
+        const vistaEsAdmin=()=>!window.vistaRol && esAdmin();
+        window.cambiarVistaRol=(rol)=>{
+            if(!esAdmin()) return alert('Acceso exclusivo del Administrador.');
+            window.vistaRol = rol==='admin' ? null : (rol==='hades' ? HADES_EMAIL : SUPERVISOR_EMAIL);
+            aplicarVistaRol();
+            inicializarApp();
+        };
+        function aplicarVistaRol(){
+            const sim=!!window.vistaRol;
+            document.body.classList.toggle('role-simulated',sim);
+            const pf=document.getElementById('panel-financiero');
+            const ph=document.getElementById('panel-hades');
+            const pa=document.getElementById('panel-admin-operacion');
+            const inv=document.getElementById('btn-inventario-admin');
+            const controls=document.getElementById('admin-vista-roles');
+            const banner=document.getElementById('simulation-banner-text');
+            const hadesTools=document.getElementById('hades-tools');
+            if(pf) pf.classList.toggle('hidden', rolInterfaz()===HADES_EMAIL);
+            if(ph) ph.classList.toggle('hidden', rolInterfaz()!==HADES_EMAIL);
+            if(pa) pa.classList.toggle('admin-visible', vistaEsAdmin());
+            if(inv) inv.style.display=vistaEsAdmin()?'flex':'none';
+            if(controls) controls.style.display=esAdmin()?'flex':'none';
+            if(hadesTools) hadesTools.classList.toggle('hidden', !vistaEsHades());
+            if(banner) banner.textContent=rolInterfaz()===HADES_EMAIL?'Vista simulada: HADES':'Vista simulada: SUPERVISOR';
+            const liquidar=document.getElementById('btn-liquidar-hades');
+            if(liquidar) liquidar.classList.toggle('hidden', rolInterfaz()!==ADMIN_EMAIL || sim);
+            lucide.createIcons();
+        }
+        async function cargarInventario(){try{const snap=await getDocs(collection(db,'inventario'));window.inventarioCache={};snap.forEach(x=>{const d=x.data(),codigo=String(d.codigo||x.id).trim().toUpperCase();window.inventarioCache[codigo]={id:x.id,codigo,nombre:d.nombre||codigo,cantidad:numeroSeguro(d.cantidad),costoCompra:numeroSeguro(d.costoCompra),precioReferencia:numeroSeguro(d.precioReferencia)};});}catch(e){console.error('[INVENTARIO]',e);window.inventarioCache={};}}
+        const INVENTARIO_INICIAL = [
+            ['BC',6500,12],['BP',6500,30],['BT',8500,6],['ESENCIA',0,0],['FIG',140000,2],['FIP',40000,12],['FN',10425,31],['FNDIAMOND',9583,20],['G10',25000,9],['G20',50000,24],['G30',75000,13],['GDT',55000,1],['K',0,0],['MD',0,0],['MGDT',27500,10],['MGM',0,0],['MIDA',0,0],['MP',40000,25],['OXY',0,0],['PG',0,0],['PGT',0,0],['PM',4500,10],['PMT',0,0],['PP',0,0],['PPT',0,0],['RB',2500,4],['SPLTE',6900,9],['SKULL',150000,1],['WD',0,0]
+        ];
+        async function asegurarInventarioInicial(){
+            if(!esAdmin()) return;
+            try{
+                const snap=await getDocs(collection(db,'inventario'));
+                const existentes=new Set(); snap.forEach(x=>existentes.add(String(x.data().codigo||x.id).trim().toUpperCase()));
+                const faltantes=INVENTARIO_INICIAL.filter(([c])=>!existentes.has(c));
+                if(!faltantes.length) return;
+                const b=writeBatch(db);
+                for(const [codigo,costo,cantidad] of faltantes){
+                    const ref=doc(db,'inventario',codigo);
+                    b.set(ref,{codigo,nombre:codigo,cantidad,costoCompra:costo,precioReferencia:0,fuente:'INVENTARIO_BASE',controlAdministrativo:true,actualizadoPor:ADMIN_EMAIL,actualizadoEn:serverTimestamp()},{merge:true});
+                }
+                await b.commit();
+            }catch(e){console.error('[INVENTARIO BASE]',e);}
+        }
+
+        async function asegurarTurnoActivo(){const email=window.currentUser?.email;if(!email)return false;const snap=await getDocs(collection(db,'turnos'));const arr=[];snap.forEach(x=>{const d=x.data();if(d.usuarioEmail===email&&d.estado==='abierto')arr.push({id:x.id,...d});});arr.sort((a,b)=>(b.timestampApertura||0)-(a.timestampApertura||0));if(arr.length){window.turnoActual=arr[0];return true;}document.getElementById('apertura-usuario').textContent=email;document.getElementById('apertura-efectivo').value='';document.getElementById('modal-apertura-turno').style.display='flex';lucide.createIcons();return false;}
+        window.confirmarAperturaTurno=async()=>{const m=numeroSeguro(document.getElementById('apertura-efectivo').value);if(m<0)return alert('El efectivo inicial no puede ser negativo.');const b=document.getElementById('btn-iniciar-turno');b.disabled=true;b.textContent='ABRIENDO...';try{const ref=doc(collection(db,'turnos'));const data={usuarioEmail:window.currentUser.email,estado:'abierto',fechaApertura:fechaHoyLocal(),horaApertura:horaHoyLocal(),timestampApertura:Date.now(),efectivoInicial:m,createdAt:serverTimestamp()};await setDoc(ref,data);window.turnoActual={id:ref.id,...data};document.getElementById('modal-apertura-turno').style.display='none';document.getElementById('app-screen').classList.remove('hidden');inicializarApp();await calcularDashboardAdmin();}catch(e){console.error(e);alert('No fue posible abrir el turno: '+e.message);}finally{b.disabled=false;b.innerHTML='<i data-lucide="play" class="w-4 h-4"></i> Iniciar Turno';lucide.createIcons();}};
+        const aplicarTurnoEnRegistro=(d)=>({...d,turnoId:window.turnoActual?.id||null,turnoUsuario:window.turnoActual?.usuarioEmail||window.currentUser?.email});
+        window.abrirCajaMenor=async()=>{if(!window.turnoActual)return alert('Debes abrir un turno primero.');document.getElementById('caja-menor-fecha').value=fechaHoyLocal();document.getElementById('caja-menor-hora').value=horaHoyLocal();document.getElementById('caja-menor-concepto').value='';document.getElementById('caja-menor-monto').value='';document.getElementById('modal-caja-menor').style.display='flex';await cargarMovimientosCajaMenor();lucide.createIcons();};
+        window.cerrarCajaMenor=()=>document.getElementById('modal-caja-menor').style.display='none';
+        async function cargarMovimientosCajaMenor(){const l=document.getElementById('lista-caja-menor');if(!l)return;l.innerHTML='';const snap=await getDocs(collection(db,'caja_menor'));const a=[];snap.forEach(x=>{const d=x.data();if(d.turnoId===window.turnoActual?.id)a.push(d)});a.sort((x,y)=>(y.timestamp||0)-(x.timestamp||0));if(!a.length){l.innerHTML='<p class="text-xs text-center text-brand-textSec">Sin movimientos en este turno.</p>';return;}a.forEach(d=>l.insertAdjacentHTML('beforeend',`<div class="bg-brand-card border border-brand-border rounded-lg p-3 flex justify-between"><div><p class="font-mono text-[10px] text-brand-textSec">${d.fecha||''} ${d.hora||''}</p><p class="font-bold text-xs uppercase">${d.tipo||''}: ${d.concepto||''}</p><p class="font-mono text-[9px] text-brand-textSec">${d.medio||''}</p></div><span class="font-mono font-bold">${formatoMoneda.format(numeroSeguro(d.monto))}</span></div>`));}
+        window.guardarMovimientoCajaMenor=async()=>{if(window.vistaRol)return alert('La vista simulada es de solo lectura. Regresa a Admin para registrar movimientos.');if(!window.turnoActual)return alert('No hay turno activo.');const tipo=document.getElementById('caja-menor-tipo').value,medio=document.getElementById('caja-menor-medio').value,concepto=document.getElementById('caja-menor-concepto').value.trim(),monto=numeroSeguro(document.getElementById('caja-menor-monto').value);if(!concepto)return alert('El concepto es obligatorio.');if(monto<=0)return alert('Ingresa un monto mayor a cero.');try{await addDoc(collection(db,'caja_menor'),aplicarTurnoEnRegistro({tipo,medio,concepto,monto,fecha:fechaHoyLocal(),hora:horaHoyLocal(),timestamp:Date.now(),creadoPor:window.currentUser.email,createdAt:serverTimestamp()}));await cargarMovimientosCajaMenor();document.getElementById('caja-menor-concepto').value='';document.getElementById('caja-menor-monto').value='';await calcularDashboardAdmin();}catch(e){console.error(e);alert('No fue posible registrar el movimiento.');}};
+        async function obtenerResumenTurno(turno){const vs=await getDocs(collection(db,'ventas')),cs=await getDocs(collection(db,'caja_menor'));const r={ventas:0,gastos:0,compras:0,comprasPorMedio:{},ventasPorMedio:{},domisPorEncargado:{},domis:0,efectivoVentas:0,efectivoAbonos:0,efectivoCompras:0,efectivoGastos:0,utilidad:0};vs.forEach(x=>{const d=x.data();if(d.turnoId!==turno.id)return;const t=d.tipoMovimiento||'Venta',mt=numeroSeguro(d.totalVenta);if(t==='Venta')r.ventas+=mt;else if(t==='Compra')r.compras+=mt;else if(t==='Gasto')r.gastos+=mt;const pagos=d.pagos||[];pagos.forEach(p=>{const med=String(p.metodo||'Sin medio'),v=numeroSeguro(p.monto);if(t==='Venta'){r.ventasPorMedio[med]=(r.ventasPorMedio[med]||0)+v;if(med.toUpperCase()==='EFECTIVO')r.efectivoVentas+=v;}if(t==='Compra'){r.comprasPorMedio[med]=(r.comprasPorMedio[med]||0)+v;if(med.toUpperCase()==='EFECTIVO')r.efectivoCompras+=v;}if(t==='Gasto'){if(med.toUpperCase()==='EFECTIVO')r.efectivoGastos+=v;}if(t==='Abono'||t==='Abono Domis'){if(med.toUpperCase()==='EFECTIVO')r.efectivoAbonos+=v;}});if(t==='Venta')(d.productos||[]).forEach(p=>{const codigo=String(p.concepto||'').trim().toUpperCase();const costo=numeroSeguro(p.costoUnitarioSnapshot)||numeroSeguro(window.inventarioCache?.[codigo]?.costoCompra);r.utilidad+=numeroSeguro(p.total)-numeroSeguro(p.cantidad)*costo;});const e=d.entrega||{},c=numeroSeguro(e.costo);if(c>0){r.domis+=c;const enc=String(e.encargado||'SIN ENCARGADO').toUpperCase();r.domisPorEncargado[enc]=(r.domisPorEncargado[enc]||0)+c;}});cs.forEach(x=>{const d=x.data();if(d.turnoId!==turno.id)return;const v=numeroSeguro(d.monto),med=String(d.medio||'Sin medio');if(d.tipo==='Compra'){r.compras+=v;r.comprasPorMedio[med]=(r.comprasPorMedio[med]||0)+v;if(med.toUpperCase()==='EFECTIVO')r.efectivoCompras+=v;}else{r.gastos+=v;if(med.toUpperCase()==='EFECTIVO')r.efectivoGastos+=v;}});r.cajaEsperada=numeroSeguro(turno.efectivoInicial)+r.efectivoVentas+r.efectivoAbonos-r.efectivoCompras-r.efectivoGastos;return r;}
+        const mapHtml=(obj,color)=>Object.entries(obj||{}).length?Object.entries(obj).map(([k,v])=>`<div class="bg-brand-card border border-brand-border p-3 rounded-lg flex justify-between"><span class="font-mono text-[10px] uppercase">${k}</span><span class="font-mono font-bold ${color}">${formatoMoneda.format(v)}</span></div>`).join(''):'<p class="text-xs text-brand-textSec">Sin movimientos.</p>';
+        window.finalizarTurno=async()=>{if(window.vistaRol)return alert('La vista simulada es de solo lectura. Regresa a Admin para finalizar el turno.');if(!window.turnoActual)return signOut(auth);if(!confirm('¿Deseas finalizar el turno?'))return;try{const r=await obtenerResumenTurno(window.turnoActual);window.turnoPendienteCierre=r;document.getElementById('contenido-cierre-turno').innerHTML=`<div class="grid grid-cols-2 gap-3"><div class="bg-brand-card p-4 rounded-xl border border-brand-border"><p class="text-[9px] font-mono text-brand-textSec uppercase">Efectivo Inicial</p><p class="text-xl font-mono font-bold text-brand-primary">${formatoMoneda.format(window.turnoActual.efectivoInicial||0)}</p></div><div class="bg-brand-card p-4 rounded-xl border border-brand-border"><p class="text-[9px] font-mono text-brand-textSec uppercase">Caja Esperada</p><p class="text-xl font-mono font-bold text-brand-success">${formatoMoneda.format(r.cajaEsperada||0)}</p></div></div><div class="grid grid-cols-3 gap-3"><div class="bg-brand-primary/5 border border-brand-primary/20 rounded-xl p-4"><p class="text-[9px] text-brand-primary uppercase">Ventas</p><p class="text-xl font-mono font-bold">${formatoMoneda.format(r.ventas)}</p></div><div class="bg-brand-error/5 border border-brand-error/20 rounded-xl p-4"><p class="text-[9px] text-brand-error uppercase">Gastos</p><p class="text-xl font-mono font-bold">${formatoMoneda.format(r.gastos)}</p></div><div class="bg-brand-warning/5 border border-brand-warning/20 rounded-xl p-4"><p class="text-[9px] text-brand-warning uppercase">Compras</p><p class="text-xl font-mono font-bold">${formatoMoneda.format(r.compras)}</p></div></div><div><p class="text-[10px] font-mono text-brand-textSec uppercase mb-2">Compras por medio</p><div class="grid grid-cols-2 gap-2">${mapHtml(r.comprasPorMedio,'text-brand-warning')}</div></div><div><p class="text-[10px] font-mono text-brand-textSec uppercase mb-2">Ventas por medio</p><div class="grid grid-cols-2 gap-2">${mapHtml(r.ventasPorMedio,'text-brand-success')}</div></div><div><p class="text-[10px] font-mono text-brand-textSec uppercase mb-2">Domicilios</p><div class="grid grid-cols-2 gap-2">${mapHtml(r.domisPorEncargado,'text-brand-secondary')}</div></div><div class="bg-brand-secondary/5 p-4 rounded-xl border border-brand-secondary/20"><p class="text-[9px] font-mono text-brand-secondary uppercase">Utilidad del turno</p><p class="text-2xl font-mono font-bold text-brand-secondary">${formatoMoneda.format(r.utilidad)}</p></div>`;document.getElementById('modal-cierre-turno').style.display='flex';lucide.createIcons();}catch(e){console.error(e);alert('No fue posible generar el cierre.');}};
+        window.cancelarCierreTurno=()=>{window.turnoPendienteCierre=null;document.getElementById('modal-cierre-turno').style.display='none';};
+        window.cerrarModalCierreTurno=()=>{if(confirm('¿Cerrar el resumen sin finalizar el turno?'))window.cancelarCierreTurno();};
+        window.confirmarCierreTurno=async()=>{if(!window.turnoActual||!window.turnoPendienteCierre)return;try{await updateDoc(doc(db,'turnos',window.turnoActual.id),{estado:'cerrado',fechaCierre:fechaHoyLocal(),horaCierre:horaHoyLocal(),timestampCierre:Date.now(),resumenCierre:window.turnoPendienteCierre,actualizadoEn:serverTimestamp()});alert('Turno cerrado correctamente.');window.turnoActual=null;window.turnoPendienteCierre=null;document.getElementById('modal-cierre-turno').style.display='none';signOut(auth);}catch(e){console.error(e);alert('No fue posible cerrar el turno.');}};
+        window.abrirInventarioAdmin=async()=>{if(!esAdmin())return alert('Acceso exclusivo del Administrador.');await cargarInventario();renderInventarioAdmin();document.getElementById('modal-inventario-admin').style.display='flex';lucide.createIcons();};
+        window.cerrarInventarioAdmin=()=>document.getElementById('modal-inventario-admin').style.display='none';
+        function renderInventarioAdmin(){
+            const a=Object.values(window.inventarioCache||{}).sort((x,y)=>x.codigo.localeCompare(y.codigo));
+            let u=0,c=0,v=0; a.forEach(x=>{u+=x.cantidad;c+=x.cantidad*x.costoCompra;v+=x.cantidad*x.precioReferencia;});
+            document.getElementById('inv-total-items').textContent=a.length;
+            document.getElementById('inv-total-unidades').textContent=u;
+            document.getElementById('inv-total-costo').textContent=formatoMoneda.format(c);
+            document.getElementById('inv-total-venta').textContent=formatoMoneda.format(v);
+            document.getElementById('tabla-inventario-admin').innerHTML=`<table class="w-full min-w-[950px]"><thead><tr class="border-b border-brand-border text-[9px] font-mono uppercase text-brand-textSec"><th class="p-2 text-left">Código</th><th class="p-2 text-left">Producto</th><th class="p-2">Stock</th><th class="p-2">Costo Unit.</th><th class="p-2">Precio Venta Ref.</th><th class="p-2">Valor Costo</th><th class="p-2">Acción</th></tr></thead><tbody>`+a.map((x,i)=>`<tr class="border-b border-brand-border" data-inv-row="${x.codigo}"><td class="p-2 font-mono text-xs">${x.codigo}</td><td class="p-2"><input data-inv-field="nombre" value="${String(x.nombre||x.codigo).replace(/"/g,'&quot;')}" class="w-full p-2 rounded bg-brand-bg text-xs"></td><td class="p-2"><input data-inv-field="cantidad" type="number" min="0" step="1" value="${x.cantidad}" class="w-28 p-2 rounded bg-brand-bg text-xs text-center"></td><td class="p-2"><input data-inv-field="costoCompra" type="number" min="0" step="1" value="${x.costoCompra}" class="w-32 p-2 rounded bg-brand-bg text-xs text-center"></td><td class="p-2"><input data-inv-field="precioReferencia" type="number" min="0" step="1" value="${x.precioReferencia}" class="w-32 p-2 rounded bg-brand-bg text-xs text-center"></td><td class="p-2 font-mono text-xs text-brand-warning">${formatoMoneda.format(x.cantidad*x.costoCompra)}</td><td class="p-2 text-[9px] font-mono text-brand-textSec uppercase">Admin</td></tr>`).join('')+`</tbody></table>`;
+            lucide.createIcons();
+        }
+        window.guardarInventarioAdmin=async()=>{
+            if(!esAdmin()||window.vistaRol)return alert('Regresa a la vista Administrador para modificar el inventario.');
+            try{
+                const rows=[...document.querySelectorAll('#tabla-inventario-admin tbody tr')];
+                const b=writeBatch(db);
+                rows.forEach(row=>{
+                    const codigo=row.dataset.invRow; const it=window.inventarioCache[codigo]; if(!it)return;
+                    const q=(sel)=>row.querySelector(sel);
+                    const payload={nombre:q('[data-inv-field="nombre"]').value.trim()||codigo,cantidad:numeroSeguro(q('[data-inv-field="cantidad"]').value),costoCompra:numeroSeguro(q('[data-inv-field="costoCompra"]').value),precioReferencia:numeroSeguro(q('[data-inv-field="precioReferencia"]').value),controlAdministrativo:true,actualizadoPor:window.currentUser.email,actualizadoEn:serverTimestamp()};
+                    if(payload.cantidad<0||payload.costoCompra<0||payload.precioReferencia<0)throw new Error(`Valores inválidos en ${codigo}.`);
+                    b.set(doc(db,'inventario',it.id),payload,{merge:true});
+                });
+                await b.commit(); await cargarInventario(); renderInventarioAdmin(); if(esAdmin()) await calcularDashboardAdmin(); alert('Inventario actualizado correctamente.');
+            }catch(e){console.error(e);alert('No fue posible actualizar el inventario: '+e.message);}
+        };
+        window.agregarProductoInventarioAdmin=async()=>{
+            if(!esAdmin()||window.vistaRol)return alert('Regresa a la vista Administrador para modificar el inventario.');
+            const codigo=prompt('Código del nuevo producto:'); if(!codigo)return; const c=String(codigo).trim().toUpperCase(); if(window.inventarioCache[c])return alert('Ese código ya existe.');
+            const nombre=prompt('Descripción del producto:',c)||c; const cantidad=numeroSeguro(prompt('Stock inicial:','0')); const costo=numeroSeguro(prompt('Costo unitario:','0')); const precio=numeroSeguro(prompt('Precio de venta de referencia:','0'));
+            await setDoc(doc(db,'inventario',c),{codigo:c,nombre:nombre.trim(),cantidad,costoCompra:costo,precioReferencia:precio,fuente:'ADMIN',controlAdministrativo:true,actualizadoPor:window.currentUser.email,actualizadoEn:serverTimestamp()});
+            await cargarInventario(); renderInventarioAdmin();
+        };
+        window.importarInventarioCSV=async()=>{if(!esAdmin())return;const f=document.getElementById('archivo-inventario').files[0];if(!f)return alert('Selecciona un CSV.');const t=await f.text(),ls=t.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(ls.length<2)return alert('CSV vacío.');const h=ls[0].split(',').map(x=>x.trim().toLowerCase());const at=(n)=>h.indexOf(n.toLowerCase());const ic=at('codigo'),inm=at('nombre'),iq=at('cantidad'),icc=at('costocompra'),ip=at('precioreferencia');if(ic<0||iq<0||icc<0)return alert('CSV requerido: codigo,cantidad,costoCompra');const b=writeBatch(db);let n=0;ls.slice(1).forEach(line=>{const c=line.split(','),codigo=String(c[ic]||'').trim().toUpperCase();if(!codigo)return;const ref=doc(db,'inventario',codigo);b.set(ref,{codigo,nombre:String(c[inm]||codigo).trim(),cantidad:numeroSeguro(c[iq]),costoCompra:numeroSeguro(c[icc]),precioReferencia:ip>=0?numeroSeguro(c[ip]):0,actualizadoPor:window.currentUser.email,actualizadoEn:serverTimestamp()},{merge:true});n++;});await b.commit();await cargarInventario();renderInventarioAdmin();alert(`Inventario importado: ${n} registros.`);};
+        async function calcularDashboardAdmin(){if(!esAdmin()||!window.turnoActual)return;await cargarInventario();let valor=0,util=0,medios={},domis={};Object.values(window.inventarioCache||{}).forEach(x=>valor+=x.cantidad*x.costoCompra);const snap=await getDocs(collection(db,'ventas'));snap.forEach(x=>{const d=x.data();if(d.tipoMovimiento==='Venta')(d.productos||[]).forEach(p=>{const q=numeroSeguro(p.cantidad);const cost=numeroSeguro(p.costoUnitarioSnapshot)||numeroSeguro(window.inventarioCache?.[String(p.concepto||'').trim().toUpperCase()]?.costoCompra);util+=numeroSeguro(p.total)-q*cost;});const e=d.entrega||{},c=numeroSeguro(e.costo);if(c>0){const m=String(e.medio||'N/A').toUpperCase();medios[m]=(medios[m]||0)+c;if(m==='DOMI'){const enc=String(e.encargado||'SIN ENCARGADO').toUpperCase();domis[enc]=(domis[enc]||0)+c;}}});const r=await obtenerResumenTurno(window.turnoActual);document.getElementById('admin-caja-inicial').textContent=formatoMoneda.format(window.turnoActual.efectivoInicial||0);document.getElementById('admin-caja-esperada').textContent=formatoMoneda.format(r.cajaEsperada||0);document.getElementById('admin-utilidad').textContent=formatoMoneda.format(util);document.getElementById('admin-valor-inventario').textContent=formatoMoneda.format(valor);document.getElementById('admin-medios-entrega').innerHTML=mapHtml(medios,'text-brand-success');document.getElementById('admin-domis-encargados').innerHTML=mapHtml(domis,'text-brand-secondary');window.adminDashboardCache={utilidad:util,valorInventario:valor,medios,domis};}
 
         async function cargarConfiguracionHades() {
             try {
@@ -1011,6 +1212,7 @@
                     consecutivo: consecutivoGenerado || null
                 });
                 await calcularDashboard();
+                await calcularDashboardAdmin();
                 alert('Liquidación registrada correctamente. El saldo de Hades ahora es $0.');
             } catch (e) {
                 console.error(e);
@@ -1083,6 +1285,7 @@
         };
 
         function inicializarApp() {
+            aplicarVistaRol();
             lucide.createIcons();
             document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
             const primerDiaMes = new Date(); primerDiaMes.setDate(1);
@@ -1092,10 +1295,11 @@
             document.getElementById('pagos-container').innerHTML = '';
             contadorProductos = 0; contadorPagos = 0;
             agregarFilaProducto(); agregarFilaPago();
-            window.verificarYTrasladarPendientes();
+            if(!window.vistaRol) window.verificarYTrasladarPendientes();
             cargarVentasFirebase();
             manejarCambioTipo(); 
             calcularDashboard();
+            if(esAdmin()) calcularDashboardAdmin();
         }
 
         window.generarConsecutivo = async (userEmail) => {
@@ -1153,7 +1357,7 @@
             Object.keys(window.diccionarioProductos).sort().forEach(p => { opcionesHTML += `<option value="${p}">${p} - ${window.diccionarioProductos[p]}</option>`; });
             opcionesHTML += `<option value="OTRO" class="font-bold text-brand-primary">>> MANUAL INPUT <<</option>`;
             
-            const htmlOrigen = (window.currentUser && window.currentUser.email === HADES_EMAIL) ? `
+            const htmlOrigen = vistaEsHades() ? `
                 <div class="w-full md:w-3/12"><select class="input-origen w-full p-2 border border-brand-border rounded-lg bg-brand-bg text-xs outline-none"><option value="Ferco Farma">Ferco</option><option value="Propio">Propio</option></select></div>` : '';
 
             document.getElementById('productos-container').insertAdjacentHTML('beforeend', `
@@ -1250,71 +1454,46 @@
         };
 
         window.guardarMovimiento = async () => {
-            const cliente = document.getElementById('cliente').value.trim().toUpperCase();
-            const fecha = document.getElementById('fecha').value, notas = document.getElementById('notas').value.trim();
-            const tipo = document.querySelector('input[name="tipoMovimiento"]:checked').value;
-            
-            if (!cliente) return alert("Falta el cliente.");
-            
-            const prods = [], pags = []; let totCobrar = 0, totPag = 0;
-            
-            document.querySelectorAll('#productos-container > div').forEach(f => {
-                const s = f.querySelector('.input-prod-select').value, m = f.querySelector('.input-prod-manual').value.trim();
-                const c = parseFloat(f.querySelector('.input-cant').value)||0, v = parseFloat(f.querySelector('.input-val').value)||0;
-                const o = f.querySelector('.input-origen') ? f.querySelector('.input-origen').value : "Ferco Farma";
-                if((s==='OTRO'?m:s) && c>0 && v>=0) prods.push({ concepto: s==='OTRO'?m:s, esDiccionario: !!window.diccionarioProductos[s], origen: o, cantidad: c, valorUnitario: v, total: c*v });
-            });
-            
-            let subtotal = prods.reduce((acc, p) => acc + p.total, 0);
-            const medioE = document.getElementById('medio-entrega').value;
-            const costoEnvio = (tipo!=='Gasto'&&tipo!=='Abono') ? parseFloat(document.getElementById('costo-envio').value)||0 : 0;
-            totCobrar = subtotal + costoEnvio;
-
-            const entrega = (tipo!=='Gasto'&&tipo!=='Abono') ? { medio: medioE||"Recoge", encargado: medioE==='Domi'?document.getElementById('encargado-domi').value.toUpperCase():"N/A", costo: costoEnvio } : { medio:"N/A", encargado:"N/A", costo:0 };
-
-            document.querySelectorAll('#pagos-container > div').forEach(f => {
-                const mt = f.querySelector('.input-metodo').value, ct = f.querySelector('.input-cuenta').value, mn = parseFloat(f.querySelector('.input-monto').value)||0;
-                if(mt&&ct&&mn>=0) { pags.push({ metodo: mt, cuenta: ct, monto: mn }); totPag+=mn; }
-            });
-
-            if (prods.length===0) return alert("Falta agregar conceptos o productos.");
-
-            const diferenciaCredito = totCobrar - totPag;
-            if (diferenciaCredito > 0) { pags.push({ metodo: 'Pendiente', cuenta: 'PENDIENTE', monto: diferenciaCredito }); }
-
-            try {
-                const btn = document.getElementById('btn-guardar'); 
-                btn.innerHTML = 'PUSHING...';
-                
-                const consecutivoGenerado = await window.generarConsecutivo(window.currentUser.email);
-
-                const datosRegistro = { 
-                    tipoMovimiento: tipo, 
-                    fecha, 
-                    cliente, 
-                    notas, 
-                    productos: prods, 
-                    entrega, 
-                    pagos: pags, 
-                    totalVenta: totCobrar, 
-                    creadoPor: window.currentUser.email, 
-                    timestamp: Date.now(), 
-                    horaServidor: serverTimestamp(),
-                    consecutivo: consecutivoGenerado || null
-                };
-                
-                await addDoc(collection(db, "ventas"), datosRegistro);
-                
-                if(window.limpiarFormulario) window.limpiarFormulario(); else inicializarApp();
-                calcularDashboard(); 
-                
-                btn.innerHTML = '<i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">Guardar</span>';
-                lucide.createIcons();
-                
-            } catch (e) { 
-                alert("Error guardando: " + e.message); 
-                console.error(e); 
-            }
+            if(window.vistaRol) return alert('La vista simulada es de solo lectura. Regresa a Admin para registrar movimientos.');
+            const cliente=document.getElementById('cliente').value.trim().toUpperCase();
+            const fecha=document.getElementById('fecha').value, notas=document.getElementById('notas').value.trim();
+            const tipo=document.querySelector('input[name="tipoMovimiento"]:checked').value;
+            if(!window.turnoActual)return alert('Debes abrir un turno antes de registrar movimientos.');
+            if(!cliente)return alert('Falta el cliente.');
+            const prods=[],pags=[];let totCobrar=0,totPag=0;
+            document.querySelectorAll('#productos-container > div').forEach(f=>{const s=f.querySelector('.input-prod-select').value,m=f.querySelector('.input-prod-manual').value.trim(),c=numeroSeguro(f.querySelector('.input-cant').value),v=numeroSeguro(f.querySelector('.input-val').value),o=f.querySelector('.input-origen')?f.querySelector('.input-origen').value:'Ferco Farma';if((s==='OTRO'?m:s)&&c>0&&v>=0)prods.push({concepto:s==='OTRO'?m:s,esDiccionario:!!window.diccionarioProductos[s],origen:o,cantidad:c,valorUnitario:v,total:c*v});});
+            const subtotal=prods.reduce((a,p)=>a+p.total,0),medioE=document.getElementById('medio-entrega').value,costoEnvio=(tipo!=='Gasto'&&tipo!=='Abono')?numeroSeguro(document.getElementById('costo-envio').value):0;totCobrar=subtotal+costoEnvio;
+            const entrega=(tipo!=='Gasto'&&tipo!=='Abono')?{medio:medioE||'Recoge',encargado:medioE==='Domi'?document.getElementById('encargado-domi').value.toUpperCase():'N/A',costo:costoEnvio}:{medio:'N/A',encargado:'N/A',costo:0};
+            document.querySelectorAll('#pagos-container > div').forEach(f=>{const mt=f.querySelector('.input-metodo').value,ct=f.querySelector('.input-cuenta').value,mn=numeroSeguro(f.querySelector('.input-monto').value);if(mt&&ct&&mn>=0){pags.push({metodo:mt,cuenta:ct,monto:mn});totPag+=mn;}});
+            if(!prods.length)return alert('Falta agregar conceptos o productos.');
+            const diferenciaCredito=totCobrar-totPag;if(diferenciaCredito>0)pags.push({metodo:'Pendiente',cuenta:'PENDIENTE',monto:diferenciaCredito});
+            try{
+                const btn=document.getElementById('btn-guardar');btn.innerHTML='PUSHING...';const consecutivoGenerado=await window.generarConsecutivo(window.currentUser.email);
+                const productosConCosto=prods.map(p=>{const codigo=String(p.concepto||'').trim().toUpperCase(),it=window.inventarioCache?.[codigo];return {...p,costoUnitarioSnapshot:numeroSeguro(it?.costoCompra),costoEstimado:!it};});
+                // SOLO las operaciones creadas por el Administrador modifican el Inventario Maestro.
+                // Hades y Supervisor pueden registrar ventas/compras, pero esos movimientos no alteran el inventario maestro.
+                const ajustes={};
+                if(esAdmin() && !window.vistaRol){
+                    for(const p of productosConCosto){
+                        const codigo=String(p.concepto||'').trim().toUpperCase();
+                        if((tipo==='Venta'||tipo==='Compra')&&p.origen!=='Propio'){
+                            const q=numeroSeguro(p.cantidad);
+                            ajustes[codigo]=(ajustes[codigo]||0)+(tipo==='Venta'?-q:q);
+                            if(tipo==='Venta'&&numeroSeguro(window.inventarioCache?.[codigo]?.cantidad)+ajustes[codigo]<0)throw new Error(`Inventario insuficiente para ${codigo}.`);
+                        }
+                    }
+                }
+                const datos=aplicarTurnoEnRegistro({tipoMovimiento:tipo,fecha,hora:horaHoyLocal(),cliente,notas,productos:productosConCosto,entrega,pagos:pags,totalVenta:totCobrar,creadoPor:window.currentUser.email,timestamp:Date.now(),horaServidor:serverTimestamp(),consecutivo:consecutivoGenerado||null});
+                const batch=writeBatch(db),ventaRef=doc(collection(db,'ventas'));batch.set(ventaRef,datos);
+                if(esAdmin() && !window.vistaRol){
+                    for(const [codigo,delta] of Object.entries(ajustes)){
+                        const it=window.inventarioCache?.[codigo],ref=it?doc(db,'inventario',it.id):doc(db,'inventario',codigo),nueva=numeroSeguro(it?.cantidad)+delta;
+                        if(nueva<0)throw new Error(`Inventario insuficiente para ${codigo}.`);
+                        batch.set(ref,{codigo,nombre:it?.nombre||codigo,cantidad:nueva,costoCompra:numeroSeguro(it?.costoCompra),precioReferencia:numeroSeguro(it?.precioReferencia),controlAdministrativo:true,actualizadoPor:window.currentUser.email,actualizadoEn:serverTimestamp()},{merge:true});
+                    }
+                }
+                await batch.commit();await cargarInventario();if(window.limpiarFormulario)window.limpiarFormulario();else inicializarApp();await calcularDashboard();await calcularDashboardAdmin();btn.innerHTML='<i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">Guardar</span>';lucide.createIcons();
+            }catch(e){alert('Error guardando: '+e.message);console.error(e);}
         };
 
         // DASHBOARD GLOBAL Y LÓGICA DE ABONOS HADES
@@ -1495,7 +1674,7 @@
                 const lD = document.getElementById('lista-deudores');
                 if (lD) lD.innerHTML='';
 
-                if(window.currentUser.email===HADES_EMAIL) {
+                if(vistaEsHades()) {
                     document.getElementById('dash-hades-ventas').textContent=formatoMoneda.format(hVSemana);
                     document.getElementById('dash-hades-compras').textContent=formatoMoneda.format(hCSemana);
                     document.getElementById('dash-hades-gastos').textContent=formatoMoneda.format(hGSemana);
@@ -1564,7 +1743,7 @@
         function cargarVentasFirebase() {
             onSnapshot(collection(db, "ventas"), (snap) => {
                 let m = []; snap.forEach(d => m.push(d.data())); m.sort((a,b)=>b.timestamp-a.timestamp);
-                if(window.currentUser?.email===HADES_EMAIL) m=m.filter(x=>x.creadoPor===HADES_EMAIL); m=m.slice(0,5);
+                if(vistaEsHades()) m=m.filter(x=>x.creadoPor===HADES_EMAIL); m=m.slice(0,5);
                 const l = document.getElementById('lista-ventas'); l.innerHTML = m.length===0?'<p class="text-[10px] text-center">NO DATA</p>':'';
                 m.forEach(v => { l.insertAdjacentHTML('beforeend', `<div class="bg-brand-bg p-4 rounded border border-brand-border mb-3"><div class="flex justify-between"><span class="font-bold text-sm uppercase">${v.cliente}</span><span class="font-mono text-sm">${formatoMoneda.format(v.totalVenta)}</span></div></div>`); });
             });
@@ -1599,6 +1778,7 @@
         };
 
         window.procesarAbonoHades = async () => {
+            if(window.vistaRol) return alert('La vista simulada es de solo lectura. Regresa a Admin para registrar abonos.');
             const monto = parseFloat(document.getElementById('abono-hades-monto').value) || 0;
             const metodo = document.getElementById('abono-hades-metodo').value;
             const cuenta = document.getElementById('abono-hades-cuenta').value;
@@ -1612,7 +1792,8 @@
 
                 const consecutivoGenerado = await window.generarConsecutivo(window.currentUser.email);
 
-                await addDoc(collection(db, "ventas"), { 
+                if(!window.turnoActual) throw new Error("No hay un turno activo.");
+                await addDoc(collection(db, "ventas"), aplicarTurnoEnRegistro({ 
                     tipoMovimiento: "Abono Domis", 
                     fecha: new Date().toISOString().split('T')[0], 
                     cliente: "HADES (LOGÍSTICA)", 
@@ -1625,7 +1806,7 @@
                     timestamp: Date.now(),
                     horaServidor: serverTimestamp(),
                     consecutivo: consecutivoGenerado || null
-                });
+                }));
                 
                 cerrarModalAbonoHades();
                 calcularDashboard();
@@ -1640,6 +1821,7 @@
         window.abrirModalAbonoRapido = (c,d) => { document.getElementById('abono-rapido-cliente').textContent=c; window.abonoRapidoCliente=c; window.abonoRapidoDeuda=d; document.getElementById('abono-rapido-deuda').textContent=formatoMoneda.format(d); document.getElementById('modal-abono-rapido').style.display='flex'; };
         window.cerrarModalAbonoRapido = () => { document.getElementById('modal-abono-rapido').style.display='none'; };
         window.procesarAbonoRapido = async () => {
+            if(window.vistaRol) return alert('La vista simulada es de solo lectura. Regresa a Admin para registrar abonos.');
             const m = parseFloat(document.getElementById('abono-rapido-monto').value)||0;
             const mt = document.getElementById('abono-rapido-metodo').value;
             const ct = document.getElementById('abono-rapido-cuenta').value;
@@ -1654,7 +1836,8 @@
                 
                 const consecutivoGenerado = await window.generarConsecutivo(window.currentUser.email);
 
-                await addDoc(collection(db, "ventas"), { 
+                if(!window.turnoActual) throw new Error("No hay un turno activo.");
+                await addDoc(collection(db, "ventas"), aplicarTurnoEnRegistro({ 
                     tipoMovimiento: "Abono", 
                     fecha: new Date().toISOString().split('T')[0], 
                     cliente: window.abonoRapidoCliente, 
@@ -1667,7 +1850,7 @@
                     timestamp: Date.now(),
                     horaServidor: serverTimestamp(),
                     consecutivo: consecutivoGenerado || null
-                });
+                }));
                 
                 cerrarModalAbonoRapido(); 
                 calcularDashboard();
@@ -1786,7 +1969,7 @@
                 const snap = await getDocs(collection(db, "ventas")); const dias = {};
                 snap.forEach(doc => {
                     const d = doc.data(); d.id = doc.id;
-                    if(window.currentUser?.email===HADES_EMAIL && d.creadoPor!==HADES_EMAIL) return;
+                    if(vistaEsHades() && d.creadoPor!==HADES_EMAIL) return;
                     window.movimientosCache.push(d);
                     const f = d.fecha||"UNTRACKED"; if(!dias[f]) dias[f]={m:[], i:0, e:0}; dias[f].m.push(d);
                     const t = d.tipoMovimiento||'Venta', mt = d.totalVenta||0;
@@ -2068,7 +2251,7 @@
             } catch(e) { alert("Error guardando: " + e.message); console.error(e); }
         };
 
-        window.exportarCSV = () => { alert("Export feature standing by in new build."); };
+        window.exportarCSV=async()=>{if(!esAdmin())return alert('Informe consolidado exclusivo del Administrador.');try{const ini=document.getElementById('filtro-inicio')?.value||fechaHoyLocal(),fin=document.getElementById('filtro-fin')?.value||fechaHoyLocal(),vs=await getDocs(collection(db,'ventas')),cs=await getDocs(collection(db,'caja_menor')),ts=await getDocs(collection(db,'turnos'));const esc=v=>`"${String(v??'').replace(/"/g,'""')}"`;const rows=[['INFORME FERCO FARMA',`Desde ${ini}`,`Hasta ${fin}`],[],['MOVIMIENTOS','Fecha','Hora','Tipo','Cliente/Concepto','Medio','Cuenta','Monto','Turno','Usuario','Utilidad']];vs.forEach(x=>{const d=x.data();if((d.fecha||'')<ini||(d.fecha||'')>fin)return;const u=d.tipoMovimiento==='Venta'?(d.productos||[]).reduce((a,p)=>{const codigo=String(p.concepto||'').trim().toUpperCase();const costo=numeroSeguro(p.costoUnitarioSnapshot)||numeroSeguro(window.inventarioCache?.[codigo]?.costoCompra);return a+numeroSeguro(p.total)-numeroSeguro(p.cantidad)*costo;},0):0;(d.pagos||[{metodo:'',cuenta:'',monto:d.totalVenta}]).forEach(p=>rows.push(['REGISTRO',d.fecha||'',d.hora||'',d.tipoMovimiento||'',d.cliente||'',p.metodo||'',p.cuenta||'',numeroSeguro(p.monto),d.turnoId||'',d.creadoPor||'',u]));});cs.forEach(x=>{const d=x.data();if((d.fecha||'')<ini||(d.fecha||'')>fin)return;rows.push(['CAJA MENOR',d.fecha||'',d.hora||'',d.tipo||'',d.concepto||'',d.medio||'','CAJA MENOR',numeroSeguro(d.monto),d.turnoId||'',d.creadoPor||'',0]);});rows.push([],['INVENTARIO ACTUAL','Codigo','Producto','Cantidad','Costo Unitario','Valor Costo','Precio Referencia','Valor Venta Potencial']);Object.values(window.inventarioCache||{}).sort((a,b)=>a.codigo.localeCompare(b.codigo)).forEach(it=>rows.push(['INVENTARIO',it.codigo,it.nombre,it.cantidad,it.costoCompra,it.cantidad*it.costoCompra,it.precioReferencia,it.cantidad*it.precioReferencia]));rows.push([],['DOMICILIOS','Encargado','Monto']);const dom={};vs.forEach(x=>{const d=x.data();if((d.fecha||'')<ini||(d.fecha||'')>fin)return;const e=d.entrega||{},c=numeroSeguro(e.costo);if(c>0){const enc=String(e.encargado||'SIN ENCARGADO').toUpperCase();dom[enc]=(dom[enc]||0)+c;}});Object.entries(dom).forEach(([k,v])=>rows.push(['DOMI',k,v]));rows.push([],['TURNOS','ID','Usuario','Apertura','Cierre','Efectivo Inicial','Efectivo Esperado','Ventas','Gastos','Compras','Utilidad']);ts.forEach(x=>{const d=x.data();if((d.fechaApertura||'')<ini||(d.fechaApertura||'')>fin)return;const r=d.resumenCierre||{};rows.push(['TURNO',x.id,d.usuarioEmail,`${d.fechaApertura||''} ${d.horaApertura||''}`,`${d.fechaCierre||''} ${d.horaCierre||''}`,d.efectivoInicial||0,r.cajaEsperada||0,r.ventas||0,r.gastos||0,r.compras||0,r.utilidad||0]);});const csv=rows.map(r=>r.map(esc).join(',')).join('\r\n'),blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`ferco_informe_${ini}_${fin}.csv`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}catch(e){console.error(e);alert('No fue posible generar el informe.');}};
 
         // ==================== HISTORIAL DE CLIENTE (DRILL-DOWN) ====================
         window.abrirHistorialCliente = async (cliente, saldoActual) => {
