@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ERP Web - Ferco Farma</title>
     
-    <!-- Fuentes de Google: Inter, Space Grotesk, JetBrains Mono -->
+    <!-- Fuentes de Google -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
@@ -74,20 +74,16 @@
 </head>
 <body class="font-sans antialiased min-h-screen selection:bg-brand-primary selection:text-brand-bg">
 
-    <!-- ==================== PANTALLA DE LOGIN ==================== -->
     <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-brand-bg transition-colors">
         <div class="bg-brand-panel p-8 rounded-2xl shadow-2xl w-full max-w-md border border-brand-border relative overflow-hidden">
             <div class="absolute -top-20 -right-20 w-40 h-40 bg-brand-primary rounded-full blur-[80px] opacity-20"></div>
-            
             <div class="text-center mb-8 relative z-10">
                 <div class="w-16 h-16 bg-brand-card border border-brand-primary/30 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-[0_0_15px_rgba(0,245,255,0.2)]">
                     <i data-lucide="shield-alert" class="w-8 h-8 text-brand-primary"></i>
                 </div>
                 <h1 class="text-2xl font-display font-bold text-brand-text tracking-wide">Ferco Farma</h1>
                 <p class="text-sm font-mono text-brand-textSec mt-2 tracking-widest uppercase">Acceso Restringido</p>
-                <p class="text-[10px] text-brand-error mt-2 font-mono">* La sesión expira al recargar</p>
             </div>
-            
             <form id="login-form" onsubmit="event.preventDefault(); if(window.iniciarSesion) window.iniciarSesion();" class="space-y-5 relative z-10">
                 <div>
                     <label class="block text-xs font-mono mb-1 text-brand-textSec uppercase">Correo Electrónico</label>
@@ -105,7 +101,6 @@
         </div>
     </div>
 
-    <!-- ==================== APLICACIÓN PRINCIPAL ==================== -->
     <div id="app-screen" class="hidden p-4 md:p-8">
         
         <!-- HEADER -->
@@ -327,15 +322,24 @@
                     <p class="font-mono text-[10px] text-brand-textSec uppercase tracking-widest mb-3 border-b border-brand-border pb-2">Costos Logísticos Generados</p>
                     <div id="div-costos-domis-global" class="grid grid-cols-2 gap-2 mb-6"></div>
 
+                    <!-- CAJA DE COBRO DOMIS HADES (ADMIN) -->
                     <div class="bg-brand-warning/5 border border-brand-warning/20 p-4 rounded-xl">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <p class="font-mono text-[9px] text-brand-warning font-bold uppercase tracking-widest opacity-80 mb-1">CtaxCobrar Domis (Hades)</p>
-                                <p id="dash-admin-domis-hades" class="font-mono text-lg font-bold text-brand-warning drop-shadow-[0_0_5px_rgba(255,213,0,0.3)]">$ 0</p>
+                        <div class="flex flex-col gap-3">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="font-mono text-[9px] text-brand-warning font-bold uppercase tracking-widest opacity-80 mb-1">CtaxCobrar Domis (Hades)</p>
+                                    <p id="dash-admin-domis-hades" class="font-mono text-lg font-bold text-brand-warning drop-shadow-[0_0_5px_rgba(255,213,0,0.3)]">$ 0</p>
+                                </div>
                             </div>
-                            <button id="btn-liquidar-hades" onclick="liquidarDomisHades()" class="bg-brand-warning/10 hover:bg-brand-warning border border-brand-warning hover:text-brand-bg text-brand-warning px-3 py-2 rounded-lg font-mono text-[10px] uppercase font-bold transition-all shadow-[0_0_10px_rgba(255,213,0,0.1)] flex items-center gap-1">
-                                <i data-lucide="check-square" class="w-3 h-3"></i> Saldar
-                            </button>
+                            <!-- Botones de Acción sobre la deuda -->
+                            <div class="flex gap-2 w-full">
+                                <button onclick="abrirModalAbonoHades()" class="flex-1 bg-brand-success/10 hover:bg-brand-success border border-brand-success hover:text-brand-bg text-brand-success py-2 rounded-lg font-mono text-[10px] uppercase font-bold transition-all shadow-[0_0_10px_rgba(0,255,157,0.1)] flex items-center justify-center gap-1">
+                                    <i data-lucide="dollar-sign" class="w-3 h-3"></i> Abonar
+                                </button>
+                                <button id="btn-liquidar-hades" onclick="liquidarDomisHades()" class="flex-1 bg-brand-warning/10 hover:bg-brand-warning border border-brand-warning hover:text-brand-bg text-brand-warning py-2 rounded-lg font-mono text-[10px] uppercase font-bold transition-all shadow-[0_0_10px_rgba(255,213,0,0.1)] flex items-center justify-center gap-1">
+                                    <i data-lucide="check-square" class="w-3 h-3"></i> Saldar a $0
+                                </button>
+                            </div>
                         </div>
                     </div>
                     
@@ -348,7 +352,7 @@
                         </button>
                     </div>
 
-                    <!-- TARJETA DE ACUMULADO DEL DÍA ACTUAL (Clickeable) -->
+                    <!-- TARJETA DE ACUMULADO DEL DÍA ACTUAL -->
                     <div class="mt-6 fade-in">
                         <p class="font-mono text-[10px] text-brand-textSec uppercase tracking-widest mb-3 border-b border-brand-border pb-2">Acumulado de Ventas por Día</p>
                         <div id="contenedor-acumulado-diario" class="grid grid-cols-2 gap-4">
@@ -388,12 +392,16 @@
                             <p id="dash-hades-gastos" class="font-mono text-sm font-bold text-brand-error">$ 0</p>
                         </div>
                     </div>
+                    
+                    <!-- CAJA DE COBRO DOMIS (VISTA HADES) -->
                     <div class="bg-brand-bg/50 p-4 rounded-xl border border-brand-border flex justify-between items-center mt-2">
                         <div>
                             <p class="font-mono text-[9px] text-brand-textSec uppercase tracking-widest mb-1">Deuda a Ferco (Domis)</p>
                             <p id="dash-hades-domis" class="font-mono text-xl font-bold text-brand-warning drop-shadow-[0_0_5px_rgba(255,213,0,0.3)]">$ 0</p>
                         </div>
-                        <i data-lucide="bike" class="w-6 h-6 text-brand-textSec opacity-50"></i>
+                        <button onclick="abrirModalAbonoHades()" class="bg-brand-success/10 hover:bg-brand-success border border-brand-success hover:text-brand-bg text-brand-success px-3 py-2 rounded-lg font-mono text-[10px] uppercase font-bold transition-all flex items-center gap-1 shadow-[0_0_10px_rgba(0,255,157,0.1)]">
+                            <i data-lucide="dollar-sign" class="w-3 h-3"></i> Abonar
+                        </button>
                     </div>
                     
                     <div class="grid grid-cols-2 gap-3 mt-6">
@@ -406,7 +414,7 @@
                     </div>
                 </div>
 
-                <!-- LÍNEA DE TIEMPO (Solo Lectura, 5 items) -->
+                <!-- LÍNEA DE TIEMPO -->
                 <div class="bg-brand-panel p-6 rounded-xl shadow-lg border border-brand-border">
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-sm font-display font-bold text-brand-text flex items-center gap-2 uppercase tracking-widest">
@@ -441,6 +449,56 @@
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ABONO ESPECÍFICO DEUDA HADES -->
+    <div id="modal-abono-hades" class="fixed inset-0 z-[75] hidden items-center justify-center bg-brand-bg/90 backdrop-blur-sm transition-opacity">
+        <div class="glass-modal w-full max-w-sm flex flex-col rounded-2xl m-4 shadow-[0_0_50px_rgba(255,213,0,0.15)] border-brand-warning/50">
+            <div class="p-5 border-b border-brand-border flex justify-between items-center bg-brand-panel rounded-t-2xl">
+                <h2 class="text-md font-display font-bold uppercase tracking-widest flex items-center gap-2 text-brand-warning">
+                    <i data-lucide="bike" class="w-4 h-4"></i> Abono Deuda Domis
+                </h2>
+                <button onclick="cerrarModalAbonoHades()" class="p-2 hover:bg-brand-card rounded-lg transition-colors text-brand-textSec">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div class="p-6 bg-brand-bg rounded-b-2xl space-y-5">
+                <div class="text-center mb-2">
+                    <p class="text-[10px] font-mono uppercase text-brand-textSec mb-1">Deuda Actual</p>
+                    <p id="abono-hades-deuda-actual" class="text-2xl font-mono font-bold text-brand-error drop-shadow-[0_0_8px_rgba(255,59,92,0.4)]"></p>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase tracking-widest">Monto a Abonar ($)</label>
+                    <input type="number" id="abono-hades-monto" class="w-full p-3 font-mono text-center text-lg text-brand-success bg-brand-card border border-brand-success/30 rounded-lg outline-none focus:border-brand-success transition-colors" placeholder="0" oninput="calcularRestanteHades()">
+                </div>
+                <div class="text-center bg-brand-card p-3 rounded-lg border border-brand-border hidden transition-all duration-300" id="div-restante-hades">
+                    <p class="text-[10px] font-mono uppercase text-brand-textSec mb-1">Nuevo Saldo Pendiente</p>
+                    <p id="abono-hades-deuda-restante" class="text-lg font-mono font-bold text-brand-warning"></p>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase tracking-widest">Medio</label>
+                        <select id="abono-hades-metodo" class="w-full p-2.5 font-mono text-xs bg-brand-card border border-brand-border rounded-lg outline-none">
+                            <option value="">Medio...</option>
+                            <option value="Transferencia">Transferencia</option>
+                            <option value="Efectivo">Efectivo</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase tracking-widest">Destino</label>
+                        <select id="abono-hades-cuenta" class="w-full p-2.5 font-mono text-xs bg-brand-card border border-brand-border rounded-lg outline-none">
+                            <option value="">Caja...</option>
+                            <option value="CRIS">CRIS</option>
+                            <option value="JHON">JHON</option>
+                            <option value="BODEGA">BODEGA</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="btn-procesar-abono-hades" onclick="procesarAbonoHades()" class="w-full mt-2 bg-brand-warning hover:bg-brand-warning/80 text-brand-bg px-4 py-3 rounded-lg font-mono font-bold uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,213,0,0.4)]">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i> Confirmar Abono
+                </button>
             </div>
         </div>
     </div>
@@ -492,12 +550,12 @@
         </div>
     </div>
 
-    <!-- MODAL: ABONO RÁPIDO -->
+    <!-- MODAL: ABONO RÁPIDO CARTERA CLIENTES -->
     <div id="modal-abono-rapido" class="fixed inset-0 z-[70] hidden items-center justify-center bg-brand-bg/90 backdrop-blur-sm transition-opacity">
         <div class="glass-modal w-full max-w-sm flex flex-col rounded-2xl m-4 shadow-[0_0_50px_rgba(139,92,246,0.15)] border-brand-secondary/50">
             <div class="p-5 border-b border-brand-border flex justify-between items-center bg-brand-panel rounded-t-2xl">
                 <h2 class="text-md font-display font-bold uppercase tracking-widest flex items-center gap-2 text-brand-secondary">
-                    <i data-lucide="hand-coins" class="w-4 h-4"></i> Liquidar Abono
+                    <i data-lucide="hand-coins" class="w-4 h-4"></i> Liquidar Abono Cliente
                 </h2>
                 <button onclick="cerrarModalAbonoRapido()" class="p-2 hover:bg-brand-card rounded-lg transition-colors text-brand-textSec">
                     <i data-lucide="x" class="w-4 h-4"></i>
@@ -537,6 +595,10 @@
                             <option value="HOSTEL">CUENTA HOSTEL</option>
                         </select>
                     </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase tracking-widest">Concepto</label>
+                    <input type="text" id="abono-rapido-concepto" class="w-full p-2.5 font-mono text-xs bg-brand-card border border-brand-border rounded-lg outline-none" placeholder="Ej: Abono de deuda anterior">
                 </div>
                 <button id="btn-procesar-abono" onclick="procesarAbonoRapido()" class="w-full mt-2 bg-brand-secondary hover:bg-brand-secondary/80 text-brand-text px-4 py-3 rounded-lg font-mono font-bold uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(139,92,246,0.4)]">
                     <i data-lucide="check-circle" class="w-4 h-4"></i> Confirmar Transacción
@@ -647,7 +709,7 @@
         </div>
     </div>
 
-    <!-- MODAL FLOTANTE DE EDICIÓN EXCLUSIVA (NIVEL 80) -->
+    <!-- MODAL FLOTANTE DE EDICIÓN EXCLUSIVA -->
     <div id="modal-editar-registro" class="fixed inset-0 z-[80] hidden items-center justify-center bg-brand-bg/95 backdrop-blur-md transition-opacity">
         <div class="glass-modal w-full max-w-4xl max-h-[95vh] flex flex-col rounded-2xl m-4 border border-brand-warning/50 shadow-[0_0_40px_rgba(255,213,0,0.15)] overflow-hidden">
             <div class="p-5 border-b border-brand-warning/30 flex justify-between items-center bg-brand-warning/10">
@@ -781,9 +843,7 @@
                 <span id="historial-saldo-cliente" class="font-mono text-2xl font-bold text-brand-error drop-shadow-[0_0_5px_rgba(255,59,92,0.4)]">$ 0</span>
             </div>
             
-            <div class="p-6 overflow-y-auto flex-1 bg-brand-panel space-y-3" id="contenedor-historial-cliente">
-                <!-- Los registros se inyectarán aquí dinámicamente -->
-            </div>
+            <div class="p-6 overflow-y-auto flex-1 bg-brand-panel space-y-3" id="contenedor-historial-cliente"></div>
         </div>
     </div>
 
@@ -814,7 +874,7 @@
     <!-- ==================== SCRIPTS LÓGICOS ==================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs, getDoc, setDoc, onSnapshot, writeBatch } 
+        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs, getDoc, setDoc, onSnapshot, writeBatch, runTransaction, serverTimestamp } 
         from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, inMemoryPersistence } 
         from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -849,11 +909,11 @@
         window.fechaCorteDomisHades = 0;
         window.filtroDecenasActivo = false;
         window.filtroPendientesActivo = false;
-        window.ventasPorDiaGlobal = {}; // Memoria global para búsquedas rápidas
+        window.ventasPorDiaGlobal = {}; 
+        window.deudaActualHades = 0; // NUEVO ESTADO GLOBAL
         
         let contadorProductos = 0; let contadorPagos = 0;
         let contadorProductosEd = 0; let contadorPagosEd = 0;
-        let timerInactividad;
         
         const formatoMoneda = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
@@ -869,9 +929,6 @@
                     const errorTxt = document.getElementById('login-error');
                     errorTxt.textContent = "ACCESO DENEGADO (USUARIO NO VIP)";
                     errorTxt.classList.remove('hidden');
-                    const btn = document.getElementById('btn-login');
-                    btn.innerHTML = 'Ingresar al Sistema <i data-lucide="log-in" class="w-5 h-5"></i>';
-                    if(window.lucide) lucide.createIcons();
                     return; 
                 }
 
@@ -899,21 +956,16 @@
                 window.currentUser = null;
                 loginScreen.classList.remove('hidden');
                 appScreen.classList.add('hidden');
-                document.getElementById('panel-financiero').classList.add('hidden');
-                document.getElementById('panel-hades').classList.add('hidden');
             }
         });
 
-        // INICIO DE SESIÓN DEFENSIVO
         window.iniciarSesion = () => {
             const email = document.getElementById('login-email').value.trim().toLowerCase();
             const pass = document.getElementById('login-pass').value;
             const btn = document.getElementById('btn-login');
             const errorTxt = document.getElementById('login-error');
-            
             btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Auth...';
             errorTxt.classList.add('hidden');
-
             signInWithEmailAndPassword(auth, email, pass).catch((error) => {
                 errorTxt.textContent = "ERROR: " + error.code;
                 errorTxt.classList.remove('hidden');
@@ -942,7 +994,6 @@
             }
         };
 
-        // DICCIONARIO
         async function cargarDiccionario() {
             try {
                 const docSnap = await getDoc(doc(db, "configuracion", "diccionario_productos"));
@@ -985,7 +1036,28 @@
             } catch (error) { alert("SYS_ERR: SAVE_FAILED"); }
         };
 
-        // INICIALIZACIÓN
+        window.verificarYTrasladarPendientes = async () => {
+            try {
+                const limite24Horas = Date.now() - (24 * 60 * 60 * 1000);
+                const snap = await getDocs(collection(db, "ventas"));
+                const batch = writeBatch(db);
+                let actualizados = 0;
+
+                snap.forEach(documento => {
+                    const data = documento.data();
+                    if (data.timestamp && data.timestamp <= limite24Horas) {
+                        let modificado = false;
+                        const nuevosPagos = (data.pagos || []).map(p => {
+                            if (p.metodo === 'Pendiente') { modificado = true; return { ...p, metodo: 'Credito', cuenta: 'CREDITO' }; }
+                            return p;
+                        });
+                        if (modificado) { batch.update(doc(db, "ventas", documento.id), { pagos: nuevosPagos }); actualizados++; }
+                    }
+                });
+                if (actualizados > 0) { await batch.commit(); }
+            } catch (error) { console.error(error); }
+        };
+
         function inicializarApp() {
             lucide.createIcons();
             document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
@@ -996,12 +1068,33 @@
             document.getElementById('pagos-container').innerHTML = '';
             contadorProductos = 0; contadorPagos = 0;
             agregarFilaProducto(); agregarFilaPago();
+            window.verificarYTrasladarPendientes();
             cargarVentasFirebase();
             manejarCambioTipo(); 
             calcularDashboard();
         }
 
-        // FUNCIÓN GLOBAL PARA LIMPIAR EL FORMULARIO
+        window.generarConsecutivo = async (userEmail) => {
+            const fechaCorte = new Date('2026-08-15T00:00:00');
+            const hoy = new Date();
+            if (hoy < fechaCorte) return null;
+
+            const inicialUsuario = userEmail ? userEmail.charAt(0).toUpperCase() : 'X';
+            const contadorRef = doc(db, 'configuracion', 'contadorVentas');
+
+            try {
+                const nuevoIdVenta = await runTransaction(db, async (transaction) => {
+                    const contadorDoc = await transaction.get(contadorRef);
+                    let ultimoNumero = 0;
+                    if (contadorDoc.exists()) { ultimoNumero = contadorDoc.data().ultimoNumero || 0; }
+                    const siguienteNumero = ultimoNumero + 1;
+                    transaction.set(contadorRef, { ultimoNumero: siguienteNumero }, { merge: true });
+                    return `${inicialUsuario}-${siguienteNumero.toString().padStart(3, '0')}`;
+                });
+                return nuevoIdVenta;
+            } catch (error) { return null; }
+        };
+
         window.limpiarFormulario = () => {
             document.getElementById('cliente').value = '';
             document.getElementById('notas').value = '';
@@ -1010,7 +1103,6 @@
             inicializarApp();
         };
 
-        // FORMULARIO PRINCIPAL (CREAR)
         window.manejarCambioTipo = () => {
             const tipo = document.querySelector('input[name="tipoMovimiento"]:checked').value;
             const logis = document.getElementById('seccion-logistica');
@@ -1177,19 +1269,33 @@
                 pags.push({ metodo: 'Pendiente', cuenta: 'PENDIENTE', monto: diferenciaCredito });
             }
 
-            const datosRegistro = { tipoMovimiento: tipo, fecha, cliente, notas, productos: prods, entrega, pagos: pags, totalVenta: totCobrar, creadoPor: window.currentUser.email, timestamp: Date.now() };
-
             try {
                 const btn = document.getElementById('btn-guardar'); 
                 btn.innerHTML = 'PUSHING...';
                 
+                // Generamos el consecutivo dinámico
+                const consecutivoGenerado = await window.generarConsecutivo(window.currentUser.email);
+
+                const datosRegistro = { 
+                    tipoMovimiento: tipo, 
+                    fecha, 
+                    cliente, 
+                    notas, 
+                    productos: prods, 
+                    entrega, 
+                    pagos: pags, 
+                    totalVenta: totCobrar, 
+                    creadoPor: window.currentUser.email, 
+                    timestamp: Date.now(), 
+                    horaServidor: serverTimestamp(),
+                    consecutivo: consecutivoGenerado || null
+                };
+                
                 await addDoc(collection(db, "ventas"), datosRegistro);
                 
-                // Ejecutamos la limpieza total y actualizamos los gráficos
                 if(window.limpiarFormulario) window.limpiarFormulario(); else inicializarApp();
                 calcularDashboard(); 
                 
-                // Restauramos el botón
                 btn.innerHTML = '<i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">Guardar</span>';
                 lucide.createIcons();
                 
@@ -1199,39 +1305,26 @@
             }
         };
 
-        // DASHBOARD ACTUALIZADO CON FILTROS POR FECHA
         window.calcularDashboard = async () => {
             if(!window.currentUser) return;
             try {
                 const snap = await getDocs(collection(db, "ventas"));
                 
-                // --- 1. LÓGICA DE FECHAS ---
                 const ahora = new Date();
-                
-                // Timestamp de inicio de mes (Día 1 a las 00:00:00)
                 const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
                 inicioMes.setHours(0,0,0,0);
                 const msInicioMes = inicioMes.getTime();
 
-                // Timestamp de inicio de semana (Lunes a las 00:00:00)
-                const diaSemana = ahora.getDay(); // 0 es Domingo, 1 es Lunes...
+                const diaSemana = ahora.getDay(); 
                 const diasAlLunes = ahora.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1);
                 const inicioSemana = new Date(ahora.getFullYear(), ahora.getMonth(), diasAlLunes);
                 inicioSemana.setHours(0,0,0,0);
                 const msInicioSemana = inicioSemana.getTime();
-                // -----------------------------------
 
-                // Variables históricas
                 let deudores = {}, saldos = {"CRIS":0, "JHON":0, "BODEGA":0, "HADES":0, "HOSTEL":0}, domis = {};
                 let hDomis = 0, hDeud = {};
-                
-                // Variables filtradas para el Dashboard
-                let ventasMesGlobal = 0;
-                let comprasSemanaGlobal = 0;
-                let gastosSemanaGlobal = 0;
+                let ventasMesGlobal = 0, comprasSemanaGlobal = 0, gastosSemanaGlobal = 0;
                 let hVSemana = 0, hCSemana = 0, hGSemana = 0;
-                
-                // Acumulador para la tabla diaria
                 let ventasPorDia = {}; 
 
                 snap.forEach(doc => {
@@ -1246,15 +1339,25 @@
                     const esDeEsteMes = timestamp >= msInicioMes;
                     const esDeEstaSemana = timestamp >= msInicioSemana;
 
+                    // Validación exclusiva y segura de Costos Hades vs Abonos
+                    const encargadoDomi = (d.entrega?.encargado || '').toUpperCase().trim();
+                    const equipoInterno = ['CRIS', 'VALENTINO ROSSI', 'DAVID', 'JF', 'MONO'];
+                    
+                    if (d.creadoPor === HADES_EMAIL && d.entrega?.costo > 0 && equipoInterno.includes(encargadoDomi) && d.timestamp >= window.fechaCorteDomisHades) {
+                        hDomis += d.entrega.costo;
+                    }
+                    if (t === 'Abono Domis' && d.timestamp >= window.fechaCorteDomisHades) {
+                        hDomis -= mt;
+                    }
+
                     if(t==='Venta') {
                         if(esDeEsteMes) ventasMesGlobal += mt; 
-                        
-                        // Guardar acumulado por fecha para la tabla
                         ventasPorDia[f] = (ventasPorDia[f] || 0) + mt;
-                        
                         (d.pagos||[]).forEach(p => { if(p.metodo==='Credito') deudores[cli]=(deudores[cli]||0)+p.monto; else if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]+=p.monto; });
                     } else if(t==='Abono') {
                         deudores[cli]=(deudores[cli]||0)-mt; 
+                        (d.pagos||[]).forEach(p => { if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]+=p.monto; });
+                    } else if(t==='Abono Domis') {
                         (d.pagos||[]).forEach(p => { if(saldos[p.cuenta]!==undefined) saldos[p.cuenta]+=p.monto; });
                     } else if(t==='Compra') {
                         if(esDeEstaSemana) comprasSemanaGlobal += mt; 
@@ -1274,16 +1377,13 @@
                         if(t==='Compra' && esDeEstaSemana) hCSemana += mt; 
                         if(t==='Gasto' && esDeEstaSemana) hGSemana += mt; 
                         if(t==='Abono') hDeud[cli]=(hDeud[cli]||0)-mt;
-                        
-                        const encargadoDomi = (d.entrega?.encargado || '').toUpperCase().trim();
-                        const equipoInterno = ['CRIS', 'VALENTINO ROSSI', 'DAVID', 'JF', 'MONO'];
-                        if (d.entrega?.costo > 0 && equipoInterno.includes(encargadoDomi) && d.timestamp >= window.fechaCorteDomisHades) {hDomis += d.entrega.costo;}
                     }
                 });
 
                 let cAct = 0, deudAct = {}; for(const[c,v] of Object.entries(deudores)) if(v>0){ deudAct[c]=v; cAct+=v; }
                 let hAct = 0, hdAct = {}; for(const[c,v] of Object.entries(hDeud)) if(v>0){ hdAct[c]=v; hAct+=v; }
 
+                window.deudaActualHades = Math.max(0, hDomis); // Protegemos el estado para el Modal de Abonos
                 const lD = document.getElementById('lista-deudores'); lD.innerHTML='';
 
                 if(window.currentUser.email===HADES_EMAIL) {
@@ -1291,12 +1391,12 @@
                     document.getElementById('dash-hades-compras').textContent=formatoMoneda.format(hCSemana);
                     document.getElementById('dash-hades-gastos').textContent=formatoMoneda.format(hGSemana); 
                     document.getElementById('dash-hades-creditos').textContent=formatoMoneda.format(hAct);
-                    document.getElementById('dash-hades-domis').textContent=formatoMoneda.format(hDomis);
+                    document.getElementById('dash-hades-domis').textContent=formatoMoneda.format(window.deudaActualHades);
                     for(const[c,v] of Object.entries(hdAct)) lD.insertAdjacentHTML('beforeend', getDeudorCardHTML(c,v));
                 } else {
                     document.getElementById('dash-ventas').textContent=formatoMoneda.format(ventasMesGlobal);
                     document.getElementById('dash-creditos').textContent=formatoMoneda.format(cAct);
-                    document.getElementById('dash-admin-domis-hades').textContent=formatoMoneda.format(hDomis);
+                    document.getElementById('dash-admin-domis-hades').textContent=formatoMoneda.format(window.deudaActualHades);
                     document.getElementById('dash-compras-global').textContent = formatoMoneda.format(comprasSemanaGlobal);
                     document.getElementById('dash-gastos-global').textContent = formatoMoneda.format(gastosSemanaGlobal); 
                     
@@ -1305,29 +1405,21 @@
                     for(const[e,t] of Object.entries(domis)) divD.insertAdjacentHTML('beforeend', `<div class="bg-brand-card p-3 rounded border border-brand-border"><p class="text-[9px] uppercase tracking-widest text-brand-textSec">${e}</p><p class="text-sm font-bold text-brand-text">${formatoMoneda.format(t)}</p></div>`);
                     for(const[c,v] of Object.entries(deudAct)) lD.insertAdjacentHTML('beforeend', getDeudorCardHTML(c,v));
 
-                    // Llenar tarjeta de acumulado SOLO DEL DÍA ACTUAL
                     const contenedorAcumulado = document.getElementById('contenedor-acumulado-diario');
                     if(contenedorAcumulado) {
                         contenedorAcumulado.innerHTML = '';
-                        
-                        // [ESCALABILIDAD]: Guardamos el objeto de ventas calculado en la memoria global de la ventana (Window)
                         window.ventasPorDiaGlobal = ventasPorDia;
                         
-                        // 1. Obtener la fecha exacta de hoy en formato YYYY-MM-DD
                         const hoy = new Date();
                         const yyyy = hoy.getFullYear();
                         const mm = String(hoy.getMonth() + 1).padStart(2, '0');
                         const dd = String(hoy.getDate()).padStart(2, '0');
                         const fechaHoyStr = `${yyyy}-${mm}-${dd}`;
                         
-                        // 2. Extraer solo el valor de hoy
                         const totalHoy = ventasPorDia[fechaHoyStr] || 0;
-
-                        // 3. Formatear la fecha amigablemente
                         const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
                         const fechaFormateada = `${hoy.getDate()} de ${meses[hoy.getMonth()]}`;
                         
-                        // 4. Inyectar la tarjeta única (Ahora con funcionalidad de botón y hover)
                         contenedorAcumulado.insertAdjacentHTML('beforeend', `
                             <div onclick="abrirModalConsultaDiaria()" class="bg-brand-bg/50 p-4 rounded-xl border border-brand-border card-dash cursor-pointer hover:bg-brand-panel hover:border-brand-primary/50 transition-all shadow-sm hover:shadow-[0_0_15px_rgba(0,245,255,0.15)]">
                                 <p class="font-mono text-[9px] uppercase tracking-widest text-brand-primary mb-1 whitespace-nowrap overflow-hidden text-ellipsis">${fechaFormateada} <i data-lucide="calendar-search" class="w-3 h-3 inline align-text-bottom ml-1 opacity-70"></i></p>
@@ -1351,7 +1443,6 @@
         window.abrirModalCreditos = () => { document.getElementById('modal-creditos').style.display = 'flex'; };
         window.cerrarModalCreditos = () => { document.getElementById('modal-creditos').style.display = 'none'; };
 
-        // LÍNEA TIEMPO
         function cargarVentasFirebase() {
             onSnapshot(collection(db, "ventas"), (snap) => {
                 let m = []; snap.forEach(d => m.push(d.data())); m.sort((a,b)=>b.timestamp-a.timestamp);
@@ -1361,20 +1452,107 @@
             });
         }
 
-        // ABONO RÁPIDO
+        window.abrirModalAbonoHades = () => {
+            document.getElementById('abono-hades-deuda-actual').textContent = formatoMoneda.format(window.deudaActualHades);
+            document.getElementById('abono-hades-monto').value = '';
+            document.getElementById('abono-hades-metodo').value = '';
+            document.getElementById('abono-hades-cuenta').value = '';
+            document.getElementById('div-restante-hades').classList.add('hidden');
+            document.getElementById('modal-abono-hades').style.display = 'flex';
+        };
+
+        window.cerrarModalAbonoHades = () => {
+            document.getElementById('modal-abono-hades').style.display = 'none';
+        };
+
+        window.calcularRestanteHades = () => {
+            const monto = parseFloat(document.getElementById('abono-hades-monto').value) || 0;
+            const divRestante = document.getElementById('div-restante-hades');
+            if (monto > 0) {
+                divRestante.classList.remove('hidden');
+                const restante = window.deudaActualHades - monto;
+                document.getElementById('abono-hades-deuda-restante').textContent = formatoMoneda.format(restante);
+            } else {
+                divRestante.classList.add('hidden');
+            }
+        };
+
+        window.procesarAbonoHades = async () => {
+            const monto = parseFloat(document.getElementById('abono-hades-monto').value) || 0;
+            const metodo = document.getElementById('abono-hades-metodo').value;
+            const cuenta = document.getElementById('abono-hades-cuenta').value;
+            
+            if(monto <= 0 || !metodo || !cuenta) return alert("Completa todos los campos (monto, medio, destino).");
+            if(monto > window.deudaActualHades && !confirm("El monto ingresado excede la deuda calculada actual. ¿Deseas continuar de todos modos?")) return;
+
+            try {
+                const btn = document.getElementById('btn-procesar-abono-hades');
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Procesando...';
+
+                const consecutivoGenerado = await window.generarConsecutivo(window.currentUser.email);
+
+                await addDoc(collection(db, "ventas"), { 
+                    tipoMovimiento: "Abono Domis", 
+                    fecha: new Date().toISOString().split('T')[0], 
+                    cliente: "HADES (LOGÍSTICA)", 
+                    notas: "Abono parcial registrado hacia cuenta Ferco.", 
+                    productos: [{concepto: "Abono Deuda Logística", cantidad: 1, valorUnitario: monto, total: monto}], 
+                    entrega: {medio: "N/A", encargado: "N/A", costo: 0}, 
+                    pagos: [{metodo: metodo, cuenta: cuenta, monto: monto}], 
+                    totalVenta: monto, 
+                    creadoPor: window.currentUser.email, 
+                    timestamp: Date.now(),
+                    horaServidor: serverTimestamp(),
+                    consecutivo: consecutivoGenerado || null
+                });
+                
+                cerrarModalAbonoHades();
+                calcularDashboard();
+                btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> Confirmar Abono';
+                lucide.createIcons();
+            } catch(e) { console.error(e); alert("SYS_ERR: Falla al registrar el abono."); }
+        };
+
         window.abrirModalAbonoRapido = (c,d) => { document.getElementById('abono-rapido-cliente').textContent=c; window.abonoRapidoCliente=c; window.abonoRapidoDeuda=d; document.getElementById('abono-rapido-deuda').textContent=formatoMoneda.format(d); document.getElementById('modal-abono-rapido').style.display='flex'; };
         window.cerrarModalAbonoRapido = () => { document.getElementById('modal-abono-rapido').style.display='none'; };
         window.procesarAbonoRapido = async () => {
-            const m = parseFloat(document.getElementById('abono-rapido-monto').value)||0, mt = document.getElementById('abono-rapido-metodo').value, ct = document.getElementById('abono-rapido-cuenta').value;
-            if(m<=0||!mt||!ct) return alert("Faltan datos");
+            const m = parseFloat(document.getElementById('abono-rapido-monto').value)||0;
+            const mt = document.getElementById('abono-rapido-metodo').value;
+            const ct = document.getElementById('abono-rapido-cuenta').value;
+            const concepto = document.getElementById('abono-rapido-concepto').value.trim();
+            
+            if(m<=0||!mt||!ct||!concepto) return alert("Faltan datos, verifica el monto, cuentas y concepto.");
             if(m>window.abonoRapidoDeuda && !confirm("Monto excede deuda. ¿Seguir?")) return;
+            
             try {
-                await addDoc(collection(db, "ventas"), { tipoMovimiento: "Abono", fecha: new Date().toISOString().split('T')[0], cliente: window.abonoRapidoCliente, notas: "Abono rápido", productos: [{concepto:"Abono a Cartera", cantidad:1, valorUnitario:m, total:m}], entrega:{medio:"N/A",encargado:"N/A",costo:0}, pagos:[{metodo:mt, cuenta:ct, monto:m}], totalVenta:m, creadoPor: window.currentUser.email, timestamp: Date.now() });
-                cerrarModalAbonoRapido(); calcularDashboard();
-            } catch(e) {}
+                const btn = document.getElementById('btn-procesar-abono');
+                btn.innerHTML = 'Procesando...';
+                
+                const consecutivoGenerado = await window.generarConsecutivo(window.currentUser.email);
+
+                await addDoc(collection(db, "ventas"), { 
+                    tipoMovimiento: "Abono", 
+                    fecha: new Date().toISOString().split('T')[0], 
+                    cliente: window.abonoRapidoCliente, 
+                    notas: concepto, 
+                    productos: [{concepto: concepto, cantidad:1, valorUnitario:m, total:m}], 
+                    entrega:{medio:"N/A",encargado:"N/A",costo:0}, 
+                    pagos:[{metodo:mt, cuenta:ct, monto:m}], 
+                    totalVenta:m, 
+                    creadoPor: window.currentUser.email, 
+                    timestamp: Date.now(),
+                    horaServidor: serverTimestamp(),
+                    consecutivo: consecutivoGenerado || null
+                });
+                
+                cerrarModalAbonoRapido(); 
+                calcularDashboard();
+                document.getElementById('abono-rapido-monto').value = '';
+                document.getElementById('abono-rapido-concepto').value = '';
+                btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> Confirmar Transacción';
+            } catch(e) { console.error(e); }
         };
 
-        // REPORTE DIARIO Y HERRAMIENTAS
         window.toggleFiltroDecenas = () => {
             window.filtroDecenasActivo = !window.filtroDecenasActivo;
             const btn = document.getElementById('btn-filtro-decenas');
@@ -1487,7 +1665,7 @@
                     window.movimientosCache.push(d);
                     const f = d.fecha||"UNTRACKED"; if(!dias[f]) dias[f]={m:[], i:0, e:0}; dias[f].m.push(d);
                     const t = d.tipoMovimiento||'Venta', mt = d.totalVenta||0;
-                    if(t==='Venta'||t==='Abono') dias[f].i+=mt; else dias[f].e+=mt;
+                    if(t==='Venta'||t==='Abono'||t==='Abono Domis') dias[f].i+=mt; else dias[f].e+=mt;
                 });
                 cont.innerHTML = '';
                 Object.keys(dias).sort((a,b)=>new Date(b)-new Date(a)).forEach(f => {
@@ -1497,7 +1675,6 @@
                         const isDecena = window.currentUser?.email === HADES_EMAIL && m.totalVenta > 0 && m.totalVenta < 1000;
                         const checkHtml = isDecena ? `<input type="checkbox" class="check-rectificar mr-3" value="${m.id}" onclick="event.stopPropagation()">` : '';
                         
-                        // Lógica para detectar si está pendiente
                         const tienePendiente = m.pagos && m.pagos.some(p => p.metodo === 'Pendiente' && p.monto > 0);
                         const badgePendiente = tienePendiente ? `<span class="bg-brand-warning text-brand-bg px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ml-2">Pendiente</span>` : '';
                         const badgeCreador = `<span class="text-[9px] font-mono text-brand-textSec opacity-60 ml-2">(${m.creadoPor || 'S/N'})</span>`;
@@ -1510,18 +1687,17 @@
                     cont.insertAdjacentHTML('beforeend', html + '</div>');
                 });
                 lucide.createIcons();
-                window.filtrarReporte(); // Aplica el filtro automáticamente si se abrió en modo "pendientes"
+                window.filtrarReporte();
             } catch(e) {}
         };
         window.cerrarModalReporte = () => { document.getElementById('modal-reporte').style.display = 'none'; };
 
-        // MODAL DETALLES & IMPRIMIR
         window.abrirDetalleRegistro = (id) => {
             const m = window.movimientosCache.find(x=>x.id===id); if(!m) return;
             window.ventaEditandoId = id; window.tipoMovimientoEditando = m.tipoMovimiento || 'Venta';
             
-            // Inyectamos la fecha y el usuario creador en el inspector de bloques
-            document.getElementById('detalle-fecha-creador').textContent = `FECHA: ${m.fecha} | CREADO POR: ${m.creadoPor || 'S/N'}`;
+            const idTexto = m.consecutivo ? m.consecutivo : m.id.substring(0,8);
+            document.getElementById('detalle-fecha-creador').textContent = `FECHA: ${m.fecha} | CREADO POR: ${m.creadoPor || 'S/N'} | ID: ${idTexto}`;
 
             document.getElementById('detalle-cliente').textContent = m.cliente;
             document.getElementById('detalle-tipo-badge').textContent = window.tipoMovimientoEditando;
@@ -1603,16 +1779,17 @@
             (mov.pagos || []).forEach(p => { if (p.metodo === 'Credito' || p.metodo === 'Pendiente') abonoCredito += (p.monto || 0); });
             const htmlSaldo = abonoCredito > 0 ? `<div style="border-top: 1px dashed #000; padding-top: 5px; margin-top: 5px;"><div style="display:flex; justify-content:space-between; font-size:12px;"><span>Abono/Anticipo:</span><span>${formatoMoneda.format(total - abonoCredito)}</span></div><div style="display:flex; justify-content:space-between; font-weight:bold; font-size:14px; margin-top:5px;"><span>SALDO PENDIENTE:</span><span>${formatoMoneda.format(abonoCredito)}</span></div></div>` : '';
 
-            // Lógica de personalización para Hades
             const esHades = (mov.creadoPor === HADES_EMAIL);
             const logoHtml = esHades ? '' : `<img src="logo.jpg" style="max-width:180px; margin-bottom:10px;" onerror="this.style.display='none'">`;
             const tituloRecibo = esHades ? `<h2 style="margin:0; font-size: 24px;">HADES</h2>` : `<h2 style="margin:0;">FERCO FARMA</h2>`;
+
+            const idImprimir = mov.consecutivo ? mov.consecutivo : mov.id.substring(0,8);
 
             const printWindow = window.open('', 'PRINT', 'height=600,width=400');
             printWindow.document.write(`
                 <html><head><style>body{font-family:monospace; font-size:12px; width:300px; color:#000;} table{width:100%; border-collapse:collapse;}</style></head>
                 <body><div style="text-align:center;">${logoHtml}
-                ${tituloRecibo}<p>ID: ${mov.id.substring(0,8)}<br>Fecha: ${mov.fecha}<br>Cliente: ${mov.cliente.toUpperCase()}</p></div>
+                ${tituloRecibo}<p>ID: ${idImprimir}<br>Fecha: ${mov.fecha}<br>Cliente: ${mov.cliente.toUpperCase()}</p></div>
                 <table><thead><tr><th style="text-align:left;">CANT</th><th style="text-align:left;">DESC</th><th style="text-align:right;">VALOR</th></tr></thead><tbody>${itemsHtml}${logisHtml}</tbody></table>
                 <div style="border-top:1px solid #000; padding-top:10px; margin-top:10px; display:flex; justify-content:space-between; font-size:16px; font-weight:bold;"><span>TOTAL</span><span>${formatoMoneda.format(total)}</span></div>
                 ${htmlSaldo}<br><p style="text-align:center;">--- FIN DOCUMENTO ---</p></body></html>`);
@@ -1620,7 +1797,6 @@
             setTimeout(() => { printWindow.print(); printWindow.close(); }, 800);
         };
 
-        // MODAL FLOTANTE DE EDICIÓN (AISLADO)
         window.manejarCambioTipoEdicion = () => {
             const tipo = document.querySelector('input[name="tipoMovimientoEdicion"]:checked').value;
             window.tipoMovimientoEditando = tipo;
@@ -1636,7 +1812,6 @@
             const mov = window.movimientosCache.find(m => m.id === window.ventaEditandoId); if(!mov) return;
             cerrarModalDetalle(); document.getElementById('modal-editar-registro').style.display='flex';
             
-            // Cargar el tipo correcto y marcar el botón
             window.tipoMovimientoEditando = mov.tipoMovimiento || 'Venta';
             const radioTipo = document.querySelector(`input[name="tipoMovimientoEdicion"][value="${window.tipoMovimientoEditando}"]`);
             if(radioTipo) radioTipo.checked = true;
@@ -1644,7 +1819,7 @@
             
             document.getElementById('cliente-edicion').value = mov.cliente; document.getElementById('fecha-edicion').value = mov.fecha; document.getElementById('notas-edicion').value = mov.notas||'';
             
-            manejarCambioTipoEdicion(); // Aplica las reglas visuales según la categoría
+            manejarCambioTipoEdicion(); 
             
             document.getElementById('medio-entrega-edicion').value = (window.tipoMovimientoEditando!=='Gasto' && window.tipoMovimientoEditando!=='Abono') ? (mov.entrega?.medio || "Recoge") : "";
             manejarCambioEntregaEdicion();
@@ -1754,7 +1929,6 @@
                 if(mt&&ct&&mn>=0){ pags.push({metodo:mt, cuenta:ct, monto:mn}); totPag+=mn; }
             });
 
-            // Inyección automática de la diferencia como PENDIENTE X PAGAR al editar
             const diferenciaCredito = totCobrar - totPag;
             if (diferenciaCredito > 0) {
                 pags.push({ metodo: 'Pendiente', cuenta: 'PENDIENTE', monto: diferenciaCredito });
@@ -1769,7 +1943,6 @@
 
         window.exportarCSV = () => { alert("Export feature standing by in new build."); };
 
-        // ==================== HISTORIAL DE CLIENTE (DRILL-DOWN) ====================
         window.abrirHistorialCliente = async (cliente, saldoActual) => {
             const modal = document.getElementById('modal-historial-cliente');
             const contenedor = document.getElementById('contenedor-historial-cliente');
@@ -1782,7 +1955,6 @@
             lucide.createIcons();
 
             try {
-                // Descargamos los datos
                 const snap = await getDocs(collection(db, "ventas"));
                 let historial = [];
 
@@ -1790,25 +1962,22 @@
                     const d = doc.data();
                     d.id = doc.id;
 
-                    // Llenamos la caché para que el "Inspector" funcione si el usuario hace clic aquí
                     if (!window.movimientosCache.find(x => x.id === d.id)) window.movimientosCache.push(d);
 
-                    // Filtramos solo el cliente exacto
                     if ((d.cliente || "").toUpperCase() === cliente.toUpperCase()) {
-                        let afectacion = 0; // Cuánto afectó este doc a la deuda
+                        let afectacion = 0; 
 
                         if (d.tipoMovimiento === 'Venta') {
                             const pagoCredito = (d.pagos || []).find(p => p.metodo === 'Credito' || p.metodo === 'Pendiente');
-                            if (pagoCredito) afectacion = pagoCredito.monto; // Suma a la deuda
+                            if (pagoCredito) afectacion = pagoCredito.monto; 
                         } else if (d.tipoMovimiento === 'Abono') {
-                            afectacion = -(d.totalVenta || 0); // Resta a la deuda
+                            afectacion = -(d.totalVenta || 0); 
                         }
 
                         historial.push({ ...d, afectacion });
                     }
                 });
 
-                // Ordenar del más reciente al más antiguo
                 historial.sort((a, b) => b.timestamp - a.timestamp);
 
                 contenedor.innerHTML = '';
@@ -1816,7 +1985,6 @@
                     contenedor.innerHTML = '<p class="text-xs text-center text-brand-textSec font-mono mt-4">No se encontraron movimientos registrados.</p>';
                 } else {
                     historial.forEach(m => {
-                        // Estética condicional
                         let colorBadge = m.tipoMovimiento === 'Abono' ? 'text-brand-success bg-brand-success/10 border-brand-success/30' : 'text-brand-primary bg-brand-primary/10 border-brand-primary/30';
                         
                         let txtAfectacion = '';
@@ -1824,7 +1992,6 @@
                         else if (m.afectacion < 0) txtAfectacion = `<span class="text-[10px] text-brand-success font-mono font-bold uppercase tracking-widest">- ${formatoMoneda.format(Math.abs(m.afectacion))} abonado</span>`;
                         else txtAfectacion = `<span class="text-[10px] text-brand-textSec/50 font-mono uppercase tracking-widest">Sin impacto a crédito</span>`;
 
-                        // NUEVA LÓGICA: Extraer, traducir y formatear los productos
                         let resumenProductos = '';
                         if (m.productos && m.productos.length > 0) {
                             const listaProds = m.productos.map(p => {
@@ -1837,7 +2004,6 @@
                             </p>`;
                         }
 
-                        // Inyectamos la tarjeta modificada
                         contenedor.insertAdjacentHTML('beforeend', `
                             <div class="bg-brand-bg p-4 rounded-xl border border-brand-border flex justify-between items-center hover:bg-brand-card transition-colors cursor-pointer" onclick="abrirDetalleRegistro('${m.id}')">
                                 <div class="overflow-hidden pr-4">
@@ -1866,21 +2032,17 @@
 
         window.cerrarHistorialCliente = () => { document.getElementById('modal-historial-cliente').style.display = 'none'; };
 
-        // ==================== CONSULTA DIARIA POR FECHA ====================
         window.abrirModalConsultaDiaria = () => {
-            // 1. Calculamos la fecha de hoy para ponérsela por defecto al calendario
             const hoy = new Date();
             const yyyy = hoy.getFullYear();
             const mm = String(hoy.getMonth() + 1).padStart(2, '0');
             const dd = String(hoy.getDate()).padStart(2, '0');
             const fechaHoyStr = `${yyyy}-${mm}-${dd}`;
 
-            // 2. Insertamos la fecha en el input y abrimos la ventana
             const inputFecha = document.getElementById('input-fecha-consulta');
             inputFecha.value = fechaHoyStr; 
             document.getElementById('modal-consulta-diaria').style.display = 'flex';
             
-            // 3. Forzamos el cálculo inicial visual
             window.consultarVentasPorFecha(); 
         };
 
@@ -1889,11 +2051,9 @@
         };
 
         window.consultarVentasPorFecha = () => {
-            // Lee la fecha seleccionada en el input del usuario y busca ese String exacto en la caché
             const fechaSeleccionada = document.getElementById('input-fecha-consulta').value;
             const total = window.ventasPorDiaGlobal[fechaSeleccionada] || 0;
             
-            // Actualiza el DOM con la moneda formateada
             document.getElementById('resultado-ventas-fecha').textContent = formatoMoneda.format(total);
         };
     </script>
