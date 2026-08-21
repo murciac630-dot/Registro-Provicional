@@ -963,7 +963,7 @@
     <!-- ==================== SCRIPTS LÓGICOS ==================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs, getDoc, setDoc, onSnapshot, writeBatch, runTransaction, serverTimestamp } 
+        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs, getDoc, setDoc, onSnapshot, writeBatch, runTransaction, serverTimestamp, query, where, orderBy, limit } 
         from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, inMemoryPersistence } 
         from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -1028,7 +1028,12 @@
 
                 window.currentUser = user;
                 document.getElementById('current-user-email').textContent = correo;
+
+                // IMPORTANTE: mostramos la aplicación inmediatamente después de autenticar.
+                // Así, si una colección nueva (turnos/inventario/caja_menor) aún no tiene
+                // permisos en Firestore, el usuario nunca queda atrapado en una pantalla vacía.
                 loginScreen.classList.add('hidden');
+                appScreen.classList.remove('hidden');
                 
                 if (correo === ADMIN_EMAIL || correo === SUPERVISOR_EMAIL) {
                     document.getElementById('panel-financiero').classList.remove('hidden');
@@ -1049,8 +1054,24 @@
                 await asegurarInventarioInicial();
                 await cargarInventario();
                 aplicarVistaRol();
-                const continuar=await asegurarTurnoActivo();
-                if(continuar){ appScreen.classList.remove('hidden'); inicializarApp(); await calcularDashboardAdmin(); }
+                try {
+                    const continuar=await asegurarTurnoActivo();
+                    if(continuar){
+                        inicializarApp();
+                        await calcularDashboardAdmin();
+                    }
+                } catch (e) {
+                    console.error('[TURNO] Error al comprobar el turno:', e);
+                    // No ocultamos la app. Mostramos apertura para que el usuario pueda continuar.
+                    // Si Firestore rechaza la escritura, el mensaje aparecerá en el propio modal.
+                    const ap = document.getElementById('apertura-usuario');
+                    const inp = document.getElementById('apertura-efectivo');
+                    const modal = document.getElementById('modal-apertura-turno');
+                    if (ap) ap.textContent = correo;
+                    if (inp) inp.value = '';
+                    if (modal) modal.style.display = 'flex';
+                    lucide.createIcons();
+                }
             } else {
                 window.currentUser = null;
                 window.turnoActual = null;
@@ -1133,8 +1154,63 @@
             }catch(e){console.error('[INVENTARIO BASE]',e);}
         }
 
-        async function asegurarTurnoActivo(){const email=window.currentUser?.email;if(!email)return false;const snap=await getDocs(collection(db,'turnos'));const arr=[];snap.forEach(x=>{const d=x.data();if(d.usuarioEmail===email&&d.estado==='abierto')arr.push({id:x.id,...d});});arr.sort((a,b)=>(b.timestampApertura||0)-(a.timestampApertura||0));if(arr.length){window.turnoActual=arr[0];return true;}document.getElementById('apertura-usuario').textContent=email;document.getElementById('apertura-efectivo').value='';document.getElementById('modal-apertura-turno').style.display='flex';lucide.createIcons();return false;}
-        window.confirmarAperturaTurno=async()=>{const m=numeroSeguro(document.getElementById('apertura-efectivo').value);if(m<0)return alert('El efectivo inicial no puede ser negativo.');const b=document.getElementById('btn-iniciar-turno');b.disabled=true;b.textContent='ABRIENDO...';try{const ref=doc(collection(db,'turnos'));const data={usuarioEmail:window.currentUser.email,estado:'abierto',fechaApertura:fechaHoyLocal(),horaApertura:horaHoyLocal(),timestampApertura:Date.now(),efectivoInicial:m,createdAt:serverTimestamp()};await setDoc(ref,data);window.turnoActual={id:ref.id,...data};document.getElementById('modal-apertura-turno').style.display='none';document.getElementById('app-screen').classList.remove('hidden');inicializarApp();await calcularDashboardAdmin();}catch(e){console.error(e);alert('No fue posible abrir el turno: '+e.message);}finally{b.disabled=false;b.innerHTML='<i data-lucide="play" class="w-4 h-4"></i> Iniciar Turno';lucide.createIcons();}};
+        async function asegurarTurnoActivo(){
+            const email=window.currentUser?.email;
+            if(!email) return false;
+
+            // Consultamos solo los turnos abiertos del usuario autenticado.
+            // Esto reduce lecturas y funciona mejor con reglas de seguridad por usuario.
+            try {
+                const qTurnos=query(
+                    collection(db,'turnos'),
+                    where('usuarioEmail','==',email),
+                    where('estado','==','abierto')
+                );
+                const snap=await getDocs(qTurnos);
+                const arr=[];
+                snap.forEach(x=>{ const d=x.data(); arr.push({id:x.id,...d}); });
+                arr.sort((a,b)=>(b.timestampApertura||0)-(a.timestampApertura||0));
+                if(arr.length){
+                    window.turnoActual=arr[0];
+                    return true;
+                }
+            } catch(e) {
+                console.error('[TURNO] No fue posible consultar turnos:', e);
+                // Propagamos el error para que onAuthStateChanged muestre el modal
+                // en vez de dejar la pantalla completamente vacía.
+                throw e;
+            }
+
+            document.getElementById('apertura-usuario').textContent=email;
+            document.getElementById('apertura-efectivo').value='';
+            document.getElementById('modal-apertura-turno').style.display='flex';
+            lucide.createIcons();
+            return false;
+        }
+        window.confirmarAperturaTurno=async()=>{
+            const m=numeroSeguro(document.getElementById('apertura-efectivo').value);
+            if(m<0) return alert('El efectivo inicial no puede ser negativo.');
+            const b=document.getElementById('btn-iniciar-turno');
+            b.disabled=true; b.textContent='ABRIENDO...';
+            try{
+                const ref=doc(collection(db,'turnos'));
+                const data={usuarioEmail:window.currentUser.email,estado:'abierto',fechaApertura:fechaHoyLocal(),horaApertura:horaHoyLocal(),timestampApertura:Date.now(),efectivoInicial:m,createdAt:serverTimestamp()};
+                await setDoc(ref,data);
+                window.turnoActual={id:ref.id,...data};
+                document.getElementById('modal-apertura-turno').style.display='none';
+                document.getElementById('app-screen').classList.remove('hidden');
+                inicializarApp();
+                await calcularDashboardAdmin();
+            }catch(e){
+                console.error('[TURNO] Error al abrir:',e);
+                const detalle=e?.code ? `${e.code}: ${e.message||''}` : (e?.message||String(e));
+                alert('No fue posible abrir el turno. Revisa las reglas de Firestore para la colección "turnos".\n\n'+detalle);
+            }finally{
+                b.disabled=false;
+                b.innerHTML='<i data-lucide="play" class="w-4 h-4"></i> Iniciar Turno';
+                lucide.createIcons();
+            }
+        };
         const aplicarTurnoEnRegistro=(d)=>({...d,turnoId:window.turnoActual?.id||null,turnoUsuario:window.turnoActual?.usuarioEmail||window.currentUser?.email});
         window.abrirCajaMenor=async()=>{if(!window.turnoActual)return alert('Debes abrir un turno primero.');document.getElementById('caja-menor-fecha').value=fechaHoyLocal();document.getElementById('caja-menor-hora').value=horaHoyLocal();document.getElementById('caja-menor-concepto').value='';document.getElementById('caja-menor-monto').value='';document.getElementById('modal-caja-menor').style.display='flex';await cargarMovimientosCajaMenor();lucide.createIcons();};
         window.cerrarCajaMenor=()=>document.getElementById('modal-caja-menor').style.display='none';
