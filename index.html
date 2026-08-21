@@ -1134,6 +1134,17 @@
             if(liquidar) liquidar.classList.toggle('hidden', rolInterfaz()!==ADMIN_EMAIL || sim);
             lucide.createIcons();
         }
+        window.probarAccesoTurno=async()=>{
+            try{
+                if(!window.currentUser?.uid) return alert('No hay sesión autenticada.');
+                const r=await getDoc(doc(db,'turnos_activos',window.currentUser.uid));
+                alert('Acceso correcto a turnos_activos. Existe: '+r.exists());
+            }catch(e){
+                console.error('[DIAGNOSTICO TURNOS]',e);
+                alert('Falla en turnos_activos: '+(e?.code||'')+' '+(e?.message||e));
+            }
+        };
+
         async function cargarInventario(){try{const snap=await getDocs(collection(db,'inventario'));window.inventarioCache={};snap.forEach(x=>{const d=x.data(),codigo=String(d.codigo||x.id).trim().toUpperCase();window.inventarioCache[codigo]={id:x.id,codigo,nombre:d.nombre||codigo,cantidad:numeroSeguro(d.cantidad),costoCompra:numeroSeguro(d.costoCompra),precioReferencia:numeroSeguro(d.precioReferencia)};});}catch(e){console.error('[INVENTARIO]',e);window.inventarioCache={};}}
         const INVENTARIO_INICIAL = [
             ['BC',6500,12],['BP',6500,30],['BT',8500,6],['ESENCIA',0,0],['FIG',140000,2],['FIP',40000,12],['FN',10425,31],['FNDIAMOND',9583,20],['G10',25000,9],['G20',50000,24],['G30',75000,13],['GDT',55000,1],['K',0,0],['MD',0,0],['MGDT',27500,10],['MGM',0,0],['MIDA',0,0],['MP',40000,25],['OXY',0,0],['PG',0,0],['PGT',0,0],['PM',4500,10],['PMT',0,0],['PP',0,0],['PPT',0,0],['RB',2500,4],['SPLTE',6900,9],['SKULL',150000,1],['WD',0,0]
@@ -1154,49 +1165,91 @@
             }catch(e){console.error('[INVENTARIO BASE]',e);}
         }
 
+        // ================================
+        // TURNOS: arquitectura sin queries
+        // ================================
+        // Para evitar problemas de permisos de Firestore con consultas/listados,
+        // el turno activo se guarda en un documento determinista por usuario:
+        // turnos_activos/{uid}
+        // y el histórico cerrado permanece en turnos/{turnoId}.
         async function asegurarTurnoActivo(){
-            const email=window.currentUser?.email;
-            if(!email) return false;
+            const user=window.currentUser;
+            const email=user?.email;
+            if(!user?.uid || !email) return false;
 
-            // Consultamos solo los turnos abiertos del usuario autenticado.
-            // Esto reduce lecturas y funciona mejor con reglas de seguridad por usuario.
             try {
-                const qTurnos=query(
-                    collection(db,'turnos'),
-                    where('usuarioEmail','==',email),
-                    where('estado','==','abierto')
-                );
-                const snap=await getDocs(qTurnos);
-                const arr=[];
-                snap.forEach(x=>{ const d=x.data(); arr.push({id:x.id,...d}); });
-                arr.sort((a,b)=>(b.timestampApertura||0)-(a.timestampApertura||0));
-                if(arr.length){
-                    window.turnoActual=arr[0];
-                    return true;
+                const refActivo=doc(db,'turnos_activos',user.uid);
+                const snap=await getDoc(refActivo);
+
+                if(snap.exists()){
+                    const d=snap.data();
+                    if(d.estado==='abierto'){
+                        window.turnoActual={id:d.turnoId||user.uid, activoId:user.uid, ...d};
+                        return true;
+                    }
                 }
             } catch(e) {
-                console.error('[TURNO] No fue posible consultar turnos:', e);
-                // Propagamos el error para que onAuthStateChanged muestre el modal
-                // en vez de dejar la pantalla completamente vacía.
+                console.error('[TURNO ACTIVO] No fue posible leer el turno activo:', e);
                 throw e;
             }
 
-            document.getElementById('apertura-usuario').textContent=email;
-            document.getElementById('apertura-efectivo').value='';
-            document.getElementById('modal-apertura-turno').style.display='flex';
+            const ap=document.getElementById('apertura-usuario');
+            const inp=document.getElementById('apertura-efectivo');
+            const modal=document.getElementById('modal-apertura-turno');
+            if(ap) ap.textContent=email;
+            if(inp) inp.value='';
+            if(modal) modal.style.display='flex';
             lucide.createIcons();
             return false;
         }
+
         window.confirmarAperturaTurno=async()=>{
-            const m=numeroSeguro(document.getElementById('apertura-efectivo').value);
+            const user=window.currentUser;
+            if(!user?.uid) return alert('Sesión no válida.');
+
+            const raw=document.getElementById('apertura-efectivo').value.trim();
+            if(raw==='') return alert('Debes indicar el efectivo disponible en caja para iniciar el turno.');
+            const m=numeroSeguro(raw);
             if(m<0) return alert('El efectivo inicial no puede ser negativo.');
+
             const b=document.getElementById('btn-iniciar-turno');
             b.disabled=true; b.textContent='ABRIENDO...';
+
             try{
-                const ref=doc(collection(db,'turnos'));
-                const data={usuarioEmail:window.currentUser.email,estado:'abierto',fechaApertura:fechaHoyLocal(),horaApertura:horaHoyLocal(),timestampApertura:Date.now(),efectivoInicial:m,createdAt:serverTimestamp()};
-                await setDoc(ref,data);
-                window.turnoActual={id:ref.id,...data};
+                const turnoId=`${user.uid}_${Date.now()}`;
+                const fecha=fechaHoyLocal();
+                const hora=horaHoyLocal();
+
+                // Registro histórico del turno.
+                const turnoRef=doc(db,'turnos',turnoId);
+                const data={
+                    usuarioEmail:user.email,
+                    usuarioUid:user.uid,
+                    estado:'abierto',
+                    fechaApertura:fecha,
+                    horaApertura:hora,
+                    timestampApertura:Date.now(),
+                    efectivoInicial:m,
+                    turnoId,
+                    createdAt:serverTimestamp()
+                };
+                await setDoc(turnoRef,data);
+
+                // Puntero de turno activo: una sola lectura/escritura por usuario.
+                const activoRef=doc(db,'turnos_activos',user.uid);
+                await setDoc(activoRef,{
+                    turnoId,
+                    usuarioEmail:user.email,
+                    usuarioUid:user.uid,
+                    estado:'abierto',
+                    fechaApertura:fecha,
+                    horaApertura:hora,
+                    timestampApertura:data.timestampApertura,
+                    efectivoInicial:m,
+                    actualizadoEn:serverTimestamp()
+                });
+
+                window.turnoActual={id:turnoId,activoId:user.uid,...data};
                 document.getElementById('modal-apertura-turno').style.display='none';
                 document.getElementById('app-screen').classList.remove('hidden');
                 inicializarApp();
@@ -1204,7 +1257,7 @@
             }catch(e){
                 console.error('[TURNO] Error al abrir:',e);
                 const detalle=e?.code ? `${e.code}: ${e.message||''}` : (e?.message||String(e));
-                alert('No fue posible abrir el turno. Revisa las reglas de Firestore para la colección "turnos".\n\n'+detalle);
+                alert('No fue posible abrir el turno. Revisa las reglas de Firestore para las colecciones "turnos" y "turnos_activos".\n\n'+detalle);
             }finally{
                 b.disabled=false;
                 b.innerHTML='<i data-lucide="play" class="w-4 h-4"></i> Iniciar Turno';
@@ -1221,7 +1274,28 @@
         window.finalizarTurno=async()=>{if(window.vistaRol)return alert('La vista simulada es de solo lectura. Regresa a Admin para finalizar el turno.');if(!window.turnoActual)return signOut(auth);if(!confirm('¿Deseas finalizar el turno?'))return;try{const r=await obtenerResumenTurno(window.turnoActual);window.turnoPendienteCierre=r;document.getElementById('contenido-cierre-turno').innerHTML=`<div class="grid grid-cols-2 gap-3"><div class="bg-brand-card p-4 rounded-xl border border-brand-border"><p class="text-[9px] font-mono text-brand-textSec uppercase">Efectivo Inicial</p><p class="text-xl font-mono font-bold text-brand-primary">${formatoMoneda.format(window.turnoActual.efectivoInicial||0)}</p></div><div class="bg-brand-card p-4 rounded-xl border border-brand-border"><p class="text-[9px] font-mono text-brand-textSec uppercase">Caja Esperada</p><p class="text-xl font-mono font-bold text-brand-success">${formatoMoneda.format(r.cajaEsperada||0)}</p></div></div><div class="grid grid-cols-3 gap-3"><div class="bg-brand-primary/5 border border-brand-primary/20 rounded-xl p-4"><p class="text-[9px] text-brand-primary uppercase">Ventas</p><p class="text-xl font-mono font-bold">${formatoMoneda.format(r.ventas)}</p></div><div class="bg-brand-error/5 border border-brand-error/20 rounded-xl p-4"><p class="text-[9px] text-brand-error uppercase">Gastos</p><p class="text-xl font-mono font-bold">${formatoMoneda.format(r.gastos)}</p></div><div class="bg-brand-warning/5 border border-brand-warning/20 rounded-xl p-4"><p class="text-[9px] text-brand-warning uppercase">Compras</p><p class="text-xl font-mono font-bold">${formatoMoneda.format(r.compras)}</p></div></div><div><p class="text-[10px] font-mono text-brand-textSec uppercase mb-2">Compras por medio</p><div class="grid grid-cols-2 gap-2">${mapHtml(r.comprasPorMedio,'text-brand-warning')}</div></div><div><p class="text-[10px] font-mono text-brand-textSec uppercase mb-2">Ventas por medio</p><div class="grid grid-cols-2 gap-2">${mapHtml(r.ventasPorMedio,'text-brand-success')}</div></div><div><p class="text-[10px] font-mono text-brand-textSec uppercase mb-2">Domicilios</p><div class="grid grid-cols-2 gap-2">${mapHtml(r.domisPorEncargado,'text-brand-secondary')}</div></div><div class="bg-brand-secondary/5 p-4 rounded-xl border border-brand-secondary/20"><p class="text-[9px] font-mono text-brand-secondary uppercase">Utilidad del turno</p><p class="text-2xl font-mono font-bold text-brand-secondary">${formatoMoneda.format(r.utilidad)}</p></div>`;document.getElementById('modal-cierre-turno').style.display='flex';lucide.createIcons();}catch(e){console.error(e);alert('No fue posible generar el cierre.');}};
         window.cancelarCierreTurno=()=>{window.turnoPendienteCierre=null;document.getElementById('modal-cierre-turno').style.display='none';};
         window.cerrarModalCierreTurno=()=>{if(confirm('¿Cerrar el resumen sin finalizar el turno?'))window.cancelarCierreTurno();};
-        window.confirmarCierreTurno=async()=>{if(!window.turnoActual||!window.turnoPendienteCierre)return;try{await updateDoc(doc(db,'turnos',window.turnoActual.id),{estado:'cerrado',fechaCierre:fechaHoyLocal(),horaCierre:horaHoyLocal(),timestampCierre:Date.now(),resumenCierre:window.turnoPendienteCierre,actualizadoEn:serverTimestamp()});alert('Turno cerrado correctamente.');window.turnoActual=null;window.turnoPendienteCierre=null;document.getElementById('modal-cierre-turno').style.display='none';signOut(auth);}catch(e){console.error(e);alert('No fue posible cerrar el turno.');}};
+        window.confirmarCierreTurno=async()=>{
+            if(!window.turnoActual||!window.turnoPendienteCierre)return;
+            try{
+                const ahora={estado:'cerrado',fechaCierre:fechaHoyLocal(),horaCierre:horaHoyLocal(),timestampCierre:Date.now(),resumenCierre:window.turnoPendienteCierre,actualizadoEn:serverTimestamp()};
+                await updateDoc(doc(db,'turnos',window.turnoActual.id),ahora);
+
+                // Eliminamos el puntero al turno activo para que el siguiente login
+                // obligue a realizar una nueva apertura de caja.
+                if(window.turnoActual.activoId && window.currentUser?.uid){
+                    await deleteDoc(doc(db,'turnos_activos',window.currentUser.uid));
+                }
+
+                alert('Turno cerrado correctamente.');
+                window.turnoActual=null;
+                window.turnoPendienteCierre=null;
+                document.getElementById('modal-cierre-turno').style.display='none';
+                signOut(auth);
+            }catch(e){
+                console.error(e);
+                alert('No fue posible cerrar el turno: '+(e?.code||e?.message||e));
+            }
+        };
         window.abrirInventarioAdmin=async()=>{if(!esAdmin())return alert('Acceso exclusivo del Administrador.');await cargarInventario();renderInventarioAdmin();document.getElementById('modal-inventario-admin').style.display='flex';lucide.createIcons();};
         window.cerrarInventarioAdmin=()=>document.getElementById('modal-inventario-admin').style.display='none';
         function renderInventarioAdmin(){
