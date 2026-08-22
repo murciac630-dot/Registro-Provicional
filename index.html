@@ -930,8 +930,9 @@
         </div>
     </div>
     <div id="modal-caja-menor" class="fixed inset-0 z-[120] hidden items-center justify-center bg-brand-bg/90 backdrop-blur-md">
+        <input type="hidden" id="caja-menor-edit-id" value="">
         <div class="glass-modal w-full max-w-lg max-h-[90vh] flex flex-col rounded-2xl m-4 border border-brand-success/40"><div class="p-5 border-b border-brand-border flex justify-between items-center bg-brand-panel rounded-t-2xl"><div><p class="text-[10px] font-mono uppercase tracking-widest text-brand-success">Turno activo</p><h2 class="text-md font-display font-bold uppercase tracking-widest text-brand-success"><i data-lucide="wallet-cards" class="w-4 h-4 inline"></i> Caja Menor</h2></div><button onclick="cerrarCajaMenor()" class="p-2 text-brand-textSec"><i data-lucide="x" class="w-4 h-4"></i></button></div>
-            <div class="p-6 bg-brand-bg space-y-4 overflow-y-auto"><div class="grid grid-cols-2 gap-3"><div><label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase">Fecha</label><input id="caja-menor-fecha" type="date" class="w-full p-2.5 rounded-lg font-mono" readonly></div><div><label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase">Hora</label><input id="caja-menor-hora" type="time" class="w-full p-2.5 rounded-lg font-mono" readonly></div></div><div class="grid grid-cols-2 gap-3"><div><label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase">Tipo</label><select id="caja-menor-tipo" class="w-full p-2.5 rounded-lg font-mono"><option value="Gasto">Gasto</option><option value="Compra">Compra</option></select></div><div><label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase">Medio</label><select id="caja-menor-medio" class="w-full p-2.5 rounded-lg font-mono"><option>Efectivo</option><option>Transferencia</option><option>Nequi</option><option>Daviplata</option><option>Bold</option><option>Cruce</option><option>Otro</option></select></div></div><div><label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase">Concepto obligatorio</label><input id="caja-menor-concepto" type="text" class="w-full p-2.5 rounded-lg font-mono" placeholder="Ej. Papelería, transporte, insumos..."></div><div><label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase">Monto</label><input id="caja-menor-monto" type="number" min="0" step="1" class="w-full p-3 rounded-lg font-mono text-xl text-center" placeholder="0"></div><button onclick="guardarMovimientoCajaMenor()" class="w-full bg-brand-success hover:bg-brand-success/80 text-brand-bg px-4 py-3 rounded-lg font-mono font-bold uppercase tracking-widest flex items-center justify-center gap-2"><i data-lucide="save" class="w-4 h-4"></i> Registrar Movimiento</button><div class="pt-4 border-t border-brand-border"><p class="text-[10px] font-mono text-brand-textSec uppercase tracking-widest mb-2">Movimientos del turno</p><div id="lista-caja-menor" class="space-y-2 max-h-60 overflow-y-auto"></div></div></div>
+            <div class="p-6 bg-brand-bg space-y-4 overflow-y-auto"><div class="grid grid-cols-2 gap-3"><div><label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase">Fecha</label><input id="caja-menor-fecha" type="date" class="w-full p-2.5 rounded-lg font-mono" readonly><p id="caja-menor-fecha-ayuda" class="text-[9px] font-mono text-brand-textSec mt-1">La fecha solo la puede modificar el Administrador.</p></div><div><label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase">Hora</label><input id="caja-menor-hora" type="time" class="w-full p-2.5 rounded-lg font-mono" readonly></div></div><div class="grid grid-cols-2 gap-3"><div><label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase">Tipo</label><select id="caja-menor-tipo" class="w-full p-2.5 rounded-lg font-mono"><option value="Gasto">Gasto</option><option value="Compra">Compra</option></select></div><div><label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase">Medio</label><select id="caja-menor-medio" class="w-full p-2.5 rounded-lg font-mono"><option>Efectivo</option><option>Transferencia</option><option>Nequi</option><option>Daviplata</option><option>Bold</option><option>Cruce</option><option>Otro</option></select></div></div><div><label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase">Concepto obligatorio</label><input id="caja-menor-concepto" type="text" class="w-full p-2.5 rounded-lg font-mono" placeholder="Ej. Papelería, transporte, insumos..."></div><div><label class="block text-[10px] font-mono text-brand-textSec mb-1 uppercase">Monto</label><input id="caja-menor-monto" type="number" min="0" step="1" class="w-full p-3 rounded-lg font-mono text-xl text-center" placeholder="0"></div><button id="btn-guardar-caja-menor" onclick="guardarMovimientoCajaMenor()" class="w-full bg-brand-success hover:bg-brand-success/80 text-brand-bg px-4 py-3 rounded-lg font-mono font-bold uppercase tracking-widest flex items-center justify-center gap-2"><i data-lucide="save" class="w-4 h-4"></i> Registrar Movimiento</button><div class="pt-4 border-t border-brand-border"><p class="text-[10px] font-mono text-brand-textSec uppercase tracking-widest mb-2">Movimientos del turno</p><div id="lista-caja-menor" class="space-y-2 max-h-60 overflow-y-auto"></div></div></div>
         </div>
     </div>
     <div id="modal-cierre-turno" class="fixed inset-0 z-[210] hidden items-center justify-center bg-brand-bg/95 backdrop-blur-md"><div class="glass-modal w-full max-w-3xl max-h-[92vh] flex flex-col rounded-2xl m-4 border border-brand-warning/40"><div class="p-5 border-b border-brand-border bg-brand-panel rounded-t-2xl flex justify-between items-center"><div><p class="text-[10px] font-mono uppercase tracking-widest text-brand-warning">Arqueo</p><h2 class="text-xl font-display font-bold text-brand-text flex items-center gap-2"><i data-lucide="circle-stop" class="w-5 h-5 text-brand-warning"></i> Cierre de Turno</h2></div><button onclick="cerrarModalCierreTurno()" class="p-2 text-brand-textSec"><i data-lucide="x" class="w-4 h-4"></i></button></div><div class="p-6 overflow-y-auto space-y-5" id="contenido-cierre-turno"></div><div class="p-5 border-t border-brand-border bg-brand-panel rounded-b-2xl flex gap-3 justify-end"><button onclick="cancelarCierreTurno()" class="px-5 py-2.5 rounded-lg border border-brand-border text-brand-textSec font-mono font-bold">Volver</button><button onclick="confirmarCierreTurno()" class="px-5 py-2.5 rounded-lg bg-brand-warning hover:bg-brand-warning/80 text-brand-bg font-mono font-bold">Confirmar Cierre</button></div></div></div>
@@ -1265,11 +1266,145 @@
             }
         };
         const aplicarTurnoEnRegistro=(d)=>({...d,turnoId:window.turnoActual?.id||null,turnoUsuario:window.turnoActual?.usuarioEmail||window.currentUser?.email});
-        window.abrirCajaMenor=async()=>{if(!window.turnoActual)return alert('Debes abrir un turno primero.');document.getElementById('caja-menor-fecha').value=fechaHoyLocal();document.getElementById('caja-menor-hora').value=horaHoyLocal();document.getElementById('caja-menor-concepto').value='';document.getElementById('caja-menor-monto').value='';document.getElementById('modal-caja-menor').style.display='flex';await cargarMovimientosCajaMenor();lucide.createIcons();};
-        window.cerrarCajaMenor=()=>document.getElementById('modal-caja-menor').style.display='none';
-        async function cargarMovimientosCajaMenor(){const l=document.getElementById('lista-caja-menor');if(!l)return;l.innerHTML='';const snap=await getDocs(collection(db,'caja_menor'));const a=[];snap.forEach(x=>{const d=x.data();if(d.turnoId===window.turnoActual?.id)a.push(d)});a.sort((x,y)=>(y.timestamp||0)-(x.timestamp||0));if(!a.length){l.innerHTML='<p class="text-xs text-center text-brand-textSec">Sin movimientos en este turno.</p>';return;}a.forEach(d=>l.insertAdjacentHTML('beforeend',`<div class="bg-brand-card border border-brand-border rounded-lg p-3 flex justify-between"><div><p class="font-mono text-[10px] text-brand-textSec">${d.fecha||''} ${d.hora||''}</p><p class="font-bold text-xs uppercase">${d.tipo||''}: ${d.concepto||''}</p><p class="font-mono text-[9px] text-brand-textSec">${d.medio||''}</p></div><span class="font-mono font-bold">${formatoMoneda.format(numeroSeguro(d.monto))}</span></div>`));}
-        window.guardarMovimientoCajaMenor=async()=>{if(window.vistaRol)return alert('La vista simulada es de solo lectura. Regresa a Admin para registrar movimientos.');if(!window.turnoActual)return alert('No hay turno activo.');const tipo=document.getElementById('caja-menor-tipo').value,medio=document.getElementById('caja-menor-medio').value,concepto=document.getElementById('caja-menor-concepto').value.trim(),monto=numeroSeguro(document.getElementById('caja-menor-monto').value);if(!concepto)return alert('El concepto es obligatorio.');if(monto<=0)return alert('Ingresa un monto mayor a cero.');try{await addDoc(collection(db,'caja_menor'),aplicarTurnoEnRegistro({tipo,medio,concepto,monto,fecha:fechaHoyLocal(),hora:horaHoyLocal(),timestamp:Date.now(),creadoPor:window.currentUser.email,createdAt:serverTimestamp()}));await cargarMovimientosCajaMenor();document.getElementById('caja-menor-concepto').value='';document.getElementById('caja-menor-monto').value='';await calcularDashboardAdmin();}catch(e){console.error(e);alert('No fue posible registrar el movimiento.');}};
-        async function obtenerResumenTurno(turno){const vs=await getDocs(collection(db,'ventas')),cs=await getDocs(collection(db,'caja_menor'));const r={ventas:0,gastos:0,compras:0,comprasPorMedio:{},ventasPorMedio:{},domisPorEncargado:{},domis:0,efectivoVentas:0,efectivoAbonos:0,efectivoCompras:0,efectivoGastos:0,utilidad:0};vs.forEach(x=>{const d=x.data();if(d.turnoId!==turno.id)return;const t=d.tipoMovimiento||'Venta',mt=numeroSeguro(d.totalVenta);if(t==='Venta')r.ventas+=mt;else if(t==='Compra')r.compras+=mt;else if(t==='Gasto')r.gastos+=mt;const pagos=d.pagos||[];pagos.forEach(p=>{const med=String(p.metodo||'Sin medio'),v=numeroSeguro(p.monto);if(t==='Venta'){r.ventasPorMedio[med]=(r.ventasPorMedio[med]||0)+v;if(med.toUpperCase()==='EFECTIVO')r.efectivoVentas+=v;}if(t==='Compra'){r.comprasPorMedio[med]=(r.comprasPorMedio[med]||0)+v;if(med.toUpperCase()==='EFECTIVO')r.efectivoCompras+=v;}if(t==='Gasto'){if(med.toUpperCase()==='EFECTIVO')r.efectivoGastos+=v;}if(t==='Abono'||t==='Abono Domis'){if(med.toUpperCase()==='EFECTIVO')r.efectivoAbonos+=v;}});if(t==='Venta')(d.productos||[]).forEach(p=>{const codigo=String(p.concepto||'').trim().toUpperCase();const costo=numeroSeguro(p.costoUnitarioSnapshot)||numeroSeguro(window.inventarioCache?.[codigo]?.costoCompra);r.utilidad+=numeroSeguro(p.total)-numeroSeguro(p.cantidad)*costo;});const e=d.entrega||{},c=numeroSeguro(e.costo);if(c>0){r.domis+=c;const enc=String(e.encargado||'SIN ENCARGADO').toUpperCase();r.domisPorEncargado[enc]=(r.domisPorEncargado[enc]||0)+c;}});cs.forEach(x=>{const d=x.data();if(d.turnoId!==turno.id)return;const v=numeroSeguro(d.monto),med=String(d.medio||'Sin medio');if(d.tipo==='Compra'){r.compras+=v;r.comprasPorMedio[med]=(r.comprasPorMedio[med]||0)+v;if(med.toUpperCase()==='EFECTIVO')r.efectivoCompras+=v;}else{r.gastos+=v;if(med.toUpperCase()==='EFECTIVO')r.efectivoGastos+=v;}});r.cajaEsperada=numeroSeguro(turno.efectivoInicial)+r.efectivoVentas+r.efectivoAbonos-r.efectivoCompras-r.efectivoGastos;return r;}
+        window.abrirCajaMenor=async()=>{
+    if(!window.turnoActual)return alert('Debes abrir un turno primero.');
+    window.cajaMenorEditandoId=null;
+    document.getElementById('caja-menor-edit-id').value='';
+    document.getElementById('caja-menor-fecha').value=fechaHoyLocal();
+    document.getElementById('caja-menor-hora').value=horaHoyLocal();
+    document.getElementById('caja-menor-fecha').readOnly=true;
+    document.getElementById('caja-menor-fecha-ayuda').textContent='La fecha solo la puede modificar el Administrador.';
+    document.getElementById('caja-menor-concepto').value='';
+    document.getElementById('caja-menor-monto').value='';
+    document.getElementById('caja-menor-tipo').value='Gasto';
+    document.getElementById('caja-menor-medio').value='Efectivo';
+    document.getElementById('btn-guardar-caja-menor').innerHTML='<i data-lucide="save" class="w-4 h-4"></i> Registrar Movimiento';
+    document.getElementById('modal-caja-menor').style.display='flex';
+    await cargarMovimientosCajaMenor();
+    lucide.createIcons();
+};
+window.cerrarCajaMenor=()=>document.getElementById('modal-caja-menor').style.display='none';
+
+window.cargarCajaMenorParaEditar=async(id)=>{
+    if(window.vistaRol)return alert('La vista simulada es de solo lectura. Regresa a Admin para editar.');
+    try{
+        const s=await getDoc(doc(db,'caja_menor',id));
+        if(!s.exists())return alert('No se encontró el movimiento.');
+        const d=s.data();
+        if(d.turnoId!==window.turnoActual?.id)return alert('Solo puedes editar movimientos del turno activo.');
+        if(!esAdmin()&&d.creadoPor!==window.currentUser.email)return alert('Solo puedes editar tus propios movimientos.');
+        window.cajaMenorEditandoId=id;
+        document.getElementById('caja-menor-edit-id').value=id;
+        document.getElementById('caja-menor-fecha').value=d.fecha||fechaHoyLocal();
+        document.getElementById('caja-menor-hora').value=d.hora||'';
+        document.getElementById('caja-menor-fecha').readOnly=!esAdmin();
+        document.getElementById('caja-menor-fecha-ayuda').textContent=esAdmin()?'Administrador: puedes modificar la fecha.':'La fecha original no puede ser modificada por este rol.';
+        document.getElementById('caja-menor-tipo').value=d.tipo||'Gasto';
+        document.getElementById('caja-menor-medio').value=d.medio||'Efectivo';
+        document.getElementById('caja-menor-concepto').value=d.concepto||'';
+        document.getElementById('caja-menor-monto').value=numeroSeguro(d.monto);
+        document.getElementById('btn-guardar-caja-menor').innerHTML='<i data-lucide="save" class="w-4 h-4"></i> Guardar Cambios';
+        document.getElementById('modal-caja-menor').style.display='flex';
+        lucide.createIcons();
+    }catch(e){
+        console.error(e);
+        alert('No fue posible cargar el movimiento: '+(e?.message||e));
+    }
+};
+
+async function cargarMovimientosCajaMenor(){
+    const l=document.getElementById('lista-caja-menor');
+    if(!l)return;
+    l.innerHTML='';
+    try{
+        const snap=await getDocs(collection(db,'caja_menor'));
+        const a=[];
+        snap.forEach(x=>{
+            const d=x.data();
+            if(d.turnoId===window.turnoActual?.id)a.push({id:x.id,...d});
+        });
+        a.sort((x,y)=>(y.timestamp||0)-(x.timestamp||0));
+        if(!a.length){
+            l.innerHTML='<p class="text-xs text-center text-brand-textSec">Sin movimientos en este turno.</p>';
+            return;
+        }
+        a.forEach(d=>{
+            const puede=esAdmin()||d.creadoPor===window.currentUser?.email;
+            const btn=puede&&!window.vistaRol
+                ? `<button onclick="cargarCajaMenorParaEditar('${d.id}')" class="ml-3 px-2 py-1 bg-brand-secondary/10 border border-brand-secondary/30 text-brand-secondary rounded text-[9px] font-mono uppercase">Editar</button>`
+                : '';
+            l.insertAdjacentHTML('beforeend',
+                `<div class="bg-brand-card border border-brand-border rounded-lg p-3 flex justify-between gap-3">
+                    <div class="min-w-0">
+                        <p class="font-mono text-[10px] text-brand-textSec">${d.fecha||''} ${d.hora||''}</p>
+                        <p class="font-bold text-xs uppercase truncate">${d.tipo||''}: ${d.concepto||''}</p>
+                        <p class="font-mono text-[9px] text-brand-textSec">${d.medio||''}</p>
+                    </div>
+                    <div class="flex items-center shrink-0">
+                        <span class="font-mono font-bold">${formatoMoneda.format(numeroSeguro(d.monto))}</span>
+                        ${btn}
+                    </div>
+                </div>`);
+        });
+    }catch(e){
+        console.error('[CAJA MENOR]',e);
+        l.innerHTML='<p class="text-xs text-center text-brand-error">No fue posible leer Caja Menor.</p>';
+    }
+}
+
+window.guardarMovimientoCajaMenor=async()=>{
+    if(window.vistaRol)return alert('La vista simulada es de solo lectura. Regresa a Admin para registrar movimientos.');
+    if(!window.turnoActual)return alert('No hay turno activo.');
+    const id=document.getElementById('caja-menor-edit-id').value.trim();
+    const tipo=document.getElementById('caja-menor-tipo').value;
+    const medio=document.getElementById('caja-menor-medio').value;
+    const concepto=document.getElementById('caja-menor-concepto').value.trim();
+    const monto=numeroSeguro(document.getElementById('caja-menor-monto').value);
+    if(!concepto)return alert('El concepto es obligatorio.');
+    if(monto<=0)return alert('Ingresa un monto mayor a cero.');
+    try{
+        const fecha=document.getElementById('caja-menor-fecha').value||fechaHoyLocal();
+        const hora=document.getElementById('caja-menor-hora').value||horaHoyLocal();
+
+        if(id){
+            const ref=doc(db,'caja_menor',id);
+            const s=await getDoc(ref);
+            if(!s.exists())return alert('No se encontró el movimiento.');
+            const previo=s.data();
+            if(previo.turnoId!==window.turnoActual?.id)return alert('Solo puedes editar movimientos del turno activo.');
+            if(!esAdmin()&&previo.creadoPor!==window.currentUser.email)return alert('Solo puedes editar tus propios movimientos.');
+
+            const payload={
+                tipo,medio,concepto,monto,hora,
+                modificadoPor:window.currentUser.email,
+                modificadoEn:serverTimestamp()
+            };
+            if(esAdmin())payload.fecha=fecha;
+            await updateDoc(ref,payload);
+        }else{
+            await addDoc(collection(db,'caja_menor'),aplicarTurnoEnRegistro({
+                tipo,medio,concepto,monto,fecha,hora,
+                timestamp:Date.now(),
+                creadoPor:window.currentUser.email,
+                createdAt:serverTimestamp()
+            }));
+        }
+
+        await cargarMovimientosCajaMenor();
+        document.getElementById('caja-menor-edit-id').value='';
+        window.cajaMenorEditandoId=null;
+        document.getElementById('caja-menor-concepto').value='';
+        document.getElementById('caja-menor-monto').value='';
+        document.getElementById('btn-guardar-caja-menor').innerHTML='<i data-lucide="save" class="w-4 h-4"></i> Registrar Movimiento';
+        await calcularDashboardAdmin();
+        lucide.createIcons();
+    }catch(e){
+        console.error(e);
+        alert('No fue posible guardar el movimiento: '+(e?.code||e?.message||e));
+    }
+};
+
+async function obtenerResumenTurno(turno){const vs=await getDocs(collection(db,'ventas')),cs=await getDocs(collection(db,'caja_menor'));const r={ventas:0,gastos:0,compras:0,comprasPorMedio:{},ventasPorMedio:{},domisPorEncargado:{},domis:0,efectivoVentas:0,efectivoAbonos:0,efectivoCompras:0,efectivoGastos:0,utilidad:0};vs.forEach(x=>{const d=x.data();if(d.turnoId!==turno.id)return;const t=d.tipoMovimiento||'Venta',mt=numeroSeguro(d.totalVenta);if(t==='Venta')r.ventas+=mt;else if(t==='Compra')r.compras+=mt;else if(t==='Gasto')r.gastos+=mt;const pagos=d.pagos||[];pagos.forEach(p=>{const med=String(p.metodo||'Sin medio'),v=numeroSeguro(p.monto);if(t==='Venta'){r.ventasPorMedio[med]=(r.ventasPorMedio[med]||0)+v;if(med.toUpperCase()==='EFECTIVO')r.efectivoVentas+=v;}if(t==='Compra'){r.comprasPorMedio[med]=(r.comprasPorMedio[med]||0)+v;if(med.toUpperCase()==='EFECTIVO')r.efectivoCompras+=v;}if(t==='Gasto'){if(med.toUpperCase()==='EFECTIVO')r.efectivoGastos+=v;}if(t==='Abono'||t==='Abono Domis'){if(med.toUpperCase()==='EFECTIVO')r.efectivoAbonos+=v;}});if(t==='Venta')(d.productos||[]).forEach(p=>{const codigo=String(p.concepto||'').trim().toUpperCase();const costo=numeroSeguro(p.costoUnitarioSnapshot)||numeroSeguro(window.inventarioCache?.[codigo]?.costoCompra);r.utilidad+=numeroSeguro(p.total)-numeroSeguro(p.cantidad)*costo;});const e=d.entrega||{},c=numeroSeguro(e.costo);if(c>0){r.domis+=c;const enc=String(e.encargado||'SIN ENCARGADO').toUpperCase();r.domisPorEncargado[enc]=(r.domisPorEncargado[enc]||0)+c;}});cs.forEach(x=>{const d=x.data();if(d.turnoId!==turno.id)return;const v=numeroSeguro(d.monto),med=String(d.medio||'Sin medio');if(d.tipo==='Compra'){r.compras+=v;r.comprasPorMedio[med]=(r.comprasPorMedio[med]||0)+v;if(med.toUpperCase()==='EFECTIVO')r.efectivoCompras+=v;}else{r.gastos+=v;if(med.toUpperCase()==='EFECTIVO')r.efectivoGastos+=v;}});r.cajaEsperada=numeroSeguro(turno.efectivoInicial)+r.efectivoVentas+r.efectivoAbonos-r.efectivoCompras-r.efectivoGastos;return r;}
         const mapHtml=(obj,color)=>Object.entries(obj||{}).length?Object.entries(obj).map(([k,v])=>`<div class="bg-brand-card border border-brand-border p-3 rounded-lg flex justify-between"><span class="font-mono text-[10px] uppercase">${k}</span><span class="font-mono font-bold ${color}">${formatoMoneda.format(v)}</span></div>`).join(''):'<p class="text-xs text-brand-textSec">Sin movimientos.</p>';
         window.finalizarTurno=async()=>{if(window.vistaRol)return alert('La vista simulada es de solo lectura. Regresa a Admin para finalizar el turno.');if(!window.turnoActual)return signOut(auth);if(!confirm('¿Deseas finalizar el turno?'))return;try{const r=await obtenerResumenTurno(window.turnoActual);window.turnoPendienteCierre=r;document.getElementById('contenido-cierre-turno').innerHTML=`<div class="grid grid-cols-2 gap-3"><div class="bg-brand-card p-4 rounded-xl border border-brand-border"><p class="text-[9px] font-mono text-brand-textSec uppercase">Efectivo Inicial</p><p class="text-xl font-mono font-bold text-brand-primary">${formatoMoneda.format(window.turnoActual.efectivoInicial||0)}</p></div><div class="bg-brand-card p-4 rounded-xl border border-brand-border"><p class="text-[9px] font-mono text-brand-textSec uppercase">Caja Esperada</p><p class="text-xl font-mono font-bold text-brand-success">${formatoMoneda.format(r.cajaEsperada||0)}</p></div></div><div class="grid grid-cols-3 gap-3"><div class="bg-brand-primary/5 border border-brand-primary/20 rounded-xl p-4"><p class="text-[9px] text-brand-primary uppercase">Ventas</p><p class="text-xl font-mono font-bold">${formatoMoneda.format(r.ventas)}</p></div><div class="bg-brand-error/5 border border-brand-error/20 rounded-xl p-4"><p class="text-[9px] text-brand-error uppercase">Gastos</p><p class="text-xl font-mono font-bold">${formatoMoneda.format(r.gastos)}</p></div><div class="bg-brand-warning/5 border border-brand-warning/20 rounded-xl p-4"><p class="text-[9px] text-brand-warning uppercase">Compras</p><p class="text-xl font-mono font-bold">${formatoMoneda.format(r.compras)}</p></div></div><div><p class="text-[10px] font-mono text-brand-textSec uppercase mb-2">Compras por medio</p><div class="grid grid-cols-2 gap-2">${mapHtml(r.comprasPorMedio,'text-brand-warning')}</div></div><div><p class="text-[10px] font-mono text-brand-textSec uppercase mb-2">Ventas por medio</p><div class="grid grid-cols-2 gap-2">${mapHtml(r.ventasPorMedio,'text-brand-success')}</div></div><div><p class="text-[10px] font-mono text-brand-textSec uppercase mb-2">Domicilios</p><div class="grid grid-cols-2 gap-2">${mapHtml(r.domisPorEncargado,'text-brand-secondary')}</div></div><div class="bg-brand-secondary/5 p-4 rounded-xl border border-brand-secondary/20"><p class="text-[9px] font-mono text-brand-secondary uppercase">Utilidad del turno</p><p class="text-2xl font-mono font-bold text-brand-secondary">${formatoMoneda.format(r.utilidad)}</p></div>`;document.getElementById('modal-cierre-turno').style.display='flex';lucide.createIcons();}catch(e){console.error(e);alert('No fue posible generar el cierre.');}};
         window.cancelarCierreTurno=()=>{window.turnoPendienteCierre=null;document.getElementById('modal-cierre-turno').style.display='none';};
@@ -1316,7 +1451,7 @@
                 rows.forEach(row=>{
                     const codigo=row.dataset.invRow; const it=window.inventarioCache[codigo]; if(!it)return;
                     const q=(sel)=>row.querySelector(sel);
-                    const payload={nombre:q('[data-inv-field="nombre"]').value.trim()||codigo,cantidad:numeroSeguro(q('[data-inv-field="cantidad"]').value),costoCompra:numeroSeguro(q('[data-inv-field="costoCompra"]').value),precioReferencia:numeroSeguro(q('[data-inv-field="precioReferencia"]').value),controlAdministrativo:true,actualizadoPor:window.currentUser.email,actualizadoEn:serverTimestamp()};
+                    const payload={codigo,nombre:q('[data-inv-field="nombre"]').value.trim()||codigo,cantidad:numeroSeguro(q('[data-inv-field="cantidad"]').value),costoCompra:numeroSeguro(q('[data-inv-field="costoCompra"]').value),precioReferencia:numeroSeguro(q('[data-inv-field="precioReferencia"]').value),controlAdministrativo:true,actualizadoPor:window.currentUser.email,actualizadoEn:serverTimestamp()};
                     if(payload.cantidad<0||payload.costoCompra<0||payload.precioReferencia<0)throw new Error(`Valores inválidos en ${codigo}.`);
                     b.set(doc(db,'inventario',it.id),payload,{merge:true});
                 });
@@ -1629,7 +1764,7 @@
                         if((tipo==='Venta'||tipo==='Compra')&&p.origen!=='Propio'){
                             const q=numeroSeguro(p.cantidad);
                             ajustes[codigo]=(ajustes[codigo]||0)+(tipo==='Venta'?-q:q);
-                            if(tipo==='Venta'&&numeroSeguro(window.inventarioCache?.[codigo]?.cantidad)+ajustes[codigo]<0)throw new Error(`Inventario insuficiente para ${codigo}.`);
+                            
                         }
                     }
                 }
@@ -1638,7 +1773,7 @@
                 if(esAdmin() && !window.vistaRol){
                     for(const [codigo,delta] of Object.entries(ajustes)){
                         const it=window.inventarioCache?.[codigo],ref=it?doc(db,'inventario',it.id):doc(db,'inventario',codigo),nueva=numeroSeguro(it?.cantidad)+delta;
-                        if(nueva<0)throw new Error(`Inventario insuficiente para ${codigo}.`);
+                        
                         batch.set(ref,{codigo,nombre:it?.nombre||codigo,cantidad:nueva,costoCompra:numeroSeguro(it?.costoCompra),precioReferencia:numeroSeguro(it?.precioReferencia),controlAdministrativo:true,actualizadoPor:window.currentUser.email,actualizadoEn:serverTimestamp()},{merge:true});
                     }
                 }
