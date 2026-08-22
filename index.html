@@ -1778,7 +1778,12 @@ async function obtenerResumenTurno(turno){const vs=await getDocs(collection(db,'
                     }
                 }
                 await batch.commit();await cargarInventario();if(window.limpiarFormulario)window.limpiarFormulario();else inicializarApp();await calcularDashboard();await calcularDashboardAdmin();btn.innerHTML='<i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">Guardar</span>';lucide.createIcons();
-            }catch(e){alert('Error guardando: '+e.message);console.error(e);}
+            }catch(e){
+                console.error('[VENTA] Error completo:', e);
+                let detalle = e?.message || String(e);
+                if (e?.code === 'permission-denied') detalle = 'Firestore rechazó una de las operaciones. Revisa ventas, inventario o configuracion/contadorVentas.';
+                alert('Error guardando: '+detalle);
+            }
         };
 
         // DASHBOARD GLOBAL Y LÓGICA DE ABONOS HADES
