@@ -195,7 +195,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-mono text-brand-textSec mb-1 uppercase tracking-wider">Fecha Operación</label>
-                            <input type="date" id="fecha" class="w-full p-2.5 rounded-lg transition-colors font-mono"><p class="text-[9px] text-brand-textSec mt-1 font-mono">La fecha de operación es independiente del turno y puede corresponder a otra fecha.</p>
+                            <input type="date" id="fecha" class="w-full p-2.5 rounded-lg transition-colors font-mono">
                         </div>
                     </div>
 
@@ -1106,7 +1106,7 @@
         const esAdmin=()=>window.currentUser?.email===ADMIN_EMAIL;
         const esSupervisor=()=>window.currentUser?.email===SUPERVISOR_EMAIL;
         const esHades=()=>window.currentUser?.email===HADES_EMAIL;
-        const usuarioPermitido=()=>!!window.currentUser?.email && USUARIOS_PERMITIDOS.includes(window.currentUser.email);
+        window.usuarioPermitido=()=>!!window.currentUser?.email && USUARIOS_PERMITIDOS.includes(String(window.currentUser.email).trim().toLowerCase());
         const rolInterfaz=()=>window.vistaRol || window.currentUser?.email || '';
         const vistaEsHades=()=>rolInterfaz()===HADES_EMAIL;
         const vistaEsSupervisor=()=>rolInterfaz()===SUPERVISOR_EMAIL;
@@ -1755,7 +1755,7 @@ async function obtenerResumenTurno(turno){const vs=await getDocs(collection(db,'
         }
 
         function movimientoAfectaInventario(d) {
-            return !!d && usuarioPermitido() && (d.tipoMovimiento === 'Venta' || d.tipoMovimiento === 'Compra');
+            return !!d && window.usuarioPermitido() && (d.tipoMovimiento === 'Venta' || d.tipoMovimiento === 'Compra');
         }
 
         function obtenerAjustesInventarioDeMovimiento(d, signo = 1) {
