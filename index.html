@@ -1234,21 +1234,29 @@
                     turnoId,
                     createdAt:serverTimestamp()
                 };
-                await setDoc(turnoRef,data);
+                try {
+                    await setDoc(turnoRef,data);
+                } catch (e) {
+                    throw new Error(`TURNOS/${turnoId}: ${e?.code||''} ${e?.message||e}`);
+                }
 
                 // Puntero de turno activo: una sola lectura/escritura por usuario.
                 const activoRef=doc(db,'turnos_activos',user.uid);
-                await setDoc(activoRef,{
-                    turnoId,
-                    usuarioEmail:user.email,
-                    usuarioUid:user.uid,
-                    estado:'abierto',
-                    fechaApertura:fecha,
-                    horaApertura:hora,
-                    timestampApertura:data.timestampApertura,
-                    efectivoInicial:m,
-                    actualizadoEn:serverTimestamp()
-                });
+                try {
+                    await setDoc(activoRef,{
+                        turnoId,
+                        usuarioEmail:user.email,
+                        usuarioUid:user.uid,
+                        estado:'abierto',
+                        fechaApertura:fecha,
+                        horaApertura:hora,
+                        timestampApertura:data.timestampApertura,
+                        efectivoInicial:m,
+                        actualizadoEn:serverTimestamp()
+                    });
+                } catch (e) {
+                    throw new Error(`TURNOS_ACTIVOS/${user.uid}: ${e?.code||''} ${e?.message||e}`);
+                }
 
                 window.turnoActual={id:turnoId,activoId:user.uid,...data};
                 document.getElementById('modal-apertura-turno').style.display='none';
