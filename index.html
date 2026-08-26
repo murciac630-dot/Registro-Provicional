@@ -195,7 +195,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-mono text-brand-textSec mb-1 uppercase tracking-wider">Fecha Operación</label>
-                            <input type="date" id="fecha" class="w-full p-2.5 rounded-lg transition-colors font-mono">
+                            <input type="date" id="fecha" class="w-full p-2.5 rounded-lg transition-colors font-mono"><p class="text-[9px] text-brand-textSec mt-1 font-mono">La fecha de operación es independiente del turno y puede corresponder a otra fecha.</p>
                         </div>
                     </div>
 
@@ -2633,7 +2633,7 @@ async function obtenerResumenTurno(turno){const vs=await getDocs(collection(db,'
                 const costoEnvioEd=(nuevoTipo!=='Gasto'&&nuevoTipo!=='Abono')?numeroSeguro(document.getElementById('costo-envio-edicion').value):0;
                 totCobrar=subtotal+costoEnvioEd;
                 const ent=(nuevoTipo!=='Gasto'&&nuevoTipo!=='Abono')?{medio:mE||'Recoge',encargado:mE==='Domi'?document.getElementById('encargado-domi-edicion').value.toUpperCase():'N/A',costo:costoEnvioEd}:{medio:'N/A',encargado:'N/A',costo:0};
-                document.querySelectorAll('#pagos-container-edicion > div').forEach(f=>{const mt=f.querySelector('.inp-metodo').value,ct=f.querySelector('.inp-cuenta').value,mn=numeroSeguro(f.querySelector('.inp-monto').value);if(mt&&ct&&mn>=0){pags.push({metodo:mt,cuenta:ct,monto:mn});totPag+=mn;}});
+                document.querySelectorAll('#pagos-container-edicion > div').forEach(f=>{const mt=f.querySelector('.inp-met, .inp-metodo').value,ct=f.querySelector('.inp-cta, .inp-cuenta').value,mn=numeroSeguro((f.querySelector('.inp-mnt, .inp-monto') || {}).value || 0);if(mt&&ct&&mn>=0){pags.push({metodo:mt,cuenta:ct,monto:mn});totPag+=mn;}});
                 if(!prods.length) return alert('Falta agregar conceptos o productos.');
                 const dif=totCobrar-totPag;if(dif>0)pags.push({metodo:'Pendiente',cuenta:'PENDIENTE',monto:dif});
                 const prodsConCosto=prods.map(p=>{const codigo=String(p.concepto||'').trim().toUpperCase();const previo=(movAnterior.productos||[]).find(x=>String(x.concepto||'').trim().toUpperCase()===codigo);const it=window.inventarioCache?.[codigo];const r={...p,costoEstimado:!it&&!previo};if(previo&&Object.prototype.hasOwnProperty.call(previo,'costoUnitarioSnapshot')) r.costoUnitarioSnapshot=numeroSeguro(previo.costoUnitarioSnapshot);else if(it) r.costoUnitarioSnapshot=numeroSeguro(it.costoCompra);return r;});
