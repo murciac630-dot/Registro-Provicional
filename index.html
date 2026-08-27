@@ -1474,25 +1474,34 @@ async function obtenerResumenTurno(turno){const vs=await getDocs(collection(db,'
                 alert('No fue posible cerrar el turno: '+(e?.code||e?.message||e));
             }
         };
-        window.abrirInventarioAdmin=async()=>{
-            if(!esAdmin())return alert('Acceso exclusivo del Administrador.');
+        window.abrirInventarioAdmin=()=>{
             const modal=document.getElementById('modal-inventario-admin');
-            if(!modal)return alert('No se encontró la ventana de Inventario.');
-            // Abrir primero: ninguna lectura/escritura de Firebase debe impedir que aparezca la ventana.
+            if(!modal){ alert('No se encontró la ventana de Inventario.'); return; }
+            // Apertura síncrona e inmediata: no depende de Firebase ni de una promesa.
             modal.classList.remove('hidden');
-            modal.style.display='flex';
-            lucide.createIcons();
+            modal.style.setProperty('display','flex','important');
+            modal.style.setProperty('visibility','visible','important');
+            modal.style.setProperty('opacity','1','important');
+            modal.style.setProperty('z-index','99999','important');
+            document.body.classList.add('overflow-hidden');
+            if(window.lucide) lucide.createIcons();
             const tabla=document.getElementById('tabla-inventario-admin');
-            if(tabla)tabla.innerHTML='<div class="p-8 text-center font-mono text-xs text-brand-textSec">Cargando inventario...</div>';
-            try{
-                await asegurarInventarioInicial();
-                await cargarInventario();
-                renderInventarioAdmin();
-            }catch(e){
-                console.error('[INVENTARIO ADMIN]',e);
-                if(tabla)tabla.innerHTML='<div class="p-8 text-center text-brand-error font-mono text-xs">No fue posible cargar el inventario. Puedes cerrar esta ventana y revisar las reglas de Firestore.</div>';
-                alert('No fue posible cargar el inventario: '+(e?.code||e?.message||e));
-            }
+            if(tabla) tabla.innerHTML='<div class="p-8 text-center font-mono text-xs text-brand-textSec">Cargando inventario...</div>';
+            Promise.resolve().then(async()=>{
+                try{
+                    if(typeof asegurarInventarioInicial==='function') await asegurarInventarioInicial();
+                    if(typeof cargarInventario==='function') await cargarInventario();
+                    if(typeof renderInventarioAdmin==='function') renderInventarioAdmin();
+                }catch(e){
+                    console.error('[INVENTARIO ADMIN]',e);
+                    if(tabla) tabla.innerHTML='<div class="p-8 text-center text-brand-error font-mono text-xs">No fue posible cargar los datos del inventario. Revisa las reglas de Firestore. El panel permanece abierto.</div>';
+                }
+            });
+        };
+        window.cerrarInventarioAdmin=()=>{
+            const modal=document.getElementById('modal-inventario-admin');
+            if(modal){ modal.style.display='none'; modal.classList.add('hidden'); }
+            document.body.classList.remove('overflow-hidden');
         };
         window.cerrarInventarioAdmin=()=>document.getElementById('modal-inventario-admin').style.display='none';
 
