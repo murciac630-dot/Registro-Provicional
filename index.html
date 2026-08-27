@@ -939,7 +939,7 @@
     <div id="modal-inventario-admin" class="fixed inset-0 z-[125] hidden items-center justify-center bg-brand-bg/95 backdrop-blur-md">
         <div class="glass-modal w-full max-w-6xl max-h-[94vh] flex flex-col rounded-2xl m-4 border border-brand-accent/40">
             <div class="p-5 border-b border-brand-border flex justify-between items-center bg-brand-panel rounded-t-2xl">
-                <div><p class="text-[10px] font-mono uppercase tracking-widest text-brand-accent">Solo Administrador</p><h2 class="text-md font-display font-bold uppercase tracking-widest text-brand-accent"><i data-lucide="boxes" class="w-4 h-4 inline"></i> Inventario Maestro</h2><p class="text-[10px] text-brand-textSec mt-1">Este inventario solo puede ser visualizado y editado por el Administrador. Las ventas y compras registradas por Admin, Supervisor y Hades sincronizan automáticamente las existencias; los demás roles no pueden consultar el inventario.</p></div>
+                <div><p class="text-[10px] font-mono uppercase tracking-widest text-brand-accent">Solo Administrador</p><h2 class="text-md font-display font-bold uppercase tracking-widest text-brand-accent"><i data-lucide="boxes" class="w-4 h-4 inline"></i> Inventario Maestro</h2><p class="text-[10px] text-brand-textSec mt-1">Este inventario solo puede ser visualizado y editado por el Administrador. Catálogo oficial tomado de Inventario.xlsx. Solo se muestran estos 30 productos. Las ventas y compras de Admin, Supervisor y Hades sincronizan las existencias; los demás roles no pueden consultar ni editar el inventario maestro.</p></div>
                 <button onclick="cerrarInventarioAdmin()" class="p-2 text-brand-textSec"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
             <div class="p-6 overflow-y-auto space-y-5">
@@ -952,7 +952,7 @@
                 </div>
                 <div class="flex flex-col lg:flex-row gap-3">
                     <button onclick="guardarInventarioAdmin()" class="flex-1 bg-brand-accent hover:bg-brand-accent/80 text-brand-bg px-4 py-3 rounded-lg font-mono font-bold uppercase tracking-widest flex items-center justify-center gap-2"><i data-lucide="save" class="w-4 h-4"></i> Guardar cambios del inventario</button>
-                    <button onclick="agregarProductoInventarioAdmin()" class="lg:w-auto bg-brand-card border border-brand-border hover:bg-brand-cardHover text-brand-text px-4 py-3 rounded-lg font-mono font-bold uppercase tracking-widest flex items-center justify-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Agregar producto</button>
+                    <button style="display:none" onclick="agregarProductoInventarioAdmin()" class="lg:w-auto bg-brand-card border border-brand-border hover:bg-brand-cardHover text-brand-text px-4 py-3 rounded-lg font-mono font-bold uppercase tracking-widest flex items-center justify-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Agregar producto</button>
                     <div class="lg:w-auto bg-brand-card border border-brand-border rounded-lg p-2 flex items-center gap-2"><input type="file" id="archivo-inventario" accept=".csv,text/csv" class="w-full text-xs"><button onclick="importarInventarioCSV()" class="px-3 py-2 bg-brand-secondary text-brand-text rounded font-mono font-bold text-xs">Importar CSV</button></div>
                 </div>
                 <div id="tabla-inventario-admin" class="overflow-x-auto"></div>
@@ -1149,21 +1149,53 @@
             }
         };
 
-        async function cargarInventario(){try{const snap=await getDocs(collection(db,'inventario'));window.inventarioCache={};snap.forEach(x=>{const d=x.data(),codigo=String(d.codigo||x.id).trim().toUpperCase();window.inventarioCache[codigo]={id:x.id,codigo,nombre:d.nombre||codigo,cantidad:numeroSeguro(d.cantidad),costoCompra:numeroSeguro(d.costoCompra),precioReferencia:numeroSeguro(d.precioReferencia)};});}catch(e){console.error('[INVENTARIO]',e);window.inventarioCache={};}}
-        const INVENTARIO_INICIAL = [
-            ['BC',6500,12],['BP',6500,30],['BT',8500,6],['ESENCIA',0,0],['FIG',140000,2],['FIP',40000,12],['FN',10425,31],['FNDIAMOND',9583,20],['G10',25000,9],['G20',50000,24],['G30',75000,13],['GDT',55000,1],['K',0,0],['MD',0,0],['MGDT',27500,10],['MGM',0,0],['MIDA',0,0],['MP',40000,25],['OXY',0,0],['PG',0,0],['PGT',0,0],['PM',4500,10],['PMT',0,0],['PP',0,0],['PPT',0,0],['RB',2500,4],['SPLTE',6900,9],['SKULL',150000,1],['WD',0,0]
-        ];
+        async function cargarInventario(){
+            try{
+                const snap=await getDocs(collection(db,'inventario'));
+                const candidatos={};
+                snap.forEach(x=>{
+                    const d=x.data();
+                    const code=canonizarCodigoProducto(d.codigo||x.id);
+                    if(!esProductoCanonico(code)) return;
+                    const canon=INVENTARIO_CANONICO.find(p=>p.codigo.toUpperCase()===code.toUpperCase());
+                    if(!canon) return;
+                    const item={
+                        id:x.id,codigo:canon.codigo,nombre:canon.nombre,
+                        cantidad:numeroSeguro(d.cantidad),
+                        costoCompra:Object.prototype.hasOwnProperty.call(d,'costoCompra')?numeroSeguro(d.costoCompra):numeroSeguro(COSTOS_BASE[canon.codigo.toUpperCase()]||0),
+                        precioReferencia:Object.prototype.hasOwnProperty.call(d,'precioReferencia')?numeroSeguro(d.precioReferencia):canon.precioInicial
+                    };
+                    const preferido=x.id===canon.codigo;
+                    const anterior=candidatos[canon.codigo];
+                    if(!anterior || (preferido && anterior.id!==canon.codigo)) candidatos[canon.codigo]=item;
+                });
+                window.inventarioCache=candidatos;
+            }catch(e){
+                console.error('[INVENTARIO] lectura no disponible para este rol:',e);
+                window.inventarioCache={};
+            }
+        }
+
         async function asegurarInventarioInicial(){
             if(!esAdmin()) return;
             try{
                 const snap=await getDocs(collection(db,'inventario'));
-                const existentes=new Set(); snap.forEach(x=>existentes.add(String(x.data().codigo||x.id).trim().toUpperCase()));
-                const faltantes=INVENTARIO_INICIAL.filter(([c])=>!existentes.has(c));
+                const existentes=new Set();
+                snap.forEach(x=>{
+                    const d=x.data();
+                    const code=canonizarCodigoProducto(d.codigo||x.id);
+                    if(esProductoCanonico(code)) existentes.add(code.toUpperCase());
+                });
+                const faltantes=INVENTARIO_CANONICO.filter(x=>!existentes.has(x.codigo.toUpperCase()));
                 if(!faltantes.length) return;
                 const b=writeBatch(db);
-                for(const [codigo,costo,cantidad] of faltantes){
-                    const ref=doc(db,'inventario',codigo);
-                    b.set(ref,{codigo,nombre:codigo,cantidad,costoCompra:costo,precioReferencia:0,fuente:'INVENTARIO_BASE',controlAdministrativo:true,actualizadoPor:ADMIN_EMAIL,actualizadoEn:serverTimestamp()},{merge:true});
+                for(const p of faltantes){
+                    b.set(doc(db,'inventario',p.codigo),{
+                        codigo:p.codigo,nombre:p.nombre,cantidad:p.cantidadInicial,
+                        costoCompra:numeroSeguro(COSTOS_BASE[p.codigo.toUpperCase()]||0),
+                        precioReferencia:p.precioInicial,fuente:'INVENTARIO_BASE',controlAdministrativo:true,
+                        actualizadoPor:ADMIN_EMAIL,actualizadoEn:serverTimestamp()
+                    },{merge:true});
                 }
                 await b.commit();
             }catch(e){console.error('[INVENTARIO BASE]',e);}
@@ -1442,41 +1474,78 @@ async function obtenerResumenTurno(turno){const vs=await getDocs(collection(db,'
                 alert('No fue posible cerrar el turno: '+(e?.code||e?.message||e));
             }
         };
-        window.abrirInventarioAdmin=async()=>{if(!esAdmin())return alert('Acceso exclusivo del Administrador.');await cargarInventario();renderInventarioAdmin();document.getElementById('modal-inventario-admin').style.display='flex';lucide.createIcons();};
+        window.abrirInventarioAdmin=async()=>{
+            if(!esAdmin())return alert('Acceso exclusivo del Administrador.');
+            await cargarInventario();await asegurarInventarioInicial();await cargarInventario();
+            renderInventarioAdmin();
+            document.getElementById('modal-inventario-admin').style.display='flex';lucide.createIcons();
+        };
         window.cerrarInventarioAdmin=()=>document.getElementById('modal-inventario-admin').style.display='none';
+
         function renderInventarioAdmin(){
-            const a=Object.values(window.inventarioCache||{}).sort((x,y)=>x.codigo.localeCompare(y.codigo));
-            let u=0,c=0,v=0; a.forEach(x=>{u+=x.cantidad;c+=x.cantidad*x.costoCompra;v+=x.cantidad*x.precioReferencia;});
+            const a=INVENTARIO_CANONICO.map(c=>window.inventarioCache?.[c.codigo]||{
+                id:c.codigo,codigo:c.codigo,nombre:c.nombre,cantidad:c.cantidadInicial,
+                costoCompra:numeroSeguro(COSTOS_BASE[c.codigo.toUpperCase()]||0),precioReferencia:c.precioInicial
+            });
+            let u=0,costo=0,venta=0;a.forEach(x=>{u+=x.cantidad;costo+=x.cantidad*x.costoCompra;venta+=Math.max(0,x.cantidad)*x.precioReferencia;});
             document.getElementById('inv-total-items').textContent=a.length;
             document.getElementById('inv-total-unidades').textContent=u;
-            document.getElementById('inv-total-costo').textContent=formatoMoneda.format(c);
-            document.getElementById('inv-total-venta').textContent=formatoMoneda.format(v);
-            document.getElementById('tabla-inventario-admin').innerHTML=`<table class="w-full min-w-[950px]"><thead><tr class="border-b border-brand-border text-[9px] font-mono uppercase text-brand-textSec"><th class="p-2 text-left">Código</th><th class="p-2 text-left">Producto</th><th class="p-2">Stock</th><th class="p-2">Costo Unit.</th><th class="p-2">Precio Venta Ref.</th><th class="p-2">Valor Costo</th><th class="p-2">Acción</th></tr></thead><tbody>`+a.map((x,i)=>`<tr class="border-b border-brand-border" data-inv-row="${x.codigo}"><td class="p-2 font-mono text-xs">${x.codigo}</td><td class="p-2"><input data-inv-field="nombre" value="${String(x.nombre||x.codigo).replace(/"/g,'&quot;')}" class="w-full p-2 rounded bg-brand-bg text-xs"></td><td class="p-2"><input data-inv-field="cantidad" type="number" min="0" step="1" value="${x.cantidad}" class="w-28 p-2 rounded bg-brand-bg text-xs text-center"></td><td class="p-2"><input data-inv-field="costoCompra" type="number" min="0" step="1" value="${x.costoCompra}" class="w-32 p-2 rounded bg-brand-bg text-xs text-center"></td><td class="p-2"><input data-inv-field="precioReferencia" type="number" min="0" step="1" value="${x.precioReferencia}" class="w-32 p-2 rounded bg-brand-bg text-xs text-center"></td><td class="p-2 font-mono text-xs text-brand-warning">${formatoMoneda.format(x.cantidad*x.costoCompra)}</td><td class="p-2 text-[9px] font-mono text-brand-textSec uppercase">Admin</td></tr>`).join('')+`</tbody></table>`;
+            document.getElementById('inv-total-costo').textContent=formatoMoneda.format(costo);
+            document.getElementById('inv-total-venta').textContent=formatoMoneda.format(venta);
+            document.getElementById('tabla-inventario-admin').innerHTML=`<table class="w-full min-w-[900px]"><thead><tr class="border-b border-brand-border text-[9px] font-mono uppercase text-brand-textSec">
+            <th class="p-2 text-left">Código</th><th class="p-2 text-left">Producto</th><th class="p-2">Stock</th><th class="p-2">Costo Unit.</th><th class="p-2">Precio Venta</th><th class="p-2">Valor Costo</th></tr></thead><tbody>`+
+            a.map(x=>`<tr class="border-b border-brand-border" data-inv-row="${x.codigo}"><td class="p-2 font-mono text-xs">${x.codigo}</td><td class="p-2 text-xs font-semibold">${x.nombre}</td>
+            <td class="p-2"><input data-inv-field="cantidad" type="number" step="1" value="${x.cantidad}" class="w-28 p-2 rounded bg-brand-bg text-xs text-center"></td>
+            <td class="p-2"><input data-inv-field="costoCompra" type="number" min="0" step="1" value="${x.costoCompra}" class="w-32 p-2 rounded bg-brand-bg text-xs text-center"></td>
+            <td class="p-2"><input data-inv-field="precioReferencia" type="number" min="0" step="1" value="${x.precioReferencia}" class="w-32 p-2 rounded bg-brand-bg text-xs text-center"></td>
+            <td class="p-2 font-mono text-xs text-brand-warning">${formatoMoneda.format(x.cantidad*x.costoCompra)}</td></tr>`).join('')+`</tbody></table>`;
             lucide.createIcons();
         }
+
         window.guardarInventarioAdmin=async()=>{
             if(!esAdmin()||window.vistaRol)return alert('Regresa a la vista Administrador para modificar el inventario.');
             try{
-                const rows=[...document.querySelectorAll('#tabla-inventario-admin tbody tr')];
-                const b=writeBatch(db);
-                rows.forEach(row=>{
-                    const codigo=row.dataset.invRow; const it=window.inventarioCache[codigo]; if(!it)return;
-                    const q=(sel)=>row.querySelector(sel);
-                    const payload={codigo,nombre:q('[data-inv-field="nombre"]').value.trim()||codigo,cantidad:numeroSeguro(q('[data-inv-field="cantidad"]').value),costoCompra:numeroSeguro(q('[data-inv-field="costoCompra"]').value),precioReferencia:numeroSeguro(q('[data-inv-field="precioReferencia"]').value),controlAdministrativo:true,actualizadoPor:window.currentUser.email,actualizadoEn:serverTimestamp()};
-                    if(payload.cantidad<0||payload.costoCompra<0||payload.precioReferencia<0)throw new Error(`Valores inválidos en ${codigo}.`);
-                    b.set(doc(db,'inventario',it.id),payload,{merge:true});
-                });
-                await b.commit(); await cargarInventario(); renderInventarioAdmin(); if(esAdmin()) await calcularDashboardAdmin(); alert('Inventario actualizado correctamente.');
+                const rows=[...document.querySelectorAll('#tabla-inventario-admin tbody tr')],b=writeBatch(db);
+                for(const row of rows){
+                    const codigo=canonizarCodigoProducto(row.dataset.invRow),it=window.inventarioCache?.[codigo],q=s=>row.querySelector(s);
+                    const cantidad=numeroSeguro(q('[data-inv-field="cantidad"]')?.value);
+                    const costoCompra=numeroSeguro(q('[data-inv-field="costoCompra"]')?.value);
+                    const precioReferencia=numeroSeguro(q('[data-inv-field="precioReferencia"]')?.value);
+                    if(costoCompra<0||precioReferencia<0)throw new Error(`Valores inválidos en ${codigo}.`);
+                    b.set(doc(db,'inventario',it?it.id:codigo),{
+                        codigo,
+                        nombre:INVENTARIO_CANONICO.find(x=>x.codigo.toUpperCase()===codigo.toUpperCase())?.nombre||codigo,
+                        cantidad,costoCompra,precioReferencia,controlAdministrativo:true,
+                        actualizadoPor:window.currentUser.email,actualizadoEn:serverTimestamp()
+                    },{merge:true});
+                }
+                await b.commit();await cargarInventario();renderInventarioAdmin();await calcularDashboardAdmin();
+                alert('Inventario actualizado correctamente.');
             }catch(e){console.error(e);alert('No fue posible actualizar el inventario: '+e.message);}
         };
-        window.agregarProductoInventarioAdmin=async()=>{
-            if(!esAdmin()||window.vistaRol)return alert('Regresa a la vista Administrador para modificar el inventario.');
-            const codigo=prompt('Código del nuevo producto:'); if(!codigo)return; const c=String(codigo).trim().toUpperCase(); if(window.inventarioCache[c])return alert('Ese código ya existe.');
-            const nombre=prompt('Descripción del producto:',c)||c; const cantidad=numeroSeguro(prompt('Stock inicial:','0')); const costo=numeroSeguro(prompt('Costo unitario:','0')); const precio=numeroSeguro(prompt('Precio de venta de referencia:','0'));
-            await setDoc(doc(db,'inventario',c),{codigo:c,nombre:nombre.trim(),cantidad,costoCompra:costo,precioReferencia:precio,fuente:'ADMIN',controlAdministrativo:true,actualizadoPor:window.currentUser.email,actualizadoEn:serverTimestamp()});
-            await cargarInventario(); renderInventarioAdmin();
+        window.agregarProductoInventarioAdmin=async()=>alert('El catálogo maestro utiliza exclusivamente la lista oficial de Inventario.xlsx.');
+
+window.importarInventarioCSV=async()=>{
+            if(!esAdmin())return;
+            const f=document.getElementById('archivo-inventario').files[0];if(!f)return alert('Selecciona un CSV.');
+            try{
+                const t=await f.text(),ls=t.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(ls.length<2)return alert('CSV vacío.');
+                const h=ls[0].split(',').map(x=>x.trim().toLowerCase()),at=n=>h.indexOf(n.toLowerCase()),ic=at('codigo'),iq=at('cantidad'),icc=at('costocompra'),ip=at('precioreferencia');
+                if(ic<0||iq<0)return alert('CSV requerido: codigo,cantidad');
+                const b=writeBatch(db);let n=0;
+                ls.slice(1).forEach(line=>{
+                    const c=line.split(','),codigo=canonizarCodigoProducto(c[ic]);if(!esProductoCanonico(codigo))return;
+                    const canon=INVENTARIO_CANONICO.find(x=>x.codigo.toUpperCase()===codigo.toUpperCase()),it=window.inventarioCache?.[codigo];
+                    b.set(doc(db,'inventario',it?it.id:canon.codigo),{
+                        codigo:canon.codigo,nombre:canon.nombre,cantidad:numeroSeguro(c[iq]),
+                        costoCompra:icc>=0?numeroSeguro(c[icc]):numeroSeguro(COSTOS_BASE[canon.codigo.toUpperCase()]||0),
+                        precioReferencia:ip>=0?numeroSeguro(c[ip]):canon.precioInicial,actualizadoPor:window.currentUser.email,actualizadoEn:serverTimestamp(),controlAdministrativo:true
+                    },{merge:true});n++;
+                });
+                await b.commit();await cargarInventario();renderInventarioAdmin();alert(`Inventario importado: ${n} registros oficiales.`);
+            }catch(e){alert('No fue posible importar el inventario: '+(e?.message||e));console.error(e);}
         };
-        window.importarInventarioCSV=async()=>{if(!esAdmin())return;const f=document.getElementById('archivo-inventario').files[0];if(!f)return alert('Selecciona un CSV.');const t=await f.text(),ls=t.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(ls.length<2)return alert('CSV vacío.');const h=ls[0].split(',').map(x=>x.trim().toLowerCase());const at=(n)=>h.indexOf(n.toLowerCase());const ic=at('codigo'),inm=at('nombre'),iq=at('cantidad'),icc=at('costocompra'),ip=at('precioreferencia');if(ic<0||iq<0||icc<0)return alert('CSV requerido: codigo,cantidad,costoCompra');const b=writeBatch(db);let n=0;ls.slice(1).forEach(line=>{const c=line.split(','),codigo=String(c[ic]||'').trim().toUpperCase();if(!codigo)return;const ref=doc(db,'inventario',codigo);b.set(ref,{codigo,nombre:String(c[inm]||codigo).trim(),cantidad:numeroSeguro(c[iq]),costoCompra:numeroSeguro(c[icc]),precioReferencia:ip>=0?numeroSeguro(c[ip]):0,actualizadoPor:window.currentUser.email,actualizadoEn:serverTimestamp()},{merge:true});n++;});await b.commit();await cargarInventario();renderInventarioAdmin();alert(`Inventario importado: ${n} registros.`);};
+
         async function calcularDashboardAdmin(){if(!esAdmin()||!window.turnoActual)return;await cargarInventario();let valor=0,util=0,medios={},domis={};Object.values(window.inventarioCache||{}).forEach(x=>valor+=x.cantidad*x.costoCompra);const snap=await getDocs(collection(db,'ventas'));snap.forEach(x=>{const d=x.data();if(d.tipoMovimiento==='Venta')(d.productos||[]).forEach(p=>{const q=numeroSeguro(p.cantidad);const codigo=String(p.concepto||'').trim().toUpperCase();const cost=costoSnapshotProducto(p,codigo);util+=numeroSeguro(p.total)-q*cost;});const e=d.entrega||{},c=numeroSeguro(e.costo);if(c>0){const m=String(e.medio||'N/A').toUpperCase();medios[m]=(medios[m]||0)+c;if(m==='DOMI'){const enc=String(e.encargado||'SIN ENCARGADO').toUpperCase();domis[enc]=(domis[enc]||0)+c;}}});const r=await obtenerResumenTurno(window.turnoActual);document.getElementById('admin-caja-inicial').textContent=formatoMoneda.format(window.turnoActual.efectivoInicial||0);document.getElementById('admin-caja-esperada').textContent=formatoMoneda.format(r.cajaEsperada||0);document.getElementById('admin-utilidad').textContent=formatoMoneda.format(util);document.getElementById('admin-valor-inventario').textContent=formatoMoneda.format(valor);document.getElementById('admin-medios-entrega').innerHTML=mapHtml(medios,'text-brand-success');document.getElementById('admin-domis-encargados').innerHTML=mapHtml(domis,'text-brand-secondary');window.adminDashboardCache={utilidad:util,valorInventario:valor,medios,domis};}
 
         async function cargarConfiguracionHades() {
@@ -1755,65 +1824,48 @@ async function obtenerResumenTurno(turno){const vs=await getDocs(collection(db,'
         }
 
         function movimientoAfectaInventario(d) {
-            return !!d && window.usuarioPermitido() && (d.tipoMovimiento === 'Venta' || d.tipoMovimiento === 'Compra');
+            return !!d && window.usuarioPermitido() &&
+                   (d.tipoMovimiento === 'Venta' || d.tipoMovimiento === 'Compra');
         }
-
-        function obtenerAjustesInventarioDeMovimiento(d, signo = 1) {
-            const ajustes = {};
-            if (!d || !movimientoAfectaInventario(d)) return ajustes;
-            for (const p of (d.productos || [])) {
-                const codigo = String(p.concepto || '').trim().toUpperCase();
-                const origen = String(p.origen || 'Ferco Farma').trim();
-                if (!codigo || origen === 'Propio') continue;
-                const q = numeroSeguro(p.cantidad);
-                if (q <= 0) continue;
-                const deltaBase = d.tipoMovimiento === 'Venta' ? -q : q;
-                ajustes[codigo] = (ajustes[codigo] || 0) + (deltaBase * signo);
+        function obtenerAjustesInventarioDeMovimiento(d, signo=1){
+            const ajustes={};
+            if(!d||!movimientoAfectaInventario(d))return ajustes;
+            for(const p of (d.productos||[])){
+                const codigo=canonizarCodigoProducto(p.concepto),origen=String(p.origen||'Ferco Farma').trim();
+                if(!codigo||origen.toUpperCase()==='PROPIO'||!esProductoCanonico(codigo))continue;
+                const q=numeroSeguro(p.cantidad);if(q<=0)continue;
+                const delta=(d.tipoMovimiento==='Venta'?-q:q)*signo;
+                ajustes[codigo]=(ajustes[codigo]||0)+delta;
             }
             return ajustes;
         }
-
-        function aplicarAjustesInventarioBatch(batch, ajustes, operacionId, tipoOperacion, usuarioEmail) {
-            for (const [codigo, delta] of Object.entries(ajustes || {})) {
-                if (!codigo || !delta) continue;
-                // Para Admin podemos conservar datos maestros; para Supervisor/Hades solo se actualiza
-                // la existencia mediante increment, sin exponer el inventario en el cliente.
-                const it = window.inventarioCache?.[codigo];
-                const ref = it ? doc(db, 'inventario', it.id) : doc(db, 'inventario', codigo);
-                const base = {
-                    codigo,
-                    cantidad: increment(delta),
-                    ultimaOperacionId: operacionId,
-                    ultimaOperacionTipo: tipoOperacion,
-                    ultimaVariacion: delta,
-                    actualizadoPor: usuarioEmail,
-                    actualizadoEn: serverTimestamp()
-                };
-                if (!it) {
-                    base.nombre = codigo;
-                    base.costoCompra = 0;
-                    base.precioReferencia = 0;
-                    base.fuente = 'MOVIMIENTO_OPERATIVO';
-                    base.controlAdministrativo = true;
-                } else if (esAdmin()) {
-                    base.nombre = it.nombre || codigo;
-                    base.costoCompra = numeroSeguro(it.costoCompra);
-                    base.precioReferencia = numeroSeguro(it.precioReferencia);
-                    base.controlAdministrativo = true;
+        function aplicarAjustesInventarioBatch(batch,ajustes,operacionId,tipoOperacion,usuarioEmail){
+            for(const [codigo,delta] of Object.entries(ajustes||{})){
+                if(!codigo||!delta||!esProductoCanonico(codigo))continue;
+                const canon=INVENTARIO_CANONICO.find(x=>x.codigo.toUpperCase()===codigo.toUpperCase());
+                const it=window.inventarioCache?.[codigo];
+                const ref=doc(db,'inventario',it?it.id:canon.codigo);
+                const base={codigo:canon.codigo,cantidad:increment(delta),ultimaOperacionId:operacionId,ultimaOperacionTipo:tipoOperacion,ultimaVariacion:delta,actualizadoPor:usuarioEmail,actualizadoEn:serverTimestamp()};
+                // Incluso Supervisor/Hades pueden crear el documento oficial si falta,
+                // pero nunca pueden leer ni modificar sus campos maestros.
+                if(!it){
+                    base.nombre=canon.nombre;
+                    base.costoCompra=numeroSeguro(COSTOS_BASE[canon.codigo.toUpperCase()]||0);
+                    base.precioReferencia=canon.precioInicial;
+                    base.fuente='MOVIMIENTO_OPERATIVO';
+                    base.controlAdministrativo=true;
                 }
-                batch.set(ref, base, { merge: true });
+                batch.set(ref,base,{merge:true});
             }
         }
-
-        function combinarAjustesInventario(destino, origen) {
-            for (const [codigo, delta] of Object.entries(origen || {})) {
-                destino[codigo] = (destino[codigo] || 0) + delta;
-                if (Math.abs(destino[codigo]) < 1e-9) delete destino[codigo];
-            }
+        function combinarAjustesInventario(destino,origen){
+            for(const [codigo,delta] of Object.entries(origen||{})){destino[codigo]=(destino[codigo]||0)+delta;if(Math.abs(destino[codigo])<1e-9)delete destino[codigo];}
         }
-
-        function agregarAjustesDeMovimiento(destino, d, signo = 1) {
-            combinarAjustesInventario(destino, obtenerAjustesInventarioDeMovimiento(d, signo));
+        function agregarAjustesDeMovimiento(destino,d,signo=1){combinarAjustesInventario(destino,obtenerAjustesInventarioDeMovimiento(d,signo));}
+        async function sincronizarInventarioNoBloqueante(ajustes,operacionId,tipoOperacion,usuarioEmail){
+            if(!Object.keys(ajustes||{}).length)return {ok:true};
+            try{const b=writeBatch(db);aplicarAjustesInventarioBatch(b,ajustes,operacionId,tipoOperacion,usuarioEmail);await b.commit();return {ok:true};}
+            catch(e){console.error('[INVENTARIO SYNC]',e);return {ok:false,error:e};}
         }
 
         // =========================================================
@@ -1834,37 +1886,52 @@ async function obtenerResumenTurno(turno){const vs=await getDocs(collection(db,'
         }
 
         window.guardarMovimiento = async () => {
-            if(window.vistaRol) return alert('La vista simulada es de solo lectura. Regresa a Admin para registrar movimientos.');
-            const cliente=document.getElementById('cliente').value.trim().toUpperCase();
-            const fecha=document.getElementById('fecha').value, notas=document.getElementById('notas').value.trim();
-            const tipo=document.querySelector('input[name="tipoMovimiento"]:checked').value;
-            if(!window.turnoActual)return alert('Debes abrir un turno antes de registrar movimientos.');
-            if(!validarFechaOperacion(fecha))return alert('La fecha de operación no es válida.');
-            if(!cliente)return alert('Falta el cliente.');
-            const prods=[],pags=[];let totCobrar=0,totPag=0;
-            document.querySelectorAll('#productos-container > div').forEach(f=>{const s=f.querySelector('.input-prod-select').value,m=f.querySelector('.input-prod-manual').value.trim(),c=numeroSeguro(f.querySelector('.input-cant').value),v=numeroSeguro(f.querySelector('.input-val').value),o=f.querySelector('.input-origen')?f.querySelector('.input-origen').value:'Ferco Farma';if((s==='OTRO'?m:s)&&c>0&&v>=0)prods.push({concepto:s==='OTRO'?m:s,esDiccionario:!!window.diccionarioProductos[s],origen:o,cantidad:c,valorUnitario:v,total:c*v});});
-            const subtotal=prods.reduce((a,p)=>a+p.total,0),medioE=document.getElementById('medio-entrega').value,costoEnvio=(tipo!=='Gasto'&&tipo!=='Abono')?numeroSeguro(document.getElementById('costo-envio').value):0;totCobrar=subtotal+costoEnvio;
-            const entrega=(tipo!=='Gasto'&&tipo!=='Abono')?{medio:medioE||'Recoge',encargado:medioE==='Domi'?document.getElementById('encargado-domi').value.toUpperCase():'N/A',costo:costoEnvio}:{medio:'N/A',encargado:'N/A',costo:0};
-            document.querySelectorAll('#pagos-container > div').forEach(f=>{const mt=f.querySelector('.input-metodo').value,ct=f.querySelector('.input-cuenta').value,mn=numeroSeguro(f.querySelector('.input-monto').value);if(mt&&ct&&mn>=0){pags.push({metodo:mt,cuenta:ct,monto:mn});totPag+=mn;}});
-            if(!prods.length)return alert('Falta agregar conceptos o productos.');
-            const diferenciaCredito=totCobrar-totPag;if(diferenciaCredito>0)pags.push({metodo:'Pendiente',cuenta:'PENDIENTE',monto:diferenciaCredito});
+            if(window.vistaRol)return alert('La vista simulada es de solo lectura. Regresa a Admin para registrar movimientos.');
             try{
-                const btn=document.getElementById('btn-guardar');btn.innerHTML='PUSHING...';const consecutivoGenerado=await window.generarConsecutivo(window.currentUser.email);
-                const productosConCosto=prods.map(p=>{const codigo=String(p.concepto||'').trim().toUpperCase(),it=window.inventarioCache?.[codigo];const r={...p,costoEstimado:!it};if(it) r.costoUnitarioSnapshot=numeroSeguro(it.costoCompra);return r;});
+                const cliente=document.getElementById('cliente').value.trim().toUpperCase(),fecha=document.getElementById('fecha').value,
+                      notas=document.getElementById('notas').value.trim(),tipo=document.querySelector('input[name="tipoMovimiento"]:checked').value;
+                if(!window.turnoActual)return alert('Debes abrir un turno antes de registrar movimientos.');
+                if(!validarFechaOperacion(fecha))return alert('La fecha de operación no es válida.');
+                if(!cliente)return alert('Falta el cliente.');
+                const prods=[],pags=[];let totCobrar=0,totPag=0;
+                document.querySelectorAll('#productos-container > div').forEach(f=>{
+                    const s=f.querySelector('.input-prod-select').value,m=f.querySelector('.input-prod-manual').value.trim(),
+                          c=numeroSeguro(f.querySelector('.input-cant').value),v=numeroSeguro(f.querySelector('.input-val').value),
+                          o=f.querySelector('.input-origen')?f.querySelector('.input-origen').value:'Ferco Farma',concepto=s==='OTRO'?m:s;
+                    if(concepto&&c>0&&v>=0)prods.push({concepto,esDiccionario:!!window.diccionarioProductos[s],origen:o,cantidad:c,valorUnitario:v,total:c*v});
+                });
+                const subtotal=prods.reduce((a,p)=>a+p.total,0),medioE=document.getElementById('medio-entrega').value,
+                      costoEnvio=(tipo!=='Gasto'&&tipo!=='Abono')?numeroSeguro(document.getElementById('costo-envio').value):0;
+                totCobrar=subtotal+costoEnvio;
+                const entrega=(tipo!=='Gasto'&&tipo!=='Abono')?{medio:medioE||'Recoge',encargado:medioE==='Domi'?document.getElementById('encargado-domi').value.toUpperCase():'N/A',costo:costoEnvio}:{medio:'N/A',encargado:'N/A',costo:0};
+                document.querySelectorAll('#pagos-container > div').forEach(f=>{
+                    const mt=f.querySelector('.input-metodo').value,ct=f.querySelector('.input-cuenta').value,mn=numeroSeguro(f.querySelector('.input-monto').value);
+                    if(mt&&ct&&mn>=0){pags.push({metodo:mt,cuenta:ct,monto:mn});totPag+=mn;}
+                });
+                if(!prods.length)return alert('Falta agregar conceptos o productos.');
+                const dif=totCobrar-totPag;if(dif>0)pags.push({metodo:'Pendiente',cuenta:'PENDIENTE',monto:dif});
+                const btn=document.getElementById('btn-guardar');btn.innerHTML='PUSHING...';
+                const consecutivoGenerado=await window.generarConsecutivo(window.currentUser.email);
+                const productosConCosto=prods.map(p=>{
+                    const codigo=canonizarCodigoProducto(p.concepto),it=window.inventarioCache?.[codigo],r={...p};
+                    if(it)r.costoUnitarioSnapshot=numeroSeguro(it.costoCompra); else r.costoEstimado=true;
+                    r.codigoInventario=esProductoCanonico(codigo)?codigo:null;
+                    return r;
+                });
                 const datos=aplicarTurnoEnRegistro({tipoMovimiento:tipo,fecha,hora:horaHoyLocal(),cliente,notas,productos:productosConCosto,entrega,pagos:pags,totalVenta:totCobrar,creadoPor:window.currentUser.email,timestamp:Date.now(),horaServidor:serverTimestamp(),consecutivo:consecutivoGenerado||null});
-                const ajustes=obtenerAjustesInventarioDeMovimiento(datos, 1);
-                datos.inventarioAfectaciones=ajustes;
-                const batch=writeBatch(db),ventaRef=doc(collection(db,'ventas'));
-                batch.set(ventaRef,datos);
-                if(!window.vistaRol && Object.keys(ajustes).length){
-                    aplicarAjustesInventarioBatch(batch, ajustes, ventaRef.id, tipo, window.currentUser.email);
-                }
-                await batch.commit();await cargarInventario();if(window.limpiarFormulario)window.limpiarFormulario();else inicializarApp();await calcularDashboard();await calcularDashboardAdmin();btn.innerHTML='<i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">Guardar</span>';lucide.createIcons();
+                const ajustes=obtenerAjustesInventarioDeMovimiento(datos,1);datos.inventarioAfectaciones=ajustes;
+                const ventaRef=doc(collection(db,'ventas'));
+                // El inventario JAMÁS condiciona la creación del registro principal.
+                await setDoc(ventaRef,datos);
+                const sync=await sincronizarInventarioNoBloqueante(ajustes,ventaRef.id,tipo,window.currentUser.email);
+                if(!sync.ok)console.warn('[INVENTARIO] Registro guardado pero sincronización pendiente.');
+                await cargarInventario();if(window.limpiarFormulario)window.limpiarFormulario();else inicializarApp();
+                await calcularDashboard();if(esAdmin())await calcularDashboardAdmin();
+                btn.innerHTML='<i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">Guardar</span>';lucide.createIcons();
+                if(!sync.ok)alert('Registro guardado correctamente. La actualización del inventario no pudo completarse; la operación NO se perdió.');
             }catch(e){
-                console.error('[VENTA] Error completo:', e);
-                let detalle = e?.message || String(e);
-                if (e?.code === 'permission-denied') detalle = 'Firestore rechazó una de las operaciones. Revisa ventas, inventario o configuracion/contadorVentas.';
-                alert('Error guardando: '+detalle);
+                console.error('[VENTA] Error completo:',e);alert('Error guardando: '+(e?.message||e));
+                const btn=document.getElementById('btn-guardar');if(btn){btn.innerHTML='<i data-lucide="database-zap" class="w-4 h-4"></i> <span id="txt-btn-guardar">Guardar</span>';lucide.createIcons();}
             }
         };
 
@@ -2636,18 +2703,16 @@ async function obtenerResumenTurno(turno){const vs=await getDocs(collection(db,'
                 document.querySelectorAll('#pagos-container-edicion > div').forEach(f=>{const mt=f.querySelector('.inp-met, .inp-metodo').value,ct=f.querySelector('.inp-cta, .inp-cuenta').value,mn=numeroSeguro((f.querySelector('.inp-mnt, .inp-monto') || {}).value || 0);if(mt&&ct&&mn>=0){pags.push({metodo:mt,cuenta:ct,monto:mn});totPag+=mn;}});
                 if(!prods.length) return alert('Falta agregar conceptos o productos.');
                 const dif=totCobrar-totPag;if(dif>0)pags.push({metodo:'Pendiente',cuenta:'PENDIENTE',monto:dif});
-                const prodsConCosto=prods.map(p=>{const codigo=String(p.concepto||'').trim().toUpperCase();const previo=(movAnterior.productos||[]).find(x=>String(x.concepto||'').trim().toUpperCase()===codigo);const it=window.inventarioCache?.[codigo];const r={...p,costoEstimado:!it&&!previo};if(previo&&Object.prototype.hasOwnProperty.call(previo,'costoUnitarioSnapshot')) r.costoUnitarioSnapshot=numeroSeguro(previo.costoUnitarioSnapshot);else if(it) r.costoUnitarioSnapshot=numeroSeguro(it.costoCompra);return r;});
+                const prodsConCosto=prods.map(p=>{const codigo=canonizarCodigoProducto(p.concepto);const previo=(movAnterior.productos||[]).find(x=>String(x.concepto||'').trim().toUpperCase()===codigo);const it=window.inventarioCache?.[codigo];const r={...p,costoEstimado:!it&&!previo};if(previo&&Object.prototype.hasOwnProperty.call(previo,'costoUnitarioSnapshot')) r.costoUnitarioSnapshot=numeroSeguro(previo.costoUnitarioSnapshot);else if(it) r.costoUnitarioSnapshot=numeroSeguro(it.costoCompra);return r;});
                 const nuevoRegistro={...movAnterior,tipoMovimiento:nuevoTipo,cliente:cli,fecha:fechaEd,notas:notasEd,productos:prodsConCosto,entrega:ent,pagos:pags,totalVenta:totCobrar,modificadoPor:window.currentUser.email,fechaModificacion:Date.now()};
                 const ajustes={};
                 agregarAjustesDeMovimiento(ajustes,movAnterior,-1);
                 agregarAjustesDeMovimiento(ajustes,nuevoRegistro,1);
                 nuevoRegistro.inventarioAfectaciones=ajustes;
-                const batch=writeBatch(db);batch.update(doc(db,'ventas',id),nuevoRegistro);
-                if(Object.keys(ajustes).length){
-                    aplicarAjustesInventarioBatch(batch, ajustes, id, nuevoTipo, window.currentUser.email);
-                }
-                await batch.commit();
-                cerrarModalEdicion(); await cargarInventario(); abrirModalReporte(); await calcularDashboard(); await calcularDashboardAdmin();
+                await updateDoc(doc(db,'ventas',id),nuevoRegistro);
+                const sync=await sincronizarInventarioNoBloqueante(ajustes,id,nuevoTipo,window.currentUser.email);
+                cerrarModalEdicion(); await cargarInventario(); abrirModalReporte(); await calcularDashboard(); if(esAdmin()) await calcularDashboardAdmin();
+                if(!sync.ok) alert('Cambios guardados. El inventario no pudo sincronizarse en este momento.');
             } catch(e) { alert('Error guardando: '+(e?.message||e)); console.error(e); }
         };
 
