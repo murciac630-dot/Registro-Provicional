@@ -1928,7 +1928,7 @@ window.importarInventarioCSV=async()=>{
                 if(!codigo||!delta||!esProductoCanonico(codigo))continue;
                 const canon=INVENTARIO_CANONICO.find(x=>x.codigo.toUpperCase()===codigo.toUpperCase());
                 const it=window.inventarioCache?.[codigo];
-                const ref=doc(db,'inventario',it?it.id:canon.codigo);
+                const ref=doc(db,'inventario',canon.codigo);
                 const base={codigo:canon.codigo,cantidad:increment(delta),ultimaOperacionId:operacionId,ultimaOperacionTipo:tipoOperacion,ultimaVariacion:delta,actualizadoPor:usuarioEmail,actualizadoEn:serverTimestamp()};
                 // Incluso Supervisor/Hades pueden crear el documento oficial si falta,
                 // pero nunca pueden leer ni modificar sus campos maestros.
