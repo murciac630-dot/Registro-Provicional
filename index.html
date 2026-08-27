@@ -1101,6 +1101,67 @@
 
 
         const numeroSeguro=(v)=>{if(typeof v==='number'&&Number.isFinite(v))return v;if(v==null)return 0;const n=Number(String(v).replace(/[^0-9.-]/g,''));return Number.isFinite(n)?n:0;};
+        // =========================================================
+        // CATÁLOGO OFICIAL DE INVENTARIO
+        // Fuente: Inventario.xlsx. Solo estos productos pueden
+        // aparecer en el Inventario Maestro. Vacíos = 0.
+        // =========================================================
+        const INVENTARIO_CANONICO = [
+            {codigo:'BC', nombre:'BC', cantidadInicial:8, precioInicial:35000},
+            {codigo:'BP', nombre:'BP', cantidadInicial:38, precioInicial:45000},
+            {codigo:'BT', nombre:'BT', cantidadInicial:18, precioInicial:35000},
+            {codigo:'ESENCIA', nombre:'ESENCIA', cantidadInicial:0, precioInicial:0},
+            {codigo:'FIG', nombre:'FIG', cantidadInicial:2, precioInicial:180000},
+            {codigo:'FIP', nombre:'FIP', cantidadInicial:12, precioInicial:75000},
+            {codigo:'FN', nombre:'FN', cantidadInicial:14, precioInicial:30000},
+            {codigo:'FNDIAMOND', nombre:'FNDIAMOND', cantidadInicial:17, precioInicial:40000},
+            {codigo:'G10', nombre:'G10', cantidadInicial:8, precioInicial:120000},
+            {codigo:'G20', nombre:'G20', cantidadInicial:24, precioInicial:170000},
+            {codigo:'G30', nombre:'G30', cantidadInicial:9, precioInicial:240000},
+            {codigo:'GDT', nombre:'GDT', cantidadInicial:0, precioInicial:180000},
+            {codigo:'K', nombre:'K', cantidadInicial:0, precioInicial:0},
+            {codigo:'MD', nombre:'MD', cantidadInicial:0, precioInicial:90000},
+            {codigo:'MGDT', nombre:'MGDT', cantidadInicial:0, precioInicial:120000},
+            {codigo:'MGM', nombre:'MGM', cantidadInicial:0, precioInicial:50000},
+            {codigo:'MIDA', nombre:'MIDA', cantidadInicial:1, precioInicial:30000},
+            {codigo:'MP', nombre:'MP', cantidadInicial:8, precioInicial:70000},
+            {codigo:'OXY', nombre:'OXY', cantidadInicial:6, precioInicial:15000},
+            {codigo:'PG', nombre:'PG', cantidadInicial:0, precioInicial:25000},
+            {codigo:'PGT', nombre:'PGT', cantidadInicial:0, precioInicial:25000},
+            {codigo:'PMP', nombre:'PM', cantidadInicial:3, precioInicial:20000},
+            {codigo:'PMT', nombre:'PMT', cantidadInicial:0, precioInicial:20000},
+            {codigo:'PP', nombre:'PP', cantidadInicial:0, precioInicial:15000},
+            {codigo:'PPT', nombre:'PPT', cantidadInicial:0, precioInicial:15000},
+            {codigo:'RB', nombre:'RB', cantidadInicial:27, precioInicial:15000},
+            {codigo:'SPLTE.G', nombre:'SPLTE.G', cantidadInicial:11, precioInicial:25000},
+            {codigo:'SPLTE.P', nombre:'SPLTE.P', cantidadInicial:0, precioInicial:18000},
+            {codigo:'Skull', nombre:'Skull', cantidadInicial:1, precioInicial:190000},
+            {codigo:'WD', nombre:'WD', cantidadInicial:0, precioInicial:5000}
+        ];
+
+        const COSTOS_BASE = Object.freeze({
+            BC:6500, BP:6500, BT:8500, ESENCIA:0, FIG:140000, FIP:40000,
+            FN:10425, FNDIAMOND:9583, G10:25000, G20:50000, G30:75000,
+            GDT:55000, K:0, MD:0, MGDT:27500, MGM:0, MIDA:0, MP:40000,
+            OXY:0, PG:0, PGT:0, PMP:4500, PMT:0, PP:0, PPT:0, RB:2500,
+            'SPLTE.G':6900, 'SPLTE.P':0, Skull:150000, WD:0
+        });
+
+        const canonKey = (v) => String(v ?? '').trim().toUpperCase();
+        function canonizarCodigoProducto(valor){
+            const c=String(valor ?? '').trim();
+            if(!c) return '';
+            const exact=INVENTARIO_CANONICO.find(x=>x.codigo===c);
+            if(exact) return exact.codigo;
+            const upper=c.toUpperCase();
+            const found=INVENTARIO_CANONICO.find(x=>x.codigo.toUpperCase()===upper || x.nombre.toUpperCase()===upper);
+            return found ? found.codigo : upper;
+        }
+        function esProductoCanonico(codigo){
+            const c=canonizarCodigoProducto(codigo);
+            return INVENTARIO_CANONICO.some(x=>x.codigo===c);
+        }
+
         const fechaHoyLocal=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
         const horaHoyLocal=()=>{const d=new Date();return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;};
         const esAdmin=()=>window.currentUser?.email===ADMIN_EMAIL;
