@@ -406,6 +406,7 @@
                     <div class="grid grid-cols-2 gap-3">
                         <button onclick="window.abrirInventarioAdmin()" class="bg-brand-accent/10 hover:bg-brand-accent border border-brand-accent text-brand-accent hover:text-brand-bg px-4 py-3 rounded-lg font-display font-bold uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2"><i data-lucide="boxes" class="w-4 h-4"></i> Gestionar Inventario</button>
                         <button onclick="exportarCSV()" class="bg-brand-success/10 hover:bg-brand-success border border-brand-success text-brand-success hover:text-brand-bg px-4 py-3 rounded-lg font-display font-bold uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2"><i data-lucide="download" class="w-4 h-4"></i> Informe Completo</button>
+                        <button onclick="abrirAuditoriaDomisHades()" class="bg-brand-warning/10 hover:bg-brand-warning border border-brand-warning text-brand-warning hover:text-brand-bg px-4 py-3 rounded-lg font-display font-bold uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2"><i data-lucide="shield-search" class="w-4 h-4"></i> Auditoría Domis Hades</button>
                     </div>
                 </div>
 
@@ -746,7 +747,7 @@
                 <p class="text-[9px] font-mono uppercase tracking-widest text-brand-textSec" id="detalle-aviso-permisos">SYS_PERMISSIONS</p>
                 <div class="flex gap-2">
                     <button onclick="imprimirRecibo()" class="bg-brand-success/10 hover:bg-brand-success border border-brand-success hover:text-brand-bg text-brand-success px-4 py-2 rounded-lg font-mono text-[10px] font-bold tracking-widest uppercase transition-all flex items-center gap-2">
-                        <i data-lucide="printer" class="w-3 h-3"></i> Print
+                        <i data-lucide="receipt" class="w-3 h-3"></i> Recibo
                     </button>
                     <button id="btn-detalle-editar" class="bg-brand-warning/10 hover:bg-brand-warning border border-brand-warning hover:text-brand-bg text-brand-warning px-4 py-2 rounded-lg font-mono text-[10px] font-bold tracking-widest uppercase transition-all flex items-center gap-2">
                         <i data-lucide="edit-3" class="w-3 h-3"></i> Modificar
@@ -936,6 +937,78 @@
         </div>
     </div>
     <div id="modal-cierre-turno" class="fixed inset-0 z-[210] hidden items-center justify-center bg-brand-bg/95 backdrop-blur-md"><div class="glass-modal w-full max-w-3xl max-h-[92vh] flex flex-col rounded-2xl m-4 border border-brand-warning/40"><div class="p-5 border-b border-brand-border bg-brand-panel rounded-t-2xl flex justify-between items-center"><div><p class="text-[10px] font-mono uppercase tracking-widest text-brand-warning">Arqueo</p><h2 class="text-xl font-display font-bold text-brand-text flex items-center gap-2"><i data-lucide="circle-stop" class="w-5 h-5 text-brand-warning"></i> Cierre de Turno</h2></div><button onclick="cerrarModalCierreTurno()" class="p-2 text-brand-textSec"><i data-lucide="x" class="w-4 h-4"></i></button></div><div class="p-6 overflow-y-auto space-y-5" id="contenido-cierre-turno"></div><div class="p-5 border-t border-brand-border bg-brand-panel rounded-b-2xl flex gap-3 justify-end"><button onclick="cancelarCierreTurno()" class="px-5 py-2.5 rounded-lg border border-brand-border text-brand-textSec font-mono font-bold">Volver</button><button onclick="confirmarCierreTurno()" class="px-5 py-2.5 rounded-lg bg-brand-warning hover:bg-brand-warning/80 text-brand-bg font-mono font-bold">Confirmar Cierre</button></div></div></div>
+
+    <!-- MODAL: AUDITORÍA DOMIS HADES -->
+    <div id="modal-auditoria-domis-hades" class="fixed inset-0 z-[225] hidden items-center justify-center bg-brand-bg/95 backdrop-blur-md p-4">
+        <div class="glass-modal w-full max-w-5xl max-h-[94vh] rounded-2xl overflow-hidden border border-brand-warning/40 flex flex-col">
+            <div class="p-5 border-b border-brand-border bg-brand-panel flex items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-sm font-display font-bold text-brand-warning uppercase tracking-widest flex items-center gap-2">
+                        <i data-lucide="shield-search" class="w-4 h-4"></i> Auditoría Domis Hades
+                    </h2>
+                    <p class="text-[9px] font-mono text-brand-textSec uppercase tracking-widest mt-1">Solo Administrador · lectura · no modifica datos</p>
+                </div>
+                <button onclick="cerrarAuditoriaDomisHades()" class="p-2 hover:bg-brand-card rounded-lg text-brand-textSec"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="p-5 border-b border-brand-border bg-brand-bg grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div class="bg-brand-card p-3 rounded-lg border border-brand-border"><p class="text-[9px] font-mono text-brand-textSec uppercase">Abonos encontrados</p><p id="audit-hades-abonos" class="text-xl font-mono font-bold text-brand-success">0</p></div>
+                <div class="bg-brand-card p-3 rounded-lg border border-brand-border"><p class="text-[9px] font-mono text-brand-textSec uppercase">Total abonado</p><p id="audit-hades-total-abonos" class="text-xl font-mono font-bold text-brand-success">$ 0</p></div>
+                <div class="bg-brand-card p-3 rounded-lg border border-brand-border"><p class="text-[9px] font-mono text-brand-textSec uppercase">Costos de domis</p><p id="audit-hades-total-domis" class="text-xl font-mono font-bold text-brand-warning">$ 0</p></div>
+                <div class="bg-brand-card p-3 rounded-lg border border-brand-warning/30"><p class="text-[9px] font-mono text-brand-warning uppercase">Configuración actual</p><p id="audit-hades-config" class="text-xs font-mono font-bold text-brand-warning break-all">—</p></div>
+            </div>
+            <div id="audit-hades-alerta" class="hidden mx-5 mt-4 p-3 rounded-lg border border-brand-error/30 bg-brand-error/10 text-brand-error font-mono text-xs"></div>
+            <div class="p-5 overflow-y-auto flex-1 bg-brand-panel">
+                <div class="mb-6">
+                    <h3 class="text-[10px] font-mono font-bold text-brand-textSec uppercase tracking-widest mb-3 border-b border-brand-border pb-2">Movimientos que reducen la deuda · Abono Domis</h3>
+                    <div id="audit-hades-abonos-lista" class="space-y-2"></div>
+                </div>
+                <div>
+                    <h3 class="text-[10px] font-mono font-bold text-brand-textSec uppercase tracking-widest mb-3 border-b border-brand-border pb-2">Movimientos que generan deuda · Domicilios Hades</h3>
+                    <div id="audit-hades-domis-lista" class="space-y-2"></div>
+                </div>
+            </div>
+            <div class="p-4 border-t border-brand-border bg-brand-panel flex justify-between items-center gap-3">
+                <p class="text-[9px] font-mono text-brand-textSec">La auditoría usa los campos almacenados en Firebase: creadoPor, timestamp, horaServidor y consecutivo.</p>
+                <button onclick="cerrarAuditoriaDomisHades()" class="px-4 py-2 rounded-lg border border-brand-border text-brand-textSec font-mono text-xs uppercase">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+        <!-- MODAL RECIBO JPG ORGBRO X3 -->
+    <div id="modal-recibo-jpg" class="fixed inset-0 z-[220] hidden items-center justify-center bg-brand-bg/95 backdrop-blur-md p-4">
+        <div class="glass-modal w-full max-w-2xl max-h-[95vh] rounded-2xl overflow-hidden border border-brand-success/40 shadow-[0_0_40px_rgba(0,255,157,0.15)] flex flex-col">
+            <div class="p-4 border-b border-brand-border bg-brand-panel flex items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-sm font-display font-bold text-brand-text uppercase tracking-widest flex items-center gap-2">
+                        <i data-lucide="receipt" class="w-4 h-4 text-brand-success"></i> Recibo
+                    </h2>
+                    <p class="text-[9px] font-mono text-brand-textSec uppercase tracking-widest mt-1">ORGBRO X3 · 80 mm · 300 DPI</p>
+                </div>
+                <button onclick="cerrarModalReciboJpg()" class="p-2 hover:bg-brand-card rounded-lg text-brand-textSec">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div class="flex-1 overflow-auto bg-[#1a1a1a] p-4 md:p-6 flex justify-center">
+                <div class="bg-white shadow-2xl rounded-sm p-2 max-w-full">
+                    <img id="recibo-jpg-preview" alt="Vista previa del recibo" class="block w-full h-auto" style="max-width: 520px; image-rendering: auto;">
+                </div>
+            </div>
+            <div class="p-4 border-t border-brand-border bg-brand-panel flex flex-col sm:flex-row justify-end gap-2">
+                <button onclick="descargarReciboJpg()" class="bg-brand-primary/10 hover:bg-brand-primary border border-brand-primary hover:text-brand-bg text-brand-primary px-4 py-2 rounded-lg font-mono text-[10px] font-bold tracking-widest uppercase flex items-center justify-center gap-2">
+                    <i data-lucide="download" class="w-3 h-3"></i> Descargar JPG
+                </button>
+                <button onclick="imprimirReciboJpg()" class="bg-brand-success hover:bg-brand-success/80 text-brand-bg border border-brand-success px-4 py-2 rounded-lg font-mono text-[10px] font-bold tracking-widest uppercase flex items-center justify-center gap-2">
+                    <i data-lucide="printer" class="w-3 h-3"></i> Imprimir
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PLANTILLA OCULTA DEL RECIBO: 80 MM -->
+    <div id="recibo-jpg-template" style="position:fixed; left:-10000px; top:0; width:80mm; background:#fff; color:#000; padding:4mm; box-sizing:border-box; font-family:Arial,Helvetica,sans-serif; font-size:10px; line-height:1.25; z-index:-1;">
+        <div id="recibo-template-contenido"></div>
+    </div>
+
     <div id="modal-inventario-admin" class="fixed inset-0 z-[125] hidden items-center justify-center bg-brand-bg/95 backdrop-blur-md">
         <div class="glass-modal w-full max-w-6xl max-h-[94vh] flex flex-col rounded-2xl m-4 border border-brand-accent/40">
             <div class="p-5 border-b border-brand-border flex justify-between items-center bg-brand-panel rounded-t-2xl">
@@ -962,6 +1035,8 @@
 
 
     <!-- ==================== SCRIPTS LÓGICOS ==================== -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, getDocs, getDoc, setDoc, onSnapshot, writeBatch, runTransaction, serverTimestamp, increment, query, where, orderBy, limit } 
@@ -2615,38 +2690,234 @@ window.importarInventarioCSV=async()=>{
             }
         };
 
-        window.imprimirRecibo = () => {
-            const mov = window.movimientosCache.find(m => m.id === window.ventaEditandoId); if(!mov) return;
+        window._reciboJpgDataUrl = null;
+        window._reciboJpgNombre = 'recibo_ferco_farma.jpg';
+
+        function escaparHtmlRecibo(v) {
+            return String(v ?? '')
+                .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+        }
+
+        function construirHtmlRecibo(mov) {
             let subtotal = 0, itemsHtml = '';
             (mov.productos || []).forEach(p => {
-                subtotal += (p.total || 0);
-                const nombrePrint = window.diccionarioProductos[p.concepto] ? window.diccionarioProductos[p.concepto] : p.concepto;
-                itemsHtml += `<tr><td style="padding: 4px 0; border-bottom: 1px dashed #ccc;">${p.cantidad}</td><td style="padding: 4px 0; border-bottom: 1px dashed #ccc;">${nombrePrint}</td><td style="padding: 4px 0; border-bottom: 1px dashed #ccc; text-align: right;">${formatoMoneda.format(p.total || 0)}</td></tr>`;
+                subtotal += (Number(p.total) || 0);
+                const nombre = window.diccionarioProductos?.[p.concepto] || p.concepto || '';
+                itemsHtml += `<tr>
+                    <td style="padding:5px 0;border-bottom:1px dashed #aaa;text-align:left;">${escaparHtmlRecibo(p.cantidad)}</td>
+                    <td style="padding:5px 0;border-bottom:1px dashed #aaa;">${escaparHtmlRecibo(nombre)}</td>
+                    <td style="padding:5px 0;border-bottom:1px dashed #aaa;text-align:right;">${formatoMoneda.format(Number(p.total)||0)}</td>
+                </tr>`;
             });
+
             let fee = 0, logisHtml = '';
-            if(mov.entrega?.medio === 'Domi') { fee = mov.entrega.costo||0; logisHtml = `<tr><td colspan="2">Envío</td><td style="text-align: right;">${formatoMoneda.format(fee)}</td></tr>`; }
-            
+            if (mov.entrega?.medio === 'Domi') {
+                fee = Number(mov.entrega?.costo) || 0;
+                logisHtml = `<tr><td colspan="2" style="padding:5px 0;">ENVÍO</td><td style="padding:5px 0;text-align:right;">${formatoMoneda.format(fee)}</td></tr>`;
+            }
             const total = subtotal + fee;
-            let abonoCredito = 0;
-            (mov.pagos || []).forEach(p => { if (p.metodo === 'Credito' || p.metodo === 'Pendiente') abonoCredito += (p.monto || 0); });
-            const htmlSaldo = abonoCredito > 0 ? `<div style="border-top: 1px dashed #000; padding-top: 5px; margin-top: 5px;"><div style="display:flex; justify-content:space-between; font-size:12px;"><span>Abono/Anticipo:</span><span>${formatoMoneda.format(total - abonoCredito)}</span></div><div style="display:flex; justify-content:space-between; font-weight:bold; font-size:14px; margin-top:5px;"><span>SALDO PENDIENTE:</span><span>${formatoMoneda.format(abonoCredito)}</span></div></div>` : '';
+            let pendiente = 0;
+            (mov.pagos || []).forEach(p => {
+                if (p.metodo === 'Credito' || p.metodo === 'Pendiente') pendiente += Number(p.monto)||0;
+            });
+            const saldoHtml = pendiente > 0 ? `<div style="border-top:1px dashed #000;padding-top:7px;margin-top:7px;">
+                <div style="display:flex;justify-content:space-between;"><span>SALDO PENDIENTE</span><strong>${formatoMoneda.format(pendiente)}</strong></div>
+            </div>` : '';
 
-            const esHades = (mov.creadoPor === HADES_EMAIL);
-            const logoHtml = esHades ? '' : `<img src="logo.jpg" style="max-width:180px; margin-bottom:10px;" onerror="this.style.display='none'">`;
-            const tituloRecibo = esHades ? `<h2 style="margin:0; font-size: 24px;">HADES</h2>` : `<h2 style="margin:0;">FERCO FARMA</h2>`;
+            const esHades = mov.creadoPor === HADES_EMAIL;
+            const titulo = esHades ? 'HADES' : 'FERCO FARMA';
+            const id = mov.consecutivo || String(mov.id||'').substring(0,8);
+            const cliente = escaparHtmlRecibo(String(mov.cliente || '').toUpperCase());
+            const fecha = escaparHtmlRecibo(mov.fecha || '');
+            const creador = escaparHtmlRecibo(mov.creadoPor || '');
 
-            const idImprimir = mov.consecutivo ? mov.consecutivo : mov.id.substring(0,8);
+            return `<div style="width:100%;background:#fff;color:#000;box-sizing:border-box;">
+                <div style="text-align:center;border-bottom:1px solid #000;padding-bottom:8px;margin-bottom:8px;">
+                    ${esHades ? '' : '<div style="font-size:16px;font-weight:800;letter-spacing:.5px;">FERCO FARMA</div>'}
+                    <div style="font-size:${esHades?'18px':'12px'};font-weight:800;letter-spacing:.8px;">${titulo}</div>
+                    <div style="font-size:9px;margin-top:5px;">RECIBO · ${escaparHtmlRecibo(id)}</div>
+                    <div style="font-size:9px;">FECHA: ${fecha}</div>
+                    <div style="font-size:9px;">DATA: ${cliente}</div>
+                </div>
+                <table style="width:100%;border-collapse:collapse;font-size:9px;">
+                    <thead><tr>
+                        <th style="text-align:left;padding:4px 0;border-bottom:1px solid #000;width:12%;">CANT</th>
+                        <th style="text-align:left;padding:4px 0;border-bottom:1px solid #000;width:53%;">PRODUCTO</th>
+                        <th style="text-align:right;padding:4px 0;border-bottom:1px solid #000;width:35%;">VALOR</th>
+                    </tr></thead>
+                    <tbody>${itemsHtml}${logisHtml}</tbody>
+                </table>
+                <div style="border-top:1px solid #000;margin-top:8px;padding-top:8px;display:flex;justify-content:space-between;font-size:14px;font-weight:800;">
+                    <span>TOTAL</span><span>${formatoMoneda.format(total)}</span>
+                </div>
+                ${saldoHtml}
+                <div style="margin-top:10px;padding-top:7px;border-top:1px dashed #000;text-align:center;font-size:8px;">CREADO POR: ${creador}</div>
+                <div style="text-align:center;margin-top:8px;font-size:8px;">--- FIN DOCUMENTO ---</div>
+            </div>`;
+        }
 
-            const printWindow = window.open('', 'PRINT', 'height=600,width=400');
-            printWindow.document.write(`
-                <html><head><style>body{font-family:monospace; font-size:12px; width:300px; color:#000;} table{width:100%; border-collapse:collapse;}</style></head>
-                <body><div style="text-align:center;">${logoHtml}
-                ${tituloRecibo}<p>ID: ${idImprimir}<br>Fecha: ${mov.fecha}<br>Cliente: ${mov.cliente.toUpperCase()}</p></div>
-                <table><thead><tr><th style="text-align:left;">CANT</th><th style="text-align:left;">DESC</th><th style="text-align:right;">VALOR</th></tr></thead><tbody>${itemsHtml}${logisHtml}</tbody></table>
-                <div style="border-top:1px solid #000; padding-top:10px; margin-top:10px; display:flex; justify-content:space-between; font-size:16px; font-weight:bold;"><span>TOTAL</span><span>${formatoMoneda.format(total)}</span></div>
-                ${htmlSaldo}<br><p style="text-align:center;">--- FIN DOCUMENTO ---</p></body></html>`);
-            printWindow.document.close(); printWindow.focus();
-            setTimeout(() => { printWindow.print(); printWindow.close(); }, 800);
+        // =============================================================
+        // AUDITORÍA DOMIS HADES — SOLO ADMIN / SOLO LECTURA
+        // =============================================================
+        function formatoFechaAudit(d){
+            const ts = d?.timestamp;
+            if (typeof ts === 'number' && isFinite(ts)) {
+                try { return new Date(ts).toLocaleString('es-CO',{dateStyle:'short',timeStyle:'medium'}); } catch(e) {}
+            }
+            return `${d?.fecha||'S/F'} ${d?.hora||''}`.trim();
+        }
+        function dineroAudit(v){ return formatoMoneda.format(numeroSeguro(v)); }
+        function htmlAuditEscape(v){
+            return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));
+        }
+        window.cerrarAuditoriaDomisHades=()=>{document.getElementById('modal-auditoria-domis-hades').style.display='none';};
+        window.abrirAuditoriaDomisHades=async()=>{
+            if(!esAdmin()) return alert('Auditoría exclusiva del Administrador.');
+            const modal=document.getElementById('modal-auditoria-domis-hades');
+            const abonosEl=document.getElementById('audit-hades-abonos-lista');
+            const domisEl=document.getElementById('audit-hades-domis-lista');
+            const alerta=document.getElementById('audit-hades-alerta');
+            modal.style.display='flex';
+            abonosEl.innerHTML='<p class="text-xs font-mono text-brand-textSec">Consultando Firebase...</p>';
+            domisEl.innerHTML='';
+            alerta.classList.add('hidden');
+            alerta.textContent='';
+            try{
+                const [vs, cfg] = await Promise.all([
+                    getDocs(collection(db,'ventas')),
+                    getDoc(doc(db,'configuracion','hades_domis'))
+                ]);
+                let abonos=[], domis=[], totalAbonos=0, totalDomis=0;
+                vs.forEach(ref=>{
+                    const d={id:ref.id,...ref.data()};
+                    const t=String(d.tipoMovimiento||'Venta').trim();
+                    const cliente=String(d.cliente||'').trim().toUpperCase();
+                    if(t==='Abono Domis' || (t==='Abono' && (cliente.includes('HADES')||cliente.includes('LOGÍSTICA')))){
+                        const monto=numeroSeguro(d.totalVenta);
+                        abonos.push(d); if(monto>0) totalAbonos+=monto;
+                    }
+                    const e=d.entrega||{};
+                    const encargado=String(e.encargado||'').trim().toUpperCase();
+                    const costo=numeroSeguro(e.costo);
+                    const equipo=['CRIS','VALENTINO ROSSI','DAVID','JF','MONO'];
+                    if(d.creadoPor===HADES_EMAIL && costo>0 && equipo.includes(encargado)){
+                        domis.push(d); totalDomis+=costo;
+                    }
+                });
+                abonos.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+                domis.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+                document.getElementById('audit-hades-abonos').textContent=String(abonos.length);
+                document.getElementById('audit-hades-total-abonos').textContent=dineroAudit(totalAbonos);
+                document.getElementById('audit-hades-total-domis').textContent=dineroAudit(totalDomis);
+                const cfgData=cfg.exists()?cfg.data():{};
+                document.getElementById('audit-hades-config').textContent=cfg.exists()?`ultimaLiquidacion=${cfgData.ultimaLiquidacion??'—'}`:'Documento inexistente';
+                if(!abonos.length){
+                    abonosEl.innerHTML='<div class="p-4 rounded-lg border border-brand-border bg-brand-bg text-xs font-mono text-brand-textSec">No se encontraron movimientos de Abono Domis.</div>';
+                }else{
+                    abonosEl.innerHTML=abonos.map(d=>`<div class="p-3 rounded-lg border border-brand-success/20 bg-brand-bg">
+                        <div class="flex flex-col md:flex-row md:justify-between gap-2">
+                          <div><span class="font-mono text-[10px] text-brand-success uppercase">${htmlAuditEscape(d.tipoMovimiento||'Abono')}</span> <span class="font-mono text-[10px] text-brand-textSec">${htmlAuditEscape(formatoFechaAudit(d))}</span></div>
+                          <strong class="font-mono text-sm text-brand-success">${dineroAudit(d.totalVenta)}</strong>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mt-2 text-[10px] font-mono text-brand-textSec">
+                          <div><b class="text-brand-text">Usuario:</b> ${htmlAuditEscape(d.creadoPor||'SIN DATO')}</div>
+                          <div><b class="text-brand-text">Cliente:</b> ${htmlAuditEscape(d.cliente||'')}</div>
+                          <div><b class="text-brand-text">Cuenta:</b> ${htmlAuditEscape((d.pagos||[]).map(p=>p.cuenta||'').join(', ')||'—')}</div>
+                          <div><b class="text-brand-text">Consecutivo:</b> ${htmlAuditEscape(d.consecutivo||'—')}</div>
+                        </div>
+                        <div class="mt-2 text-[9px] font-mono text-brand-textSec break-all">ID Firebase: ${htmlAuditEscape(d.id)}</div>
+                    </div>`).join('');
+                }
+                if(!domis.length){
+                    domisEl.innerHTML='<div class="p-4 rounded-lg border border-brand-border bg-brand-bg text-xs font-mono text-brand-textSec">No se encontraron domicilios Hades que cumplan los criterios actuales.</div>';
+                }else{
+                    domisEl.innerHTML=domis.map(d=>{const e=d.entrega||{}; return `<div class="p-3 rounded-lg border border-brand-warning/20 bg-brand-bg">
+                        <div class="flex flex-col md:flex-row md:justify-between gap-2">
+                          <div><span class="font-mono text-[10px] text-brand-warning uppercase">Domicilio Hades</span> <span class="font-mono text-[10px] text-brand-textSec">${htmlAuditEscape(formatoFechaAudit(d))}</span></div>
+                          <strong class="font-mono text-sm text-brand-warning">${dineroAudit(e.costo)}</strong>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mt-2 text-[10px] font-mono text-brand-textSec">
+                          <div><b class="text-brand-text">Usuario:</b> ${htmlAuditEscape(d.creadoPor||'SIN DATO')}</div>
+                          <div><b class="text-brand-text">Encargado:</b> ${htmlAuditEscape(e.encargado||'—')}</div>
+                          <div><b class="text-brand-text">Movimiento:</b> ${htmlAuditEscape(d.tipoMovimiento||'Venta')}</div>
+                          <div><b class="text-brand-text">Consecutivo:</b> ${htmlAuditEscape(d.consecutivo||'—')}</div>
+                        </div>
+                        <div class="mt-2 text-[9px] font-mono text-brand-textSec break-all">ID Firebase: ${htmlAuditEscape(d.id)}</div>
+                    </div>`;}).join('');
+                }
+                const ultima=cfgData.ultimaLiquidacion;
+                if(cfg.exists() && ultima){
+                    alerta.classList.remove('hidden');
+                    alerta.textContent='Importante: Firebase solo permite ver el valor ACTUAL de configuracion/hades_domis con esta auditoría. El documento actual no contiene el historial de quién modificó ultimaLiquidacion. Para reconstruir cambios pasados necesitamos registros de auditoría, Cloud Audit Logs o una auditoría que ya existiera en ese momento.';
+                }
+            }catch(e){
+                console.error(e);
+                alerta.classList.remove('hidden');
+                alerta.textContent='No fue posible completar la auditoría: '+(e?.message||e);
+                abonosEl.innerHTML=''; domisEl.innerHTML='';
+            }
+            lucide.createIcons();
+        };
+
+        window.imprimirRecibo = async () => {
+            const mov = window.movimientosCache.find(m => m.id === window.ventaEditandoId);
+            if(!mov) return;
+            const modal = document.getElementById('modal-recibo-jpg');
+            const template = document.getElementById('recibo-jpg-template');
+            const contenido = document.getElementById('recibo-template-contenido');
+            const preview = document.getElementById('recibo-jpg-preview');
+            contenido.innerHTML = construirHtmlRecibo(mov);
+            modal.style.display = 'flex';
+            preview.removeAttribute('src');
+            preview.alt = 'Generando recibo...';
+            try {
+                if (typeof html2canvas !== 'function') throw new Error('No fue posible cargar el generador JPG.');
+                await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+                const canvas = await html2canvas(template, {
+                    backgroundColor:'#ffffff',
+                    scale: 3.125,
+                    useCORS:true,
+                    allowTaint:false,
+                    logging:false,
+                    imageTimeout:5000
+                });
+                window._reciboJpgDataUrl = canvas.toDataURL('image/jpeg', 0.95);
+                const id = mov.consecutivo || String(mov.id||'').substring(0,8);
+                window._reciboJpgNombre = `recibo_${String(id).replace(/[^a-zA-Z0-9_-]/g,'_')}.jpg`;
+                preview.src = window._reciboJpgDataUrl;
+                preview.alt = `Recibo ${id}`;
+                if(window.lucide) lucide.createIcons();
+            } catch(e) {
+                console.error(e);
+                modal.style.display = 'none';
+                alert('No fue posible generar el recibo JPG: ' + (e?.message || e));
+            }
+        };
+
+        window.cerrarModalReciboJpg = () => {
+            document.getElementById('modal-recibo-jpg').style.display = 'none';
+        };
+
+        window.descargarReciboJpg = () => {
+            if(!window._reciboJpgDataUrl) return alert('El recibo todavía no está listo.');
+            const a = document.createElement('a');
+            a.href = window._reciboJpgDataUrl;
+            a.download = window._reciboJpgNombre || 'recibo.jpg';
+            document.body.appendChild(a); a.click(); a.remove();
+        };
+
+        window.imprimirReciboJpg = () => {
+            if(!window._reciboJpgDataUrl) return alert('El recibo todavía no está listo.');
+            const w = window.open('', 'PRINT_RECIBO_X3', 'width=500,height=700');
+            if(!w) return alert('El navegador bloqueó la ventana de impresión. Permite ventanas emergentes para esta página.');
+            w.document.write(`<!doctype html><html><head><title>Recibo ORGBRO X3</title><style>
+                @page{size:80mm auto;margin:0;}
+                html,body{margin:0;padding:0;background:#fff;width:80mm;}
+                body{font-family:Arial,Helvetica,sans-serif;}
+                img{display:block;width:80mm;height:auto;margin:0;padding:0;}
+            </style></head><body><img src="${window._reciboJpgDataUrl}" onload="setTimeout(()=>window.print(),250)"></body></html>`);
+            w.document.close();
         };
 
         // MODAL FLOTANTE DE EDICIÓN (AISLADO)
